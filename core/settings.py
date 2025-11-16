@@ -210,6 +210,14 @@ DATABASES = {
 DATABASE_URL = config('DATABASE_URL', default='')
 if DATABASE_URL:
     DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+else:
+    # For SQLite in production (not recommended but works)
+    import os
+    if not DEBUG:
+        # Ensure db directory exists
+        db_dir = BASE_DIR / 'db_data'
+        db_dir.mkdir(exist_ok=True)
+        DATABASES['default']['NAME'] = db_dir / 'db.sqlite3'
 
 # Template caching (only if DEBUG is False)
 if not DEBUG:
