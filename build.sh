@@ -8,4 +8,7 @@ pip install -r requirements.txt
 python manage.py makemigrations --noinput
 python manage.py migrate --noinput
 
+# Create default superuser if none exists
+python manage.py create_default_superuser
+
 python manage.py collectstatic --no-input
