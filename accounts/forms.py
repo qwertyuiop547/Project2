@@ -37,8 +37,23 @@ class UserProfileForm(forms.ModelForm):
     """User profile update form"""
     class Meta:
         model = CustomUser
-        fields = ['first_name', 'last_name', 'email', 'phone_number', 
+        fields = ['username', 'first_name', 'last_name', 'email', 'phone_number', 
                   'address', 'profile_photo', 'latitude', 'longitude']
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make username field editable
+        self.fields['username'].help_text = None
+    
+    def clean_username(self):
+        """Validate username uniqueness"""
+        username = self.cleaned_data.get('username')
+        if username:
+            # Check if username is already taken by another user
+            existing_user = CustomUser.objects.filter(username=username).exclude(pk=self.instance.pk).first()
+            if existing_user:
+                raise forms.ValidationError('This username is already taken. Please choose another one.')
+        return username
     
     def clean_profile_photo(self):
         """Validate profile photo file size (max 15MB)"""

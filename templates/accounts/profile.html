@@ -533,9 +533,51 @@
             flex-direction: column;
         }
         
-        .btn-setting {
-            width: 100%;
+    .btn-setting {
+        width: 100%;
         }
+    }
+    
+    /* Form Input Styling */
+    #profileEditForm input[type="text"],
+    #profileEditForm input[type="email"],
+    #profileEditForm input[type="tel"],
+    #profileEditForm textarea {
+        width: 100%;
+        padding: 14px 18px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid var(--glass-border);
+        border-radius: 12px;
+        color: white;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+    
+    #profileEditForm input[type="text"]:focus,
+    #profileEditForm input[type="email"]:focus,
+    #profileEditForm input[type="tel"]:focus,
+    #profileEditForm textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    }
+    
+    #profileEditForm input[type="text"]::placeholder,
+    #profileEditForm input[type="email"]::placeholder,
+    #profileEditForm input[type="tel"]::placeholder,
+    #profileEditForm textarea::placeholder {
+        color: var(--text-muted);
+    }
+    
+    #profileEditForm textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+    
+    #profileEditForm label {
+        color: white;
     }
 </style>
 {% endblock %}
@@ -604,6 +646,96 @@
                         <i class="fas fa-key me-2"></i>{% trans "Change Password" %}
                     </a>
                 </div>
+            </div>
+            
+            <!-- Edit Profile Form -->
+            <div class="info-section">
+                <h3 class="section-title">
+                    <i class="fas fa-edit"></i>
+                    {% trans "Edit Profile" %}
+                </h3>
+                <form method="post" enctype="multipart/form-data" id="profileEditForm">
+                    {% csrf_token %}
+                    <div style="display: grid; gap: 20px;">
+                        <div>
+                            <label for="{{ form.username.id_for_label }}" class="info-label" style="margin-bottom: 8px; display: block;">
+                                <i class="fas fa-at"></i>
+                                {% trans "Username:" %}
+                            </label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <div style="color: #ef4444; font-size: 0.875rem; margin-top: 5px;">
+                                    {{ form.username.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.first_name.id_for_label }}" class="info-label" style="margin-bottom: 8px; display: block;">
+                                <i class="fas fa-user"></i>
+                                {% trans "First Name:" %}
+                            </label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div style="color: #ef4444; font-size: 0.875rem; margin-top: 5px;">
+                                    {{ form.first_name.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.last_name.id_for_label }}" class="info-label" style="margin-bottom: 8px; display: block;">
+                                <i class="fas fa-user"></i>
+                                {% trans "Last Name:" %}
+                            </label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div style="color: #ef4444; font-size: 0.875rem; margin-top: 5px;">
+                                    {{ form.last_name.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.email.id_for_label }}" class="info-label" style="margin-bottom: 8px; display: block;">
+                                <i class="fas fa-envelope"></i>
+                                {% trans "Email:" %}
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div style="color: #ef4444; font-size: 0.875rem; margin-top: 5px;">
+                                    {{ form.email.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.phone_number.id_for_label }}" class="info-label" style="margin-bottom: 8px; display: block;">
+                                <i class="fas fa-phone"></i>
+                                {% trans "Phone:" %}
+                            </label>
+                            {{ form.phone_number }}
+                            {% if form.phone_number.errors %}
+                                <div style="color: #ef4444; font-size: 0.875rem; margin-top: 5px;">
+                                    {{ form.phone_number.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.address.id_for_label }}" class="info-label" style="margin-bottom: 8px; display: block;">
+                                <i class="fas fa-map-marker-alt"></i>
+                                {% trans "Address:" %}
+                            </label>
+                            {{ form.address }}
+                            {% if form.address.errors %}
+                                <div style="color: #ef4444; font-size: 0.875rem; margin-top: 5px;">
+                                    {{ form.address.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div style="margin-top: 30px; display: flex; gap: 15px;">
+                        <button type="submit" class="btn-upload-save" style="flex: 1;">
+                            <i class="fas fa-save me-2"></i>{% trans "Save Changes" %}
+                        </button>
+                    </div>
+                </form>
             </div>
             
             <!-- Personal Information -->
