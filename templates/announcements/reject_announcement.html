@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Reject Announcement" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reject-card {
+        background: rgba(15, 23, 42, 0.98);
+        border: 2px solid #dc2626 !important;
+        border-radius: 20px;
+        box-shadow: 0 24px 80px rgba(220, 38, 38, 0.3);
+    }
+    
+    .reject-card .card-header {
+        background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%) !important;
+        border-radius: 18px 18px 0 0 !important;
+        padding: 20px;
+        border: none;
+    }
+    
+    .reject-card .card-header h3 {
+        margin: 0;
+        font-weight: 700;
+        color: #ffffff !important;
+    }
+    
+    .reject-card .card-body {
+        padding: 30px;
+    }
+    
+    .reject-card h5 {
+        color: #ffffff !important;
+        font-weight: 700;
+        margin-bottom: 15px;
+        font-size: 1.3rem;
+    }
+    
+    .reject-card p {
+        color: #e5e7eb !important;
+        font-size: 1rem;
+        margin-bottom: 25px;
+    }
+    
+    .reject-card .form-label {
+        color: #ffffff !important;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+    
+    .reject-card .form-control {
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        color: #ffffff !important;
+        border-radius: 10px;
+        padding: 12px;
+    }
+    
+    .reject-card .form-control:focus {
+        background: rgba(30, 41, 59, 0.9);
+        border-color: #dc2626;
+        color: #ffffff !important;
+        box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
+    }
+    
+    .reject-card .btn {
+        padding: 12px 30px;
+        font-weight: 600;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .reject-card .btn-danger {
+        background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+        border: none;
+        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+    }
+    
+    .reject-card .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(220, 38, 38, 0.6);
+    }
+    
+    .reject-card .btn-secondary {
+        background: rgba(71, 85, 105, 0.8);
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        color: #ffffff;
+    }
+    
+    .reject-card .btn-secondary:hover {
+        background: rgba(71, 85, 105, 1);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card reject-card">
+            <div class="card-header">
+                <h3>{% trans "Reject Announcement" %}</h3>
+            </div>
+            <div class="card-body">
+                <h5>{{ announcement.title }}</h5>
+                <p>{{ announcement.content|truncatewords:30 }}</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="rejection_reason" class="form-label">{% trans "Rejection Reason" %}</label>
+                        <textarea class="form-control" id="rejection_reason" name="rejection_reason" rows="4" required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-danger">{% trans "Reject Announcement" %}</button>
+                    <a href="{% url 'announcements:pending_approvals' %}" class="btn btn-secondary">{% trans "Cancel" %}</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

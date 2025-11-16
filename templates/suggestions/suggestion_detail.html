@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ suggestion.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card-body {
+        color: #ffffff !important;
+    }
+    .card-body p {
+        color: #ffffff !important;
+    }
+    .card-body h5 + p {
+        color: #ffffff !important;
+    }
+    .card .card-body > p {
+        color: #ffffff !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h3>{{ suggestion.title }}</h3>
+                    <div>
+                        {% if suggestion.status == 'pending' %}
+                        <span class="badge bg-warning">{% trans "Pending" %}</span>
+                        {% elif suggestion.status == 'under_review' %}
+                        <span class="badge bg-info">{% trans "Under Review" %}</span>
+                        {% elif suggestion.status == 'approved' %}
+                        <span class="badge bg-success">{% trans "Approved" %}</span>
+                        {% elif suggestion.status == 'implemented' %}
+                        <span class="badge bg-success"><i class="fas fa-check-circle"></i> {% trans "Implemented" %}</span>
+                        {% else %}
+                        <span class="badge bg-danger">{% trans "Rejected" %}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">
+                        {% if suggestion.is_anonymous %}
+                            {% if user.is_authenticated and user.can_view_anonymous_identity and suggestion.user %}
+                                <i class="fas fa-user-secret"></i>
+                                <span class="badge bg-secondary ms-1 me-2">
+                                    {% trans "Anonymous to residents" %}
+                                </span>
+                                {{ suggestion.user.get_full_name|default:suggestion.user.username }}
+                                <span class="mx-2">|</span>
+                            {% else %}
+                                <i class="fas fa-user-secret"></i>
+                                {% trans "Anonymous Resident" %}
+                                <span class="mx-2">|</span>
+                            {% endif %}
+                        {% else %}
+                            <i class="fas fa-user"></i>
+                            {{ suggestion.user.get_full_name|default:suggestion.user.username }}
+                            <span class="mx-2">|</span>
+                        {% endif %}
+                        <i class="fas fa-calendar"></i> {{ suggestion.created_at|date:"M d, Y" }}
+                    </small>
+                </div>
+                
+                <div class="alert alert-primary">
+                    <i class="fas fa-thumbs-up"></i>
+                    <strong id="vote-count">{{ suggestion.vote_count }}</strong>
+                    {% trans "people support this suggestion" %}
+                </div>
+                
+                <h5>{% trans "Description" %}</h5>
+                <p style="color: #ffffff !important;">{{ suggestion.description|linebreaks }}</p>
+                
+                {% if suggestion.reviewed_by %}
+                <hr>
+                <div class="alert alert-info">
+                    <h6>{% trans "Official Review" %}</h6>
+                    <p><strong>{% trans "Reviewed by" %}:</strong> {{ suggestion.reviewed_by.username }}</p>
+                    <p><strong>{% trans "Review Date" %}:</strong> {{ suggestion.reviewed_at|date:"M d, Y" }}</p>
+                    {% if suggestion.review_notes %}
+                    <p><strong>{% trans "Notes" %}:</strong></p>
+                    <p>{{ suggestion.review_notes|linebreaks }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                {% if user.is_authenticated %}
+                <div class="mt-4 d-flex flex-wrap gap-2">
+                    {% if user.is_resident and user.is_approved and not user.is_official %}
+                    <button class="btn btn-primary" onclick="voteSuggestion({{ suggestion.pk }})">
+                        <i class="fas fa-thumbs-up"></i>
+                        <span id="vote-text">
+                            {% if has_voted %}{% trans "Remove Vote" %}{% else %}{% trans "Vote for This" %}{% endif %}
+                        </span>
+                    </button>
+                    {% endif %}
+
+                    {% if user.is_chairman %}
+                    <a href="{% url 'suggestions:review_suggestion' suggestion.pk %}" class="btn btn-warning">
+                        {% trans "Review in Detail" %}
+                    </a>
+                    {% if suggestion.status == 'pending' or suggestion.status == 'under_review' %}
+                    <form method="post" action="{% url 'suggestions:approve_suggestion' suggestion.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">
+                            {% trans "Approved" %}
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'suggestions:reject_suggestion' suggestion.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            {% trans "Rejected" %}
+                        </button>
+                    </form>
+                    {% endif %}
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <div class="mt-4">
+                    <a href="{% url 'suggestions:suggestion_list' %}" class="btn btn-secondary">{% trans "Back to List" %}</a>
+                    {% if user == suggestion.user %}
+                    <a href="{% url 'suggestions:my_suggestions' %}" class="btn btn-info">{% trans "My Suggestions" %}</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function voteSuggestion(suggestionId) {
+    const csrftoken = getCookie('csrftoken');
+
+    fetch("{% url 'suggestions:vote_suggestion' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'suggestion_id=' + encodeURIComponent(suggestionId)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        const voteTextEl = document.getElementById('vote-text');
+        if (voteTextEl) {
+            voteTextEl.innerText = data.voted ? '{% trans "Remove Vote" %}' : '{% trans "Vote for This" %}';
+        }
+        const voteCountEl = document.getElementById('vote-count');
+        if (voteCountEl && typeof data.vote_count !== 'undefined') {
+            voteCountEl.innerText = data.vote_count;
+        }
+    })
+    .catch(error => {
+        console.error('Error voting on suggestion:', error);
+        alert('{% trans "Unable to record your vote right now. Please try again." %}');
+    });
+}
+</script>
+{% endblock %}
+

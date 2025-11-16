@@ -1,0 +1,17 @@
+/* Custom styles for Residents Management System */
+
+/* Add your custom CSS here */
+
+.card {
+    margin-bottom: 20px;
+}
+
+.badge {
+    margin-left: 5px;
+}
+
+.notification-badge {
+    position: relative;
+    top: -10px;
+}
+

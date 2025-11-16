@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Edit Announcement" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .edit-announcement-card {
+        background: rgba(15, 23, 42, 0.98);
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        border-radius: 20px;
+        box-shadow: 0 24px 80px rgba(15, 23, 42, 0.9);
+    }
+    
+    .edit-announcement-card .card-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        border-radius: 18px 18px 0 0;
+        padding: 20px;
+        border: none;
+    }
+    
+    .edit-announcement-card .card-header h3 {
+        margin: 0;
+        font-weight: 700;
+        color: #ffffff !important;
+    }
+    
+    .edit-announcement-card .card-body {
+        padding: 30px;
+    }
+    
+    .edit-announcement-card .form-label {
+        color: #ffffff !important;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+    
+    .edit-announcement-card .form-control,
+    .edit-announcement-card .form-select {
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        color: #ffffff !important;
+        border-radius: 10px;
+        padding: 12px;
+    }
+    
+    .edit-announcement-card .form-control:focus,
+    .edit-announcement-card .form-select:focus {
+        background: rgba(30, 41, 59, 0.9);
+        border-color: var(--primary-color);
+        color: #ffffff !important;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .edit-announcement-card .form-text {
+        color: #94a3b8 !important;
+    }
+    
+    .edit-announcement-card .text-danger {
+        color: #fca5a5 !important;
+    }
+    
+    .edit-announcement-card .btn {
+        padding: 12px 30px;
+        font-weight: 600;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .edit-announcement-card .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        border: none;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .edit-announcement-card .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+    
+    .edit-announcement-card .btn-secondary {
+        background: rgba(71, 85, 105, 0.8);
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        color: #ffffff;
+    }
+    
+    .edit-announcement-card .btn-secondary:hover {
+        background: rgba(71, 85, 105, 1);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mt-5">
+    <div class="col-lg-8 mx-auto">
+        <div class="card edit-announcement-card">
+            <div class="card-header">
+                <h3>{% trans "Edit Announcement" %}</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% if field.errors %}
+                        <div class="text-danger">
+                            {% for error in field.errors %}
+                            <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    
+                    <button type="submit" class="btn btn-primary">{% trans "Update Announcement" %}</button>
+                    <a href="{% url 'announcements:announcement_detail' announcement.pk %}" class="btn btn-secondary">{% trans "Cancel" %}</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

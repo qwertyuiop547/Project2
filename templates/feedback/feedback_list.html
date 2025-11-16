@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Feedback" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>{% trans "Feedback" %}</h2>
+            <a href="{% url 'feedback:submit_feedback' %}" class="btn btn-primary">{% trans "Submit Feedback" %}</a>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h5>{% trans "Total Feedback" %}</h5>
+                        <h2>{{ total }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h5>{% trans "Reviewed" %}</h5>
+                        <h2>{{ reviewed }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <h5>{% trans "Average Rating" %}</h5>
+                        <h2>{{ avg_rating }}/5</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filters -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <select class="form-select" name="rating">
+                            <option value="">{% trans "All Ratings" %}</option>
+                            <option value="5" {% if rating == '5' %}selected{% endif %}>5 {% trans "Stars" %}</option>
+                            <option value="4" {% if rating == '4' %}selected{% endif %}>4 {% trans "Stars" %}</option>
+                            <option value="3" {% if rating == '3' %}selected{% endif %}>3 {% trans "Stars" %}</option>
+                            <option value="2" {% if rating == '2' %}selected{% endif %}>2 {% trans "Stars" %}</option>
+                            <option value="1" {% if rating == '1' %}selected{% endif %}>1 {% trans "Star" %}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" name="is_reviewed">
+                            <option value="">{% trans "All" %}</option>
+                            <option value="true" {% if is_reviewed == 'true' %}selected{% endif %}>{% trans "Reviewed" %}</option>
+                            <option value="false" {% if is_reviewed == 'false' %}selected{% endif %}>{% trans "Unreviewed" %}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" name="search" placeholder="{% trans 'Search...' %}" value="{{ search }}">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">{% trans "Filter" %}</button>
+                        <a href="{% url 'feedback:feedback_list' %}" class="btn btn-secondary">{% trans "Reset" %}</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Feedback List -->
+        <div class="row">
+            {% for feedback in page_obj %}
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title">{{ feedback.subject }}</h5>
+                            <div>
+                                {% for i in "12345" %}
+                                {% if forloop.counter <= feedback.rating %}
+                                <i class="fas fa-star text-warning"></i>
+                                {% else %}
+                                <i class="far fa-star text-warning"></i>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <p class="card-text">{{ feedback.message|truncatewords:20 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">{{ feedback.created_at|date:"M d, Y" }}</small>
+                            <div>
+                                {% if feedback.is_reviewed %}
+                                <span class="badge bg-success">{% trans "Reviewed" %}</span>
+                                {% else %}
+                                <span class="badge bg-warning">{% trans "Pending" %}</span>
+                                {% endif %}
+                                <a href="{% url 'feedback:feedback_detail' feedback.pk %}" class="btn btn-sm btn-primary">{% trans "View" %}</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <nav>
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans "Previous" %}</a></li>
+                {% endif %}
+                <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans "Next" %}</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

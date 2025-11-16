@@ -1,0 +1,4 @@
+# Translation files will go here
+# Run: python manage.py makemessages -l ar
+# Run: python manage.py compilemessages
+

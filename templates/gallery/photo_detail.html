@@ -1,0 +1,501 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ photo.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.photo-detail-wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.photo-display-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+}
+
+.photo-main-image {
+    width: 100%;
+    height: auto;
+    max-height: 60vh;
+    object-fit: contain;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.photo-info-section {
+    padding: 1.5rem;
+}
+
+.photo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.photo-title-group h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.35rem 0;
+}
+
+.photo-description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.photo-stats-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.stat-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.9rem;
+    background: var(--glass-bg-light);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.stat-badge i {
+    font-size: 0.95rem;
+}
+
+.stat-badge.featured {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(251, 191, 36, 0.2) 100%);
+    border-color: var(--warning-color);
+}
+
+.photo-meta-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.photo-meta-info i {
+    color: var(--primary-color);
+}
+
+.photo-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.action-btn.like-btn {
+    background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+    border: none;
+    color: white;
+}
+
+.action-btn.like-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(236, 72, 153, 0.4);
+}
+
+.action-btn.feature-btn {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    border: none;
+    color: white;
+}
+
+.comments-section {
+    margin-top: 1.5rem;
+}
+
+.comments-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+}
+
+.comments-header h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.comments-count {
+    background: var(--glass-bg-light);
+    padding: 0.2rem 0.6rem;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.comment-card {
+    background: var(--glass-bg-light);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.comment-card:hover {
+    background: var(--glass-hover);
+    transform: translateX(5px);
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.comment-author {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.comment-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.comment-author-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.comment-date {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.comment-text {
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.no-comments {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--text-muted);
+}
+
+.no-comments i {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.3;
+}
+
+.no-comments p {
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.comment-form-card {
+    background: var(--glass-bg-light);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-top: 1rem;
+}
+
+.comment-form-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.comment-form-header h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.comment-textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 0.85rem;
+    background: var(--glass-bg);
+    border: 2px solid var(--glass-border);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    resize: vertical;
+    transition: all 0.3s ease;
+}
+
+.comment-textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.comment-textarea::placeholder {
+    color: var(--text-muted);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.75rem;
+    gap: 0.75rem;
+}
+
+.btn-post-comment {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 10px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.btn-post-comment:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-back {
+    background: var(--glass-bg);
+    border: 2px solid var(--glass-border);
+    padding: 0.6rem 1.25rem;
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+}
+
+.btn-back:hover {
+    background: var(--glass-hover);
+    border-color: var(--primary-color);
+    color: var(--text-primary);
+    transform: translateX(-5px);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="photo-detail-wrapper fade-in-up">
+    <!-- Back Button -->
+    <div class="mb-3">
+        <a href="{% url 'gallery:gallery_list' %}" class="btn-back">
+            <i class="fas fa-arrow-left"></i> {% trans "Back to Gallery" %}
+        </a>
+    </div>
+
+    <!-- Photo Display Card -->
+    <div class="photo-display-card">
+        <!-- Main Image -->
+        <img src="{{ photo.image.url }}" 
+             alt="{{ photo.title }}"
+             class="photo-main-image">
+
+        <!-- Photo Info Section -->
+        <div class="photo-info-section">
+            <!-- Header with Title and Stats -->
+            <div class="photo-header">
+                <div class="photo-title-group">
+                    <h1>{{ photo.title }}</h1>
+                    <p class="photo-description">{{ photo.description }}</p>
+                </div>
+                <div class="photo-stats-badges">
+                    <div class="stat-badge">
+                        <i class="fas fa-heart"></i>
+                        <span>{{ photo.like_count }}</span>
+                    </div>
+                    <div class="stat-badge">
+                        <i class="fas fa-eye"></i>
+                        <span>{{ photo.view_count }}</span>
+                    </div>
+                        {% if photo.is_featured %}
+                    <div class="stat-badge featured">
+                        <i class="fas fa-star"></i>
+                        <span>{% trans "Featured" %}</span>
+                    </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+            <!-- Meta Info -->
+            <div class="photo-meta-info">
+                <span>
+                    <i class="fas fa-user"></i>
+                    {{ photo.uploaded_by.username }}
+                </span>
+                <span>
+                    <i class="fas fa-calendar"></i>
+                    {{ photo.uploaded_at|date:"M d, Y" }}
+                </span>
+                {% if photo.category %}
+                <span>
+                    <i class="fas fa-tag"></i>
+                    {{ photo.category.name }}
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Action Buttons -->
+                {% if user.is_authenticated %}
+            <div class="photo-actions">
+                <button class="action-btn like-btn" type="button" onclick="likePhoto({{ photo.pk }})">
+                    <i class="fas fa-heart"></i>
+                    <span id="like-text">
+                        {% if has_liked %}{% trans "Unlike" %}{% else %}{% trans "Like" %}{% endif %}
+                    </span>
+                    </button>
+                    {% if user.is_official %}
+                <a href="{% url 'gallery:feature_photo' photo.pk %}" class="action-btn feature-btn">
+                    <i class="fas fa-star"></i>
+                    {% if photo.is_featured %}{% trans "Unfeature" %}{% else %}{% trans "Feature" %}{% endif %}
+                    </a>
+                <button type="button"
+                        class="action-btn btn btn-outline-danger"
+                        data-bs-toggle="modal"
+                        data-bs-target="#confirmModal"
+                        data-confirm-href="{% url 'gallery:delete_photo' photo.pk %}"
+                        data-confirm-message="{% trans 'Are you sure you want to delete this photo?' %}"
+                        data-confirm-subtext="{{ photo.title }}"
+                        data-confirm-label="{% trans 'Delete' %}">
+                    <i class="fas fa-trash"></i>
+                    {% trans "Delete" %}
+                </button>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+            <!-- Comments Section -->
+            <div class="comments-section">
+                <div class="comments-header">
+                    <h3>{% trans "Comments" %}</h3>
+                    <span class="comments-count">{{ comments|length }}</span>
+                </div>
+
+                <!-- Comments List -->
+                {% if comments %}
+                {% for comment in comments %}
+                    <div class="comment-card">
+                        <div class="comment-header">
+                            <div class="comment-author">
+                                <div class="comment-avatar">
+                                    {{ comment.user.username|first|upper }}
+                                </div>
+                                <span class="comment-author-name">{{ comment.user.username }}</span>
+                            </div>
+                            <span class="comment-date">
+                                {{ comment.created_at|date:"M d, Y • H:i" }}
+                            </span>
+                        </div>
+                        <p class="comment-text">{{ comment.comment }}</p>
+                </div>
+                {% endfor %}
+                {% else %}
+                    <div class="no-comments">
+                        <i class="fas fa-comments"></i>
+                        <p>{% trans "No comments yet. Be the first to comment!" %}</p>
+                    </div>
+                {% endif %}
+                
+                <!-- Comment Form -->
+                {% if user.is_authenticated %}
+                <div class="comment-form-card">
+                    <div class="comment-form-header">
+                        <i class="fas fa-comment-dots"></i>
+                        <h4>{% trans "Add a Comment" %}</h4>
+                    </div>
+                <form method="post">
+                    {% csrf_token %}
+                        <textarea name="comment" 
+                                  class="comment-textarea" 
+                                  placeholder="{% trans 'Share your thoughts...' %}"
+                                  required></textarea>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-post-comment">
+                                <i class="fas fa-paper-plane me-2"></i>
+                                {% trans "Post Comment" %}
+                            </button>
+                    </div>
+                </form>
+                </div>
+                {% else %}
+                <div class="comment-form-card">
+                    <p class="text-center mb-0" style="color: var(--text-secondary);">
+                        <i class="fas fa-lock me-2"></i>
+                        {% trans "Please log in to comment" %}
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function likePhoto(photoId) {
+    fetch("{% url 'gallery:like_photo' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'photo_id=' + photoId
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('like-text').innerText = data.liked ? '{% trans "Unlike" %}' : '{% trans "Like" %}';
+        location.reload();
+    });
+}
+</script>
+{% endblock %}

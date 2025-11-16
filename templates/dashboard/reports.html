@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Reports" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>{% trans "Complaint Reports" %}</h2>
+        
+        <!-- Date Filters -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-5">
+                        <label for="start_date" class="form-label">{% trans "Start Date" %}</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date }}">
+                    </div>
+                    <div class="col-md-5">
+                        <label for="end_date" class="form-label">{% trans "End Date" %}</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="submit" class="btn btn-primary w-100">{% trans "Filter" %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h5>{% trans "Total Complaints" %}</h5>
+                        <h2>{{ total }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h5>{% trans "Resolution Rate" %}</h5>
+                        <h2>{{ resolution_rate }}%</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- By Status -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>{% trans "By Status" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Count" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in by_status %}
+                                <tr>
+                                    <td>{{ item.status|title }}</td>
+                                    <td>{{ item.count }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>{% trans "By Priority" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Priority" %}</th>
+                                    <th>{% trans "Count" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in by_priority %}
+                                <tr>
+                                    <td>{{ item.priority|title }}</td>
+                                    <td>{{ item.count }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- By Category -->
+        <div class="card">
+            <div class="card-header">
+                <h5>{% trans "By Category" %}</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Category" %}</th>
+                            <th>{% trans "Count" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in by_category %}
+                        <tr>
+                            <td>{{ item.category__name }}</td>
+                            <td>{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

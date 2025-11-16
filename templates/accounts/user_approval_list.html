@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "User Approvals" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>{% trans "Pending User Approvals" %}</h2>
+        
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <h5>{% trans "Pending" %}</h5>
+                        <h2>{{ total_pending }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h5>{% trans "Approved" %}</h5>
+                        <h2>{{ total_approved }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if pending_users %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>{% trans "Username" %}</th>
+                        <th>{% trans "Name" %}</th>
+                        <th>{% trans "Email" %}</th>
+                        <th>{% trans "Registration Date" %}</th>
+                        <th>{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in pending_users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.get_full_name|default:"-" }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                        <td>
+                            <a href="{% url 'accounts:view_user_profile' user.id %}" class="btn btn-sm btn-info">{% trans "View" %}</a>
+                            <a href="{% url 'accounts:approve_user' user.id %}" class="btn btn-sm btn-success">{% trans "Approve" %}</a>
+                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal{{ user.id }}">{% trans "Reject" %}</button>
+                            
+                            <!-- Reject Modal -->
+                            <div class="modal fade" id="rejectModal{{ user.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">{% trans "Reject User" %}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form method="post" action="{% url 'accounts:reject_user' user.id %}">
+                                            {% csrf_token %}
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label for="reason{{ user.id }}" class="form-label">{% trans "Reason" %}</label>
+                                                    <textarea class="form-control" id="reason{{ user.id }}" name="reason" rows="3"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                                                <button type="submit" class="btn btn-danger">{% trans "Reject" %}</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">{% trans "No pending approvals." %}</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

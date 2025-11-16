@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "View Documents" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>{% trans "User Documents" %}: {{ viewed_user.username }}</h2>
+        
+        <div class="card">
+            <div class="card-body">
+                <h5>{% trans "User Information" %}</h5>
+                <dl class="row">
+                    <dt class="col-sm-3">{% trans "Username" %}</dt>
+                    <dd class="col-sm-9">{{ viewed_user.username }}</dd>
+                    
+                    <dt class="col-sm-3">{% trans "Name" %}</dt>
+                    <dd class="col-sm-9">{{ viewed_user.get_full_name }}</dd>
+                    
+                    <dt class="col-sm-3">{% trans "Email" %}</dt>
+                    <dd class="col-sm-9">{{ viewed_user.email }}</dd>
+                    
+                    <dt class="col-sm-3">{% trans "Address" %}</dt>
+                    <dd class="col-sm-9">{{ viewed_user.address|default:"-" }}</dd>
+                </dl>
+                
+                <h5 class="mt-4">{% trans "Verification Documents" %}</h5>
+                {% if viewed_user.verification_document %}
+                <div class="mb-3">
+                    <a href="{% url 'accounts:view_single_document' viewed_user.id %}" class="btn btn-primary" target="_blank">
+                        <i class="fas fa-file-pdf"></i> {% trans "View Verification Document" %}
+                    </a>
+                </div>
+                {% else %}
+                <p class="text-muted">{% trans "No verification document uploaded." %}</p>
+                {% endif %}
+                
+                {% if viewed_user.profile_photo %}
+                <h5 class="mt-4">{% trans "Profile Photo" %}</h5>
+                <img src="{{ viewed_user.profile_photo.url }}" alt="Profile" class="img-thumbnail" style="max-width: 300px;">
+                {% endif %}
+                
+                <div class="mt-4">
+                    <a href="{% url 'accounts:user_approval_list' %}" class="btn btn-secondary">{% trans "Back to List" %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

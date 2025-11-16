@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete User" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h3>{% trans "Delete User Account" %}</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    {% trans "This action cannot be undone!" %}
+                </div>
+                
+                <p>{% trans "Are you sure you want to delete the account:" %} <strong>{{ viewed_user.username }}</strong>?</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">{% trans "Yes, Delete Account" %}</button>
+                    <a href="{% url 'accounts:user_management_list' %}" class="btn btn-secondary">{% trans "Cancel" %}</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

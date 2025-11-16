@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Service Request" %} - {{ service_request.reference_number }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h3>{% trans "Service Request" %} - {{ service_request.reference_number }}</h3>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">{% trans "Service" %}</dt>
+                    <dd class="col-sm-8">{{ service_request.service.name }}</dd>
+                    
+                    <dt class="col-sm-4">{% trans "Reference Number" %}</dt>
+                    <dd class="col-sm-8"><strong>{{ service_request.reference_number }}</strong></dd>
+                    
+                    <dt class="col-sm-4">{% trans "Status" %}</dt>
+                    <dd class="col-sm-8">
+                        {% if service_request.status == 'pending' %}
+                        <span class="badge bg-warning">{% trans "Pending" %}</span>
+                        {% elif service_request.status == 'in_progress' %}
+                        <span class="badge bg-info">{% trans "In Progress" %}</span>
+                        {% elif service_request.status == 'completed' %}
+                        <span class="badge bg-success">{% trans "Completed" %}</span>
+                        {% else %}
+                        <span class="badge bg-danger">{% trans "Rejected" %}</span>
+                        {% endif %}
+                    </dd>
+                    
+                    <dt class="col-sm-4">{% trans "Requested Date" %}</dt>
+                    <dd class="col-sm-8">{{ service_request.created_at|date:"M d, Y H:i" }}</dd>
+                    
+                    {% if service_request.completed_at %}
+                    <dt class="col-sm-4">{% trans "Completed Date" %}</dt>
+                    <dd class="col-sm-8">{{ service_request.completed_at|date:"M d, Y H:i" }}</dd>
+                    {% endif %}
+                </dl>
+                
+                <hr>
+                
+                <h5>{% trans "Request Details" %}</h5>
+                <p>{{ service_request.details|linebreaks }}</p>
+                
+                {% if service_request.staff_notes %}
+                <hr>
+                <h5>{% trans "Staff Notes" %}</h5>
+                <div class="alert alert-info">
+                    {{ service_request.staff_notes|linebreaks }}
+                </div>
+                {% endif %}
+                
+                {% if user.is_official %}
+                <hr>
+                <h5>{% trans "Update Status" %}</h5>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="status" class="form-label">{% trans "Status" %}</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="pending" {% if service_request.status == 'pending' %}selected{% endif %}>{% trans "Pending" %}</option>
+                            <option value="in_progress" {% if service_request.status == 'in_progress' %}selected{% endif %}>{% trans "In Progress" %}</option>
+                            <option value="completed" {% if service_request.status == 'completed' %}selected{% endif %}>{% trans "Completed" %}</option>
+                            <option value="rejected" {% if service_request.status == 'rejected' %}selected{% endif %}>{% trans "Rejected" %}</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="staff_notes" class="form-label">{% trans "Staff Notes" %}</label>
+                        <textarea class="form-control" id="staff_notes" name="staff_notes" rows="3">{{ service_request.staff_notes }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">{% trans "Update" %}</button>
+                </form>
+                {% endif %}
+                
+                <div class="mt-4">
+                    <a href="{% url 'services:service_request_list' %}" class="btn btn-secondary">{% trans "Back to List" %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

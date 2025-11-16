@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ service.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h3>{{ service.name }}</h3>
+            </div>
+            <div class="card-body">
+                <p class="lead">{{ service.description }}</p>
+                
+                <dl class="row">
+                    <dt class="col-sm-3">{% trans "Category" %}</dt>
+                    <dd class="col-sm-9">{{ service.category.name }}</dd>
+                    
+                    <dt class="col-sm-3">{% trans "Fee" %}</dt>
+                    <dd class="col-sm-9">
+                        {% if service.fee > 0 %}
+                        ${{ service.fee }}
+                        {% else %}
+                        <span class="text-success">{% trans "Free" %}</span>
+                        {% endif %}
+                    </dd>
+                    
+                    {% if service.processing_time %}
+                    <dt class="col-sm-3">{% trans "Processing Time" %}</dt>
+                    <dd class="col-sm-9">{{ service.processing_time }}</dd>
+                    {% endif %}
+                    
+                    {% if service.requirements %}
+                    <dt class="col-sm-3">{% trans "Requirements" %}</dt>
+                    <dd class="col-sm-9">{{ service.requirements|linebreaks }}</dd>
+                    {% endif %}
+                </dl>
+                
+                <div class="mt-4">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'services:service_request_create' service.pk %}" class="btn btn-primary btn-lg">{% trans "Request This Service" %}</a>
+                    {% else %}
+                    <a href="{% url 'accounts:login' %}" class="btn btn-primary btn-lg">{% trans "Login to Request" %}</a>
+                    {% endif %}
+                    <a href="{% url 'services:service_list' %}" class="btn btn-secondary">{% trans "Back to Services" %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

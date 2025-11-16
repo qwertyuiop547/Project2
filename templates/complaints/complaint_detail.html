@@ -1,0 +1,470 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Complaint" %} #{{ complaint.id }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .complaint-comment-input {
+        background-color: rgba(15, 15, 25, 0.9);
+        color: #f9fafb;
+        border-color: rgba(148, 163, 184, 0.7);
+        font-size: 0.95rem;
+    }
+
+    .complaint-comment-input::placeholder {
+        color: rgba(156, 163, 175, 0.95);
+    }
+
+    .complaint-comment-input:focus {
+        background-color: rgba(15, 15, 25, 0.95);
+        color: #ffffff;
+        border-color: rgba(129, 140, 248, 0.9);
+        box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.45);
+}
+
+/* Improve readability of header info on dark background */
+.complaint-main-info {
+    color: #e5e7eb; /* light gray */
+    font-size: 0.95rem;
+}
+
+.complaint-main-info strong {
+    color: #f9fafb; /* near white for labels */
+}
+
+/* Make description and attachments text more readable */
+.complaint-detail-body h5,
+.complaint-detail-body p,
+.complaint-detail-body li {
+    color: #f9fafb;
+}
+
+/* Ensure priority dropdown text/options are visible on dark theme */
+.priority-select {
+    background-color: rgba(15, 15, 25, 0.95);
+    color: #e5e7eb;
+    border-color: rgba(148, 163, 184, 0.7);
+}
+
+.priority-select:focus {
+    background-color: rgba(15, 15, 25, 0.98);
+    color: #f9fafb;
+    border-color: rgba(129, 140, 248, 0.9);
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.45);
+}
+
+.priority-select option {
+    background-color: #020617; /* very dark background for dropdown list */
+    color: #e5e7eb;           /* light grey text */
+}
+
+/* Actions sidebar - match glassmorphism look */
+.complaint-actions-card {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.18), rgba(118, 75, 162, 0.18));
+    border-radius: 18px;
+    overflow: hidden;
+    border: none; /* remove visible white border line */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.complaint-actions-card .card-header {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-bottom: none; /* remove header divider line */
+    padding: 0.9rem 1.25rem;
+}
+
+.complaint-actions-card .card-header h5 {
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.complaint-actions-card .card-body {
+    background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.85));
+    padding: 1rem 1.1rem 1.1rem;
+}
+
+.complaint-actions-card .action-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(209, 213, 219, 0.9);
+    margin-bottom: 0.35rem;
+}
+
+.complaint-actions-card .btn-action {
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+    text-decoration: none; /* remove underline on links */
+}
+
+.complaint-actions-card .btn-action:hover,
+.complaint-actions-card .btn-action:focus {
+    text-decoration: none; /* ensure no underline on hover/focus */
+}
+
+.complaint-actions-card .btn-action-main {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #f9fafb;
+    box-shadow: 0 8px 18px rgba(34, 197, 94, 0.35);
+}
+
+.complaint-actions-card .btn-action-main:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(34, 197, 94, 0.45);
+}
+
+.complaint-actions-card .btn-action-secondary {
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    color: #f9fafb;
+    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.35);
+}
+
+.complaint-actions-card .btn-action-secondary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(59, 130, 246, 0.45);
+}
+
+.complaint-actions-card .btn-action-danger {
+    background: radial-gradient(circle at top left, #ef4444, #b91c1c);
+    color: #fee2e2;
+    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.45);
+}
+
+.complaint-actions-card .btn-action-danger:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 26px rgba(239, 68, 68, 0.55);
+}
+
+.complaint-actions-card .btn-action + .btn-action {
+    margin-top: 0.5rem;
+}
+
+.complaint-actions-card .btn-action i {
+    font-size: 0.9rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3>{{ complaint.title }}</h3>
+            </div>
+            <div class="card-body complaint-detail-body">
+                <!-- Timeline Overview -->
+                <div class="mb-3">
+                    <strong class="d-block mb-2">{% trans "Progress Timeline" %}</strong>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% with status=complaint.status %}
+                            <span class="badge {% if status in 'pending,under_review,in_progress,resolved,closed' %}bg-success{% else %}bg-secondary{% endif %}">
+                                {% trans "Submitted" %}
+                            </span>
+                            <span class="badge {% if status in 'under_review,in_progress,resolved,closed' %}bg-success{% else %}bg-secondary{% endif %}">
+                                {% trans "Under Review" %}
+                            </span>
+                            <span class="badge {% if status in 'in_progress,resolved,closed' %}bg-success{% else %}bg-secondary{% endif %}">
+                                {% trans "In Progress" %}
+                            </span>
+                            <span class="badge {% if status in 'resolved,closed' %}bg-success{% else %}bg-secondary{% endif %}">
+                                {% trans "Resolved" %}
+                            </span>
+                            <span class="badge {% if status == 'closed' %}bg-success{% else %}bg-secondary{% endif %}">
+                                {% trans "Closed" %}
+                            </span>
+                        {% endwith %}
+                    </div>
+                </div>
+
+                <div class="row mb-3 complaint-main-info">
+                    <div class="col-md-6">
+                        <strong>{% trans "Category" %}:</strong> {{ complaint.category.name }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>{% trans "Priority" %}:</strong>
+                        {% if complaint.priority == 'high' %}
+                        <span class="badge bg-danger">{% trans "High" %}</span>
+                        {% elif complaint.priority == 'medium' %}
+                        <span class="badge bg-warning">{% trans "Medium" %}</span>
+                        {% else %}
+                        <span class="badge bg-info">{% trans "Low" %}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row mb-3 complaint-main-info">
+                    <div class="col-md-4">
+                        <strong>{% trans "Status" %}:</strong>
+                        {% if complaint.status == 'pending' %}
+                        <span class="badge bg-warning">{% trans "Submitted" %}</span>
+                        {% elif complaint.status == 'under_review' %}
+                        <span class="badge bg-primary">{% trans "Under Review" %}</span>
+                        {% elif complaint.status == 'in_progress' %}
+                        <span class="badge bg-info">{% trans "In Progress" %}</span>
+                        {% elif complaint.status == 'resolved' %}
+                        <span class="badge bg-success">{% trans "Resolved" %}</span>
+                        {% elif complaint.status == 'closed' %}
+                        <span class="badge bg-secondary">{% trans "Closed" %}</span>
+                        {% elif complaint.status == 'rejected' %}
+                        <span class="badge bg-danger">{% trans "Rejected" %}</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>{% trans "Submitted" %}:</strong> {{ complaint.created_at|date:"M d, Y H:i" }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>{% trans "Submitted by" %}:</strong>
+                        {% if complaint.is_anonymous %}
+                            {% if user.is_authenticated and user.can_view_anonymous_identity and complaint.user %}
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-user-secret me-1"></i>
+                                    {% trans "Anonymous to residents" %}
+                                </span>
+                                <div class="mt-1 small text-muted">
+                                    <i class="fas fa-user-shield me-1"></i>
+                                    {{ complaint.user.get_full_name|default:complaint.user.username }}
+                                </div>
+                            {% else %}
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-user-secret me-1"></i>
+                                    {% trans "Anonymous Resident" %}
+                                </span>
+                            {% endif %}
+                        {% else %}
+                            {% if complaint.user %}
+                                {{ complaint.user.get_full_name|default:complaint.user.username }}
+                            {% else %}
+                                <span class="text-muted">{% trans "Unknown" %}</span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-3 complaint-main-info">
+                    <div class="col-md-4">
+                        <strong>{% trans "Estimated Resolution" %}:</strong>
+                        {% if complaint.estimated_resolution_date %}
+                            {{ complaint.estimated_resolution_date|date:"M d, Y" }}
+                        {% else %}
+                            <span class="text-muted">{% trans "Not set" %}</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-8">
+                        {% if complaint.delay_reason %}
+                            <strong>{% trans "Delay Reason" %}:</strong>
+                            <span>{{ complaint.delay_reason }}</span>
+                        {% elif complaint.status in 'in_progress,resolved,closed' and complaint.estimated_resolution_date %}
+                            {% if complaint.resolved_at and complaint.resolved_at.date > complaint.estimated_resolution_date %}
+                                <span class="text-warning">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {% trans "Resolved later than the original estimate." %}
+                                </span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <h5>{% trans "Description" %}</h5>
+                <p>{{ complaint.description|linebreaks }}</p>
+                
+                {% if complaint.attachments.all %}
+                <h5>{% trans "Attachments" %}</h5>
+                <ul>
+                    {% for attachment in complaint.attachments.all %}
+                    <li>
+                        <a href="{{ attachment.file.url }}" target="_blank">{{ attachment.file.name }}</a>
+                        {% if user.is_official or attachment.uploaded_by == user %}
+                        <a href="{% url 'complaints:delete_attachment' attachment.id %}" class="text-danger"><i class="fas fa-trash"></i></a>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Comments Section -->
+        <div class="card">
+            <div class="card-header">
+                <h5>{% trans "Comments" %}</h5>
+            </div>
+            <div class="card-body">
+                {% if comments %}
+                {% for comment in comments %}
+                <div class="mb-3 p-3 border rounded">
+                    <div class="d-flex justify-content-between">
+                        <strong>{{ comment.user.username }}</strong>
+                        <small class="text-muted">{{ comment.created_at|date:"M d, Y H:i" }}</small>
+                    </div>
+                    <p class="mt-2 mb-0">{{ comment.comment }}</p>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-muted">{% trans "No comments yet." %}</p>
+                {% endif %}
+                
+                <!-- Add Comment Form -->
+                <form method="post" class="mt-3">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_comment" class="form-label">{% trans "Add Comment" %}</label>
+                        {{ comment_form.comment }}
+                    </div>
+                    {% if user.is_official %}
+                    <div class="form-check mb-3">
+                        {{ comment_form.is_internal }}
+                        <label class="form-check-label" for="{{ comment_form.is_internal.id_for_label }}">
+                            {% trans "Internal comment (visible only to officials)" %}
+                        </label>
+                    </div>
+                    {% endif %}
+                    <button type="submit" name="comment_submit" class="btn btn-primary">{% trans "Add Comment" %}</button>
+                </form>
+            </div>
+        </div>
+
+        {% if rating_form %}
+        <!-- Rating Card (Resident after resolution) -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>{% trans "Rate Resolution" %}</h5>
+            </div>
+            <div class="card-body">
+                {% if complaint.rating %}
+                    <p class="mb-2">
+                        <strong>{% trans "Your rating" %}:</strong>
+                        {{ complaint.rating }} / 5
+                    </p>
+                    {% if complaint.rating_feedback %}
+                    <p class="mb-2">
+                        <strong>{% trans "Your feedback" %}:</strong>
+                        {{ complaint.rating_feedback|linebreaks }}
+                    </p>
+                    {% endif %}
+                    <p class="text-muted small mb-3">
+                        {% trans "You can update your rating if needed." %}
+                    </p>
+                {% else %}
+                    <p class="text-muted mb-3">
+                        {% trans "Please rate how satisfied you are with how this complaint was resolved." %}
+                    </p>
+                {% endif %}
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ rating_form.rating.id_for_label }}">
+                            {% trans "Rating (1 = very dissatisfied, 5 = very satisfied)" %}
+                        </label>
+                        {{ rating_form.rating }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ rating_form.rating_feedback.id_for_label }}">
+                            {% trans "Short feedback (optional)" %}
+                        </label>
+                        {{ rating_form.rating_feedback }}
+                    </div>
+                    <button type="submit" name="rating_submit" class="btn btn-success">
+                        <i class="fas fa-star me-1"></i>{% trans "Submit Rating" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Actions Card -->
+        {% if user.is_official %}
+        <div class="card mb-3 complaint-actions-card">
+            <div class="card-header">
+                <h5>{% trans "Actions" %}</h5>
+            </div>
+            <div class="card-body">
+                {% if user.is_secretary and complaint.status == 'pending' or user.is_secretary and complaint.status == 'under_review' %}
+                <div class="action-label">
+                    <i class="fas fa-flag me-1"></i>{% trans "Review & Priority" %}
+                </div>
+                <form method="post" action="{% url 'complaints:update_priority' complaint.pk %}" class="mb-3">
+                    {% csrf_token %}
+                    <label class="form-label text-light">
+                        <i class="fas fa-flag me-1"></i>
+                        {% trans "Set Priority" %}
+                    </label>
+                    <select name="priority" class="form-select form-select-sm mb-2 priority-select">
+                        {% for value,label in priority_choices %}
+                        <option value="{{ value }}" {% if complaint.priority == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn-action btn-action-secondary w-100">
+                        <i class="fas fa-save"></i>{% trans "Update Priority" %}
+                    </button>
+                </form>
+                {% endif %}
+
+                {% if complaint.status == 'pending' and user.is_official %}
+                <div class="action-label mt-2">
+                    <i class="fas fa-play-circle me-1"></i>{% trans "Start Processing" %}
+                </div>
+                <a href="{% url 'complaints:accept_complaint' complaint.pk %}" class="btn-action btn-action-main w-100 mb-2">
+                    <i class="fas fa-check-circle"></i>{% trans "Accept & Start Review" %}
+                </a>
+                {% endif %}
+
+                {% if complaint.status == 'under_review' and user.is_chairman %}
+                <div class="action-label mt-2">
+                    <i class="fas fa-tasks me-1"></i>{% trans "Chairman Actions" %}
+                </div>
+                <form method="post" action="{% url 'complaints:update_complaint' complaint.pk %}" class="mb-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="in_progress">
+                    <input type="hidden" name="notes" value="{% trans 'Moved to In Progress from Under Review' %}">
+                    <button type="submit" class="btn-action btn-action-main w-100">
+                        <i class="fas fa-spinner"></i>{% trans "Move to In Progress" %}
+                    </button>
+                </form>
+                {% endif %}
+                
+                {% if complaint.status == 'in_progress' and user.is_chairman %}
+                <a href="{% url 'complaints:mark_resolved' complaint.pk %}" class="btn-action btn-action-secondary w-100 mb-2">
+                    <i class="fas fa-check-circle"></i>{% trans "Mark as Resolved" %}
+                </a>
+                {% endif %}
+                
+                {% if complaint.status == 'resolved' and user.is_chairman %}
+                <a href="{% url 'complaints:close_complaint' complaint.pk %}" class="btn-action btn-action-secondary w-100 mb-2">
+                    <i class="fas fa-lock"></i>{% trans "Close Complaint" %}
+                </a>
+                {% endif %}
+                
+                {% if complaint.status in 'resolved,closed' and user.is_chairman %}
+                <div class="action-label mt-3">
+                    <i class="fas fa-exclamation-triangle me-1"></i>{% trans "Danger Zone" %}
+                </div>
+                <a href="{% url 'complaints:delete_complaint' complaint.pk %}" class="btn-action btn-action-danger w-100">
+                    <i class="fas fa-trash-alt"></i>{% trans "Delete Complaint" %}
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <a href="{% url 'complaints:complaint_list' %}" class="btn btn-secondary w-100">{% trans "Back to List" %}</a>
+    </div>
+</div>
+{% endblock %}
+

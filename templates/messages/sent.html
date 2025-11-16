@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Sent Messages" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .messages-container {
+        min-height: 80vh;
+        padding: 30px 0;
+    }
+    
+    .sidebar-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 20px;
+        height: fit-content;
+        position: sticky;
+        top: 100px;
+    }
+    
+    .sidebar-btn {
+        display: block;
+        width: 100%;
+        padding: 15px 20px;
+        margin-bottom: 10px;
+        border-radius: 15px;
+        background: transparent;
+        border: 2px solid transparent;
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        position: relative;
+    }
+    
+    .sidebar-btn i {
+        margin-right: 12px;
+        font-size: 1.1rem;
+    }
+    
+    .sidebar-btn:hover {
+        background: var(--glass-hover);
+        border-color: rgba(102, 126, 234, 0.3);
+        color: var(--text-primary);
+        transform: translateX(5px);
+    }
+    
+    .sidebar-btn.active {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+        border-color: rgba(102, 126, 234, 0.5);
+        color: white;
+    }
+    
+    .sent-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    
+    .sent-header {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+        padding: 25px 30px;
+        border-bottom: 1px solid var(--glass-border);
+    }
+    
+    .sent-header h3 {
+        margin: 0;
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+    
+    .message-item {
+        padding: 20px 30px;
+        border-bottom: 1px solid var(--glass-border);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .message-item:last-child {
+        border-bottom: none;
+    }
+    
+    .message-item:hover {
+        background: var(--glass-hover);
+        padding-left: 35px;
+    }
+    
+    .message-recipient {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 5px;
+        font-size: 1rem;
+    }
+    
+    .message-subject {
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+    
+    .message-date {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+    
+    .empty-state {
+        padding: 80px 40px;
+        text-align: center;
+    }
+    
+    .empty-state-icon {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 30px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--glass-border);
+    }
+    
+    .empty-state-icon i {
+        font-size: 3.5rem;
+        color: var(--text-secondary);
+    }
+    
+    .new-message-btn {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 24px;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .new-message-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .view-message-btn {
+        background: transparent;
+        border: 2px solid var(--glass-border);
+        color: var(--text-primary);
+        padding: 8px 16px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .view-message-btn:hover {
+        background: var(--glass-hover);
+        border-color: rgba(102, 126, 234, 0.5);
+        color: var(--text-primary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container messages-container">
+    <div class="row g-4">
+        <!-- Sidebar -->
+        <div class="col-lg-3">
+            <div class="sidebar-card">
+                <a href="{% url 'direct_messages:inbox' %}" class="sidebar-btn {% if inbox_active %}active{% endif %}">
+                    <i class="fas fa-inbox"></i>{% trans "Inbox" %}
+                </a>
+                <a href="{% url 'direct_messages:sent' %}" class="sidebar-btn {% if sent_active %}active{% endif %}">
+                    <i class="fas fa-paper-plane"></i>{% trans "Sent" %}
+                </a>
+                <a href="{% url 'direct_messages:compose' %}" class="sidebar-btn {% if compose_active %}active{% endif %}">
+                    <i class="fas fa-edit"></i>{% trans "Compose" %}
+                </a>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <div class="sent-card">
+                <div class="sent-header">
+                    <h3>
+                        <i class="fas fa-paper-plane me-2"></i>{% trans "Sent Messages" %}
+                    </h3>
+                </div>
+                
+                {% if messages %}
+                <div class="messages-list">
+                    {% for message in messages %}
+                    <div class="message-item" data-message-url="{% url 'direct_messages:detail' message.pk %}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="message-recipient">
+                                    <i class="fas fa-arrow-right me-2 text-primary"></i>
+                                    {% if message.recipient %}
+                                    {{ message.recipient.get_full_name|default:message.recipient.username }}
+                                    {% else %}
+                                    {% trans "All Admins" %}
+                                    {% endif %}
+                                </div>
+                                <div class="message-subject">
+                                    {{ message.subject }}
+                                </div>
+                                <div class="message-date">
+                                    <i class="fas fa-clock me-1"></i>{{ message.created_at|date:"M d, Y H:i" }}
+                                </div>
+                            </div>
+                            <div>
+                                <button class="view-message-btn" data-message-url="{% url 'direct_messages:detail' message.pk %}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-paper-plane"></i>
+                    </div>
+                    <h4>{% trans "No sent messages" %}</h4>
+                    <p>{% trans "Messages you send will appear here" %}</p>
+                    <a href="{% url 'direct_messages:compose' %}" class="new-message-btn">
+                        <i class="fas fa-edit me-2"></i>{% trans "Send your first message" %}
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle message item clicks
+    document.querySelectorAll('.message-item').forEach(function(item) {
+        item.addEventListener('click', function() {
+            window.location.href = this.getAttribute('data-message-url');
+        });
+    });
+    
+    // Handle view button clicks
+    document.querySelectorAll('.view-message-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            window.location.href = this.getAttribute('data-message-url');
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete Announcement" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    }
+    
+    .delete-card .card-header {
+        background: transparent;
+        border-bottom: 1px solid var(--glass-border);
+        padding: 18px 20px 12px 20px;
+    }
+    
+    .delete-card .card-header h3 {
+        margin: 0;
+        font-weight: 700;
+        color: #fef2f2;
+        font-size: 1.3rem;
+    }
+    
+    .delete-card .card-body {
+        padding: 22px 20px 20px 20px;
+    }
+    
+    .delete-card .alert-warning {
+        background: rgba(248, 250, 252, 0.02);
+        border: 1px solid rgba(250, 204, 21, 0.6);
+        color: #facc15 !important;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-weight: 500;
+        font-size: 1rem;
+        margin-bottom: 18px;
+    }
+    
+    .delete-card .alert-warning i {
+        color: #facc15;
+        margin-right: 8px;
+    }
+    
+    .delete-card h5 {
+        color: #ffffff !important;
+        font-weight: 700;
+        margin-top: 4px;
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+    }
+    
+    .delete-card p {
+        color: #e5e7eb !important;
+        font-size: 0.95rem;
+        margin-bottom: 20px;
+    }
+    
+    .delete-card .btn {
+        padding: 8px 20px;
+        font-weight: 500;
+        border-radius: 999px;
+        font-size: 0.9rem;
+        transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    
+    .delete-card .btn-danger {
+        background: #ef4444;
+        border: none;
+        box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+    }
+    
+    .delete-card .btn-danger:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 22px rgba(220, 38, 38, 0.55);
+    }
+    
+    .delete-card .btn-secondary {
+        background: transparent;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        color: #ffffff;
+    }
+    
+    .delete-card .btn-secondary:hover {
+        background: rgba(15, 23, 42, 0.7);
+        transform: translateY(-1px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card delete-card">
+            <div class="card-header">
+                <h3>{% trans "Delete Announcement" %}</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    {% trans "This action cannot be undone!" %}
+                </div>
+                
+                <h5>{{ announcement.title }}</h5>
+                <p>{% trans "Are you sure you want to delete this announcement?" %}</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">{% trans "Yes, Delete" %}</button>
+                    <a href="{% url 'announcements:announcement_detail' announcement.pk %}" class="btn btn-secondary">{% trans "Cancel" %}</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

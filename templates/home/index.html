@@ -1,0 +1,747 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Home" %} - Barangay Complaint & Feedback Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Ensure full background coverage at any zoom level */
+    html, body {
+        min-height: 100vh;
+        height: auto;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+    
+    /* Make sure aurora is visible throughout the page */
+    body {
+        position: relative;
+    }
+    
+    /* Hero Section with Animated Background */
+    .hero-section {
+        background: rgba(10, 10, 20, 0.25);
+        backdrop-filter: blur(10px);
+        color: white;
+        padding: 100px 0;
+        margin: -24px -12px 50px -12px;
+        position: relative;
+        overflow: hidden;
+        min-height: 500px;
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 600px;
+        height: 600px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        animation: float 20s infinite ease-in-out;
+    }
+    
+    .hero-section::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -5%;
+        width: 400px;
+        height: 400px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 50%;
+        animation: float 15s infinite ease-in-out reverse;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-30px) rotate(180deg); }
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .hero-badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        margin-bottom: 20px;
+        line-height: 1.2;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .hero-subtitle {
+        font-size: 1.4rem;
+        margin-bottom: 40px;
+        opacity: 0.95;
+        font-weight: 400;
+    }
+    
+    .hero-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .btn-hero {
+        padding: 16px 40px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.4s ease;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn-hero:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Modern Stats Section */
+    .stats-wrapper {
+        margin-top: -50px;
+        position: relative;
+        z-index: 10;
+    }
+    
+    .stat-card {
+        background: rgba(15, 15, 25, 0.4);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 25px;
+        padding: 35px 25px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        transform: scaleX(0);
+        transition: transform 0.4s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-15px) scale(1.02);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+    
+    .stat-card:hover::before {
+        transform: scaleX(1);
+    }
+    
+    .stat-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        position: relative;
+    }
+    
+    .stat-icon-wrapper::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 20px;
+        opacity: 0.2;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.2; }
+        50% { transform: scale(1.1); opacity: 0; }
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 800;
+        margin: 15px 0 5px;
+        background: linear-gradient(135deg, #4ade80, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-label {
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 600;
+        font-size: 1.05rem;
+    }
+    
+    /* Feature Cards with Glassmorphism */
+    .features-section {
+        padding: 80px 0;
+        background: transparent;
+        position: relative;
+        min-height: 50vh;
+    }
+    
+    .section-header {
+        text-align: center;
+        margin-bottom: 60px;
+    }
+    
+    .section-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea15, #764ba215);
+        color: #667eea;
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+    }
+    
+    .section-title {
+        font-size: 2.8rem;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 15px;
+    }
+    
+    .section-subtitle {
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.7);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .feature-card {
+        background: rgba(15, 15, 25, 0.35);
+        backdrop-filter: blur(20px);
+        border-radius: 25px;
+        padding: 40px 30px;
+        height: 100%;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        transition: all 0.4s ease;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea10, #764ba210);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 50px rgba(102, 126, 234, 0.2);
+        border-color: #667eea30;
+    }
+    
+    .feature-card:hover::before {
+        opacity: 1;
+    }
+    
+    .feature-icon-box {
+        width: 90px;
+        height: 90px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 25px;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        position: relative;
+        z-index: 2;
+        transition: all 0.4s ease;
+    }
+    
+    .feature-card:hover .feature-icon-box {
+        transform: rotateY(360deg);
+    }
+    
+    .feature-icon-box i {
+        font-size: 2.5rem;
+        color: white;
+    }
+    
+    .feature-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 15px;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .feature-description {
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.7;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .feature-link {
+        color: #667eea;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        position: relative;
+        z-index: 2;
+        transition: all 0.3s ease;
+    }
+    
+    .feature-link:hover {
+        gap: 12px;
+        color: #764ba2;
+    }
+    
+    /* CTA Section */
+    .cta-section {
+        background: rgba(15, 15, 25, 0.4);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 30px;
+        padding: 60px 40px;
+        margin: 60px 0;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: -100px;
+        right: -100px;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+    
+    .cta-section::after {
+        content: '';
+        position: absolute;
+        bottom: -150px;
+        left: -100px;
+        width: 400px;
+        height: 400px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 50%;
+    }
+    
+    .cta-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        color: white;
+    }
+    
+    .cta-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 20px;
+    }
+    
+    .cta-text {
+        font-size: 1.2rem;
+        opacity: 0.95;
+        margin-bottom: 35px;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .btn-cta {
+        background: white;
+        color: #667eea;
+        padding: 18px 50px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transition: all 0.4s ease;
+    }
+    
+    .btn-cta:hover {
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        color: #764ba2;
+    }
+    
+    /* Announcements Section */
+    .announcements-section {
+        padding: 60px 0;
+        position: relative;
+        min-height: 40vh;
+    }
+    
+    .announcement-card {
+        background: rgba(15, 15, 25, 0.35);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+        height: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .announcement-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        border-color: #667eea30;
+    }
+    
+    .announcement-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 20px;
+    }
+    
+    .announcement-badge {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .announcement-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 12px;
+    }
+    
+    .announcement-content {
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.7;
+        margin-bottom: 20px;
+    }
+    
+    .announcement-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .announcement-date {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.9rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.2rem;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+        }
+        
+        .hero-buttons {
+            flex-direction: column;
+        }
+        
+        .stats-wrapper {
+            margin-top: 30px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container hero-content">
+        <div class="text-center">
+            <div class="hero-badge">
+                <i class="fas fa-landmark me-2"></i>{% trans "Official Barangay Platform" %}
+            </div>
+            <h1 class="hero-title">
+                {% trans "Welcome to Barangay Complaint" %}
+            </h1>
+            <p class="hero-subtitle">
+                {% trans "Your digital gateway to seamless barangay services, complaints, and community engagement" %}
+            </p>
+            <div class="hero-buttons">
+                {% if not user.is_authenticated %}
+                <a href="{% url 'accounts:register' %}" class="btn btn-light btn-hero">
+                    <i class="fas fa-user-plus me-2"></i>{% trans "Get Started" %}
+                </a>
+                <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-hero">
+                    <i class="fas fa-sign-in-alt me-2"></i>{% trans "Login" %}
+                </a>
+                {% else %}
+                <a href="{% url 'dashboard:home' %}" class="btn btn-light btn-hero">
+                    <i class="fas fa-tachometer-alt me-2"></i>{% trans "Go to Dashboard" %}
+                </a>
+                <a href="{% url 'complaints:create_complaint' %}" class="btn btn-outline-light btn-hero">
+                    <i class="fas fa-file-alt me-2"></i>{% trans "File Complaint" %}
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="container stats-wrapper">
+    <div class="row g-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card text-center">
+                <div class="stat-icon-wrapper" style="background: linear-gradient(135deg, #3b82f620, #3b82f610);">
+                    <div class="stat-icon" style="color: #3b82f6;">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+                <div class="stat-number">{{ total_residents|default:0 }}</div>
+                <div class="stat-label">{% trans "Registered Residents" %}</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card text-center">
+                <div class="stat-icon-wrapper" style="background: linear-gradient(135deg, #f59e0b20, #f59e0b10);">
+                    <div class="stat-icon" style="color: #f59e0b;">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                </div>
+                <div class="stat-number">{{ total_complaints|default:0 }}</div>
+                <div class="stat-label">{% trans "Total Complaints" %}</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card text-center">
+                <div class="stat-icon-wrapper" style="background: linear-gradient(135deg, #10b98120, #10b98110);">
+                    <div class="stat-icon" style="color: #10b981;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+                <div class="stat-number">{{ resolved_complaints|default:0 }}</div>
+                <div class="stat-label">{% trans "Resolved Issues" %}</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card text-center">
+                <div class="stat-icon-wrapper" style="background: linear-gradient(135deg, #8b5cf620, #8b5cf610);">
+                    <div class="stat-icon" style="color: #8b5cf6;">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+                <div class="stat-number">{{ resolution_rate|default:0 }}%</div>
+                <div class="stat-label">{% trans "Resolution Rate" %}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="features-section">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">
+                <i class="fas fa-star me-2"></i>{% trans "Our Services" %}
+            </div>
+            <h2 class="section-title">{% trans "Everything You Need" %}</h2>
+            <p class="section-subtitle">{% trans "Access all barangay services in one convenient platform" %}</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon-box">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3 class="feature-title">{% trans "File Complaints" %}</h3>
+                    <p class="feature-description">
+                        {% trans "Report concerns and track their resolution status in real-time. Quick, easy, and transparent." %}
+                    </p>
+                    <a href="{% url 'complaints:complaint_list' %}" class="feature-link">
+                        {% trans "Get Started" %} <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon-box">
+                        <i class="fas fa-concierge-bell"></i>
+                    </div>
+                    <h3 class="feature-title">{% trans "Request Services" %}</h3>
+                    <p class="feature-description">
+                        {% trans "Apply for clearances, certificates, and permits online. No more long queues!" %}
+                    </p>
+                    <a href="{% url 'services:service_list' %}" class="feature-link">
+                        {% trans "Browse Services" %} <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon-box">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <h3 class="feature-title">{% trans "Stay Updated" %}</h3>
+                    <p class="feature-description">
+                        {% trans "Get the latest news, announcements, and event updates from your barangay." %}
+                    </p>
+                    <a href="{% url 'announcements:announcement_list' %}" class="feature-link">
+                        {% trans "View Announcements" %} <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon-box">
+                        <i class="fas fa-comment-alt"></i>
+                    </div>
+                    <h3 class="feature-title">{% trans "Give Feedback" %}</h3>
+                    <p class="feature-description">
+                        {% trans "Share your thoughts and help us improve our services for everyone." %}
+                    </p>
+                    <a href="{% url 'feedback:submit_feedback' %}" class="feature-link">
+                        {% trans "Submit Feedback" %} <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon-box">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h3 class="feature-title">{% trans "Share Ideas" %}</h3>
+                    <p class="feature-description">
+                        {% trans "Suggest improvements and innovations to make our barangay better." %}
+                    </p>
+                    <a href="{% url 'suggestions:submit_suggestion' %}" class="feature-link">
+                        {% trans "Suggest Now" %} <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon-box">
+                        <i class="fas fa-images"></i>
+                    </div>
+                    <h3 class="feature-title">{% trans "View Gallery" %}</h3>
+                    <p class="feature-description">
+                        {% trans "Browse photos and videos of barangay events, programs, and activities." %}
+                    </p>
+                    <a href="{% url 'gallery:gallery_list' %}" class="feature-link">
+                        {% trans "Explore Gallery" %} <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Announcements Section -->
+{% if latest_announcements %}
+<div class="announcements-section">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-badge">
+                <i class="fas fa-bullhorn me-2"></i>{% trans "Latest Updates" %}
+            </div>
+            <h2 class="section-title">{% trans "Recent Announcements" %}</h2>
+            <p class="section-subtitle">{% trans "Stay informed with the latest news from your barangay" %}</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for announcement in latest_announcements|slice:":3" %}
+            <div class="col-lg-4 col-md-6">
+                <div class="announcement-card">
+                    <div class="announcement-header">
+                        <h3 class="announcement-title">{{ announcement.title }}</h3>
+                        {% if announcement.priority == 'high' or announcement.priority == 'urgent' %}
+                        <span class="announcement-badge bg-danger text-white">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </span>
+                        {% endif %}
+                    </div>
+                    <p class="announcement-content">{{ announcement.content|truncatewords:20 }}</p>
+                    <div class="announcement-footer">
+                        <span class="announcement-date">
+                            <i class="far fa-calendar me-1"></i>{{ announcement.publish_date|date:"M d, Y" }}
+                        </span>
+                        <a href="{% url 'announcements:announcement_detail' announcement.pk %}" class="btn btn-sm btn-primary">
+                            {% trans "Read More" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-5">
+            <a href="{% url 'announcements:announcement_list' %}" class="btn btn-outline-primary btn-lg" style="border-radius: 50px; padding: 14px 40px; font-weight: 600;">
+                {% trans "View All Announcements" %} <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Call to Action -->
+{% if not user.is_authenticated %}
+<div class="container">
+    <div class="cta-section">
+        <div class="cta-content">
+            <h2 class="cta-title">{% trans "Ready to Get Started?" %}</h2>
+            <p class="cta-text">
+                {% trans "Join thousands of residents already using our platform to access barangay services seamlessly" %}
+            </p>
+            <a href="{% url 'accounts:register' %}" class="btn btn-cta">
+                <i class="fas fa-user-plus me-2"></i>{% trans "Create Your Account Now" %}
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

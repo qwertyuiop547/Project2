@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Login History" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>{% trans "My Login History" %}</h2>
+        
+        {% if history %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>{% trans "Login Time" %}</th>
+                        <th>{% trans "Logout Time" %}</th>
+                        <th>{% trans "IP Address" %}</th>
+                        <th>{% trans "User Agent" %}</th>
+                        <th>{% trans "Status" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in history %}
+                    <tr>
+                        <td>{{ item.login_time|date:"M d, Y H:i" }}</td>
+                        <td>{{ item.logout_time|date:"M d, Y H:i"|default:"-" }}</td>
+                        <td>{{ item.ip_address }}</td>
+                        <td>{{ item.user_agent|truncatewords:5 }}</td>
+                        <td>
+                            {% if item.is_active %}
+                            <span class="badge bg-success">{% trans "Active" %}</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{% trans "Ended" %}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">{% trans "No login history found." %}</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

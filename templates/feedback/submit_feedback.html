@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "Submit Feedback" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .feedback-header {
+        background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+        color: white;
+        padding: 50px 0;
+        margin: -24px -12px 40px -12px;
+        border-radius: 0 0 30px 30px;
+    }
+    
+    .feedback-card {
+        background: white;
+        border-radius: 25px;
+        padding: 45px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .rating-section {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 35px;
+        text-align: center;
+    }
+    
+    .star-rating {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .star {
+        font-size: 3rem;
+        color: #cbd5e1;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .star:hover, .star.active {
+        color: #fbbf24;
+        transform: scale(1.2);
+    }
+    
+    .emoji-selector {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 25px;
+    }
+    
+    .emoji {
+        font-size: 3.5rem;
+        cursor: pointer;
+        opacity: 0.3;
+        transition: all 0.3s ease;
+    }
+    
+    .emoji:hover, .emoji.selected {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 10px;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 12px;
+        border: 2px solid #e2e8f0;
+        padding: 14px 18px;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #ec4899;
+        box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.1);
+    }
+    
+    .btn-submit-feedback {
+        padding: 16px 50px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="feedback-header">
+    <div class="container">
+        <h1 class="mb-2">
+            <i class="fas fa-comment-alt me-2"></i>{% trans "Share Your Feedback" %}
+        </h1>
+        <p class="mb-0 opacity-75">{% trans "Help us improve our barangay services" %}</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="feedback-card">
+                <div class="rating-section">
+                    <h4 class="mb-3">{% trans "How would you rate our service?" %}</h4>
+                    <div class="star-rating" id="starRating">
+                        <i class="fas fa-star star" data-rating="1"></i>
+                        <i class="fas fa-star star" data-rating="2"></i>
+                        <i class="fas fa-star star" data-rating="3"></i>
+                        <i class="fas fa-star star" data-rating="4"></i>
+                        <i class="fas fa-star star" data-rating="5"></i>
+                    </div>
+                    <div class="emoji-selector mt-4">
+                        <span class="emoji" data-mood="very-sad">😢</span>
+                        <span class="emoji" data-mood="sad">😔</span>
+                        <span class="emoji" data-mood="neutral">😐</span>
+                        <span class="emoji" data-mood="happy">😊</span>
+                        <span class="emoji" data-mood="very-happy">😁</span>
+                    </div>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <input type="hidden" name="rating" id="ratingInput" value="">
+                    <input type="hidden" name="mood" id="moodInput" value="">
+                    
+                    {% if form.errors %}
+                    <div class="alert alert-danger rounded-3 mb-4">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>{% trans "Please correct the errors below:" %}</strong>
+                        {{ form.errors }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label">{% trans "Category" %}</label>
+                            {{ form.category }}
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label">{% trans "Subject" %}</label>
+                            {{ form.subject }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">{% trans "Your Feedback" %}</label>
+                        {{ form.message }}
+                        <small class="text-muted">{% trans "Please provide detailed feedback to help us improve" %}</small>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">{% trans "Suggestions for Improvement" %}</label>
+                        {{ form.suggestions }}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-5">
+                        <a href="{% url 'home:index' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>{% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-submit-feedback">
+                            <i class="fas fa-paper-plane me-2"></i>{% trans "Submit Feedback" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Star Rating
+const stars = document.querySelectorAll('.star');
+const ratingInput = document.getElementById('ratingInput');
+
+stars.forEach(star => {
+    star.addEventListener('click', function() {
+        const rating = this.dataset.rating;
+        ratingInput.value = rating;
+        
+        stars.forEach((s, index) => {
+            if (index < rating) {
+                s.classList.add('active');
+            } else {
+                s.classList.remove('active');
+            }
+        });
+    });
+});
+
+// Emoji Selector
+const emojis = document.querySelectorAll('.emoji');
+const moodInput = document.getElementById('moodInput');
+
+emojis.forEach(emoji => {
+    emoji.addEventListener('click', function() {
+        emojis.forEach(e => e.classList.remove('selected'));
+        this.classList.add('selected');
+        moodInput.value = this.dataset.mood;
+    });
+});
+</script>
+{% endblock %}

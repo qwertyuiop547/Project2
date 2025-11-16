@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ notification.title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h3>{{ notification.title }}</h3>
+                    <span class="badge bg-{{ notification.notification_type }}">{{ notification.get_notification_type_display }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="fas fa-calendar"></i> {{ notification.created_at|date:"M d, Y H:i" }}
+                        {% if notification.is_read %}
+                        | <i class="fas fa-check"></i> {% trans "Read on" %} {{ notification.read_at|date:"M d, Y H:i" %}
+                        {% endif %}
+                    </small>
+                </div>
+                
+                <div class="notification-content">
+                    {{ notification.message|linebreaks }}
+                </div>
+                
+                {% if notification.link %}
+                <div class="mt-4">
+                    <a href="{{ notification.link }}" class="btn btn-primary">{% trans "View Related Content" %}</a>
+                </div>
+                {% endif %}
+                
+                <div class="mt-4">
+                    <a href="{% url 'notifications:notification_list' %}" class="btn btn-secondary">{% trans "Back to Notifications" %}</a>
+                    <a href="{% url 'notifications:delete_notification' notification.pk %}" class="btn btn-danger">{% trans "Delete" %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

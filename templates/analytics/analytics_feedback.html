@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Feedback Analytics" %}{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>{% trans "Feedback Analytics" %}</h2>
+        
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h5>{% trans "Total Feedback" %}</h5>
+                        <h2>{{ total_feedback }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h5>{% trans "Reviewed" %}</h5>
+                        <h2>{{ reviewed_feedback }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <h5>{% trans "Response Rate" %}</h5>
+                        <h2>{{ response_rate }}%</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h5>{% trans "Average Rating" %}</h5>
+                        <h2>{{ avg_rating }}/5</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Rating Distribution -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>{% trans "Rating Distribution" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="ratingChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>{% trans "Monthly Trends" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="monthlyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Rating Details -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>{% trans "Rating Breakdown" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for item in rating_distribution %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>{{ item.rating }} {% trans "Stars" %}</span>
+                                <span>{{ item.count }}</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: {{ item.count|floatformat:0 }}%"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Rating Chart
+    const ratingData = {{ rating_distribution|safe }};
+    const ratingCtx = document.getElementById('ratingChart').getContext('2d');
+    new Chart(ratingCtx, {
+        type: 'bar',
+        data: {
+            labels: ratingData.map(item => item.rating + ' Stars'),
+            datasets: [{
+                label: 'Count',
+                data: ratingData.map(item => item.count),
+                backgroundColor: '#ffc107'
+            }]
+        }
+    });
+    
+    // Monthly Chart
+    const monthlyData = {{ monthly_feedback|safe }};
+    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+    new Chart(monthlyCtx, {
+        type: 'line',
+        data: {
+            labels: monthlyData.map(item => item.month),
+            datasets: [{
+                label: 'Feedback',
+                data: monthlyData.map(item => item.count),
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4
+            }]
+        }
+    });
+</script>
+{% endblock %}
+

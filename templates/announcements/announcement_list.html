@@ -1,0 +1,577 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Announcements" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modern Glassmorphism Theme */
+    .announcements-page {
+        padding: 40px 0;
+    }
+    
+    .page-hero {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 40px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    
+    .page-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -20%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: float-left 10s ease-in-out infinite;
+    }
+    
+    @keyframes float-left {
+        0%, 100% { transform: translate(0, 0); }
+        50% { transform: translate(30px, -20px); }
+    }
+    
+    .page-hero-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .page-hero h1 {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+        color: white;
+        background: linear-gradient(135deg, #ffffff 0%, #fbbf24 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .page-hero h1 i {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .page-hero p {
+        font-size: 1rem;
+        color: var(--text-secondary);
+        margin-bottom: 0;
+    }
+    
+    /* Filter Pills */
+    .filter-pills {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        padding: 20px;
+        background: var(--glass-bg-light);
+        border-radius: 16px;
+        border: 1px solid var(--glass-border);
+    }
+    
+    .filter-pill {
+        padding: 10px 24px;
+        border-radius: 25px;
+        border: 2px solid var(--glass-border);
+        background: var(--glass-bg);
+        color: var(--text-secondary);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .filter-pill:hover {
+        background: var(--glass-hover);
+        border-color: var(--primary-color);
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .filter-pill.active {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        border-color: transparent;
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Announcements Grid */
+    .announcement-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 25px;
+    }
+    
+    .announcement-card-modern {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+    
+    .announcement-card-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .announcement-card-modern:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+    }
+    
+    .announcement-card-modern:hover::before {
+        opacity: 1;
+    }
+    
+    .announcement-card-modern.priority-high::before {
+        background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+        opacity: 1;
+    }
+    
+    .announcement-card-modern.priority-medium::before {
+        background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+        opacity: 1;
+    }
+    
+    .announcement-card-modern.priority-low::before {
+        background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+        opacity: 1;
+    }
+    
+    .announcement-image-box {
+        height: 200px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 4rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .announcement-image-box::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, transparent 100%);
+    }
+    
+    .announcement-image-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .announcement-image-box i {
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+    
+    .announcement-content {
+        padding: 25px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .announcement-meta-modern {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .announcement-date-modern {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .announcement-date-modern i {
+        color: var(--primary-color);
+    }
+    
+    .announcement-views-modern {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 4px 12px;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 15px;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+    
+    .announcement-views-modern i {
+        color: var(--primary-color);
+        font-size: 0.9rem;
+    }
+    
+    .announcement-views-modern span {
+        color: white;
+        font-weight: 700;
+    }
+    
+    .announcement-title-modern {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 15px;
+        line-height: 1.3;
+    }
+    
+    .announcement-excerpt-modern {
+        color: var(--text-secondary);
+        margin-bottom: 20px;
+        flex-grow: 1;
+        line-height: 1.6;
+    }
+    
+    .announcement-footer-modern {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 15px;
+        border-top: 1px solid var(--glass-border);
+    }
+    
+    .priority-tag {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .priority-tag.urgent {
+        background: rgba(239, 68, 68, 0.2);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    
+    .priority-tag.events {
+        background: rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    
+    .priority-tag.general {
+        background: rgba(107, 114, 128, 0.2);
+        color: #d1d5db;
+        border: 1px solid rgba(107, 114, 128, 0.3);
+    }
+
+    .priority-tag.maintenance {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .priority-tag.community {
+        background: rgba(16, 185, 129, 0.2);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-read-more {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 8px 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-read-more:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(102, 126, 234, 0.5);
+        color: white;
+    }
+    
+    /* Empty State */
+    .empty-state-announcements {
+        text-align: center;
+        padding: 100px 40px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    
+    .empty-icon-announcements {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 30px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.2) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4rem;
+        color: #f59e0b;
+    }
+    
+    .empty-state-announcements h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 15px;
+    }
+    
+    .empty-state-announcements p {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        margin-bottom: 0;
+    }
+    
+    /* Pagination */
+    .pagination-modern {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 40px;
+    }
+    
+    .pagination-modern .page-item .page-link {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        color: white;
+        border-radius: 10px;
+        padding: 10px 18px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .pagination-modern .page-item.active .page-link {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        border-color: transparent;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .pagination-modern .page-item .page-link:hover {
+        background: var(--glass-hover);
+        transform: translateY(-2px);
+        border-color: var(--primary-color);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .page-hero {
+            padding: 30px 20px;
+        }
+        
+        .page-hero h1 {
+            font-size: 2rem;
+        }
+        
+        .announcement-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="announcements-page">
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="page-hero d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div class="page-hero-content">
+                <h1>
+                    <i class="fas fa-bullhorn me-3"></i>{% trans "Barangay Announcements" %}
+                </h1>
+                <p>{% trans "Stay updated with the latest news and events" %}</p>
+            </div>
+            {% if user.is_authenticated and user.is_secretary %}
+            <div class="page-hero-actions" style="position: relative; z-index: 1;">
+                <a href="{% url 'announcements:create_announcement' %}" class="btn btn-primary">
+                    <i class="fas fa-plus-circle me-2"></i>
+                    {% trans "Create Announcement" %}
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Filter Pills -->
+        <div class="filter-pills">
+            <button class="filter-pill active" data-filter="all">
+                <i class="fas fa-list"></i>
+                {% trans "All" %}
+            </button>
+            <button class="filter-pill" data-filter="urgent">
+                <i class="fas fa-exclamation-circle"></i>
+                {% trans "Urgent" %}
+            </button>
+            <button class="filter-pill" data-filter="events">
+                <i class="fas fa-calendar-star"></i>
+                {% trans "Events" %}
+            </button>
+            <button class="filter-pill" data-filter="general">
+                <i class="fas fa-info-circle"></i>
+                {% trans "General" %}
+            </button>
+            <button class="filter-pill" data-filter="maintenance">
+                <i class="fas fa-tools"></i>
+                {% trans "Maintenance" %}
+            </button>
+            <button class="filter-pill" data-filter="community">
+                <i class="fas fa-users"></i>
+                {% trans "Community" %}
+            </button>
+        </div>
+        
+        <!-- Announcements Grid -->
+        {% if page_obj %}
+        <div class="announcement-grid">
+            {% for announcement in page_obj %}
+            <div class="announcement-card-modern category-{{ announcement.category|default:'general' }}">
+                <div class="announcement-image-box">
+                    {% if announcement.image %}
+                    <img src="{{ announcement.image.url }}" alt="{{ announcement.title }}">
+                    {% else %}
+                    <i class="fas fa-megaphone"></i>
+                    {% endif %}
+                </div>
+                
+                <div class="announcement-content">
+                    <div class="announcement-meta-modern">
+                        <div class="announcement-date-modern">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>{{ announcement.publish_date|date:"F d, Y" }}</span>
+                        </div>
+                        <div class="announcement-views-modern">
+                            <i class="fas fa-eye"></i>
+                            <span>{{ announcement.view_count }}</span>
+                        </div>
+                    </div>
+                    
+                    <h3 class="announcement-title-modern">{{ announcement.title }}</h3>
+                    
+                    <p class="announcement-excerpt-modern">
+                        {{ announcement.content|truncatewords:25 }}
+                    </p>
+                    
+                    <div class="announcement-footer-modern">
+                        <span class="priority-tag {{ announcement.category }}">
+                            {% if announcement.category == 'urgent' %}
+                                <i class="fas fa-exclamation-circle"></i>{% trans "Urgent" %}
+                            {% elif announcement.category == 'events' %}
+                                <i class="fas fa-calendar-star"></i>{% trans "Events" %}
+                            {% elif announcement.category == 'maintenance' %}
+                                <i class="fas fa-tools"></i>{% trans "Maintenance" %}
+                            {% elif announcement.category == 'community' %}
+                                <i class="fas fa-users"></i>{% trans "Community" %}
+                            {% else %}
+                                <i class="fas fa-info-circle"></i>{% trans "General" %}
+                            {% endif %}
+                        </span>
+                        <a href="{% url 'announcements:announcement_detail' announcement.pk %}" class="btn btn-read-more">
+                            {% trans "Read More" %} <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav>
+            <ul class="pagination pagination-modern">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        {% else %}
+        <!-- Empty State -->
+        <div class="empty-state-announcements">
+            <div class="empty-icon-announcements">
+                <i class="fas fa-bullhorn"></i>
+            </div>
+            <h3>{% trans "No announcements available" %}</h3>
+            <p>{% trans "Check back later for updates" %}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Filter pills functionality
+document.querySelectorAll('.filter-pill').forEach(pill => {
+    pill.addEventListener('click', function() {
+        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+        this.classList.add('active');
+        
+        const filter = this.dataset.filter;
+        // Add filtering logic here if needed in the future
+    });
+});
+</script>
+{% endblock %}

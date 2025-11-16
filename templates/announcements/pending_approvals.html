@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Pending Approvals" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>{% trans "Pending Announcement Approvals" %}</h2>
+        
+        {% if pending %}
+        <div class="row">
+            {% for announcement in pending %}
+            <div class="col-md-12 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ announcement.title }}</h5>
+                        <p class="card-text">{{ announcement.content|truncatewords:50 }}</p>
+                        <p class="text-muted">
+                            <small>{% trans "Created by" %}: {{ announcement.created_by.username }} | {{ announcement.created_at|date:"M d, Y" }}</small>
+                        </p>
+                        <a href="{% url 'announcements:announcement_detail' announcement.pk %}" class="btn btn-info">{% trans "View Details" %}</a>
+                        <a href="{% url 'announcements:approve_announcement' announcement.pk %}" class="btn btn-success">{% trans "Approve" %}</a>
+                        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal{{ announcement.pk }}">{% trans "Reject" %}</button>
+                        
+                        <!-- Reject Modal -->
+                        <div class="modal fade" id="rejectModal{{ announcement.pk }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">{% trans "Reject Announcement" %}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form method="post" action="{% url 'announcements:reject_announcement' announcement.pk %}">
+                                        {% csrf_token %}
+                                        <div class="modal-body">
+                                            <div class="mb-3">
+                                                <label for="rejection_reason{{ announcement.pk }}" class="form-label">{% trans "Reason" %}</label>
+                                                <textarea class="form-control" id="rejection_reason{{ announcement.pk }}" name="rejection_reason" rows="3"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                                            <button type="submit" class="btn btn-danger">{% trans "Reject" %}</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">{% trans "No pending approvals." %}</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

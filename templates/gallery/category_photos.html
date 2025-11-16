@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ category.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>{{ category.name }}</h2>
+        <p class="text-muted">{{ category.description }}</p>
+        
+        <div class="row">
+            {% for photo in page_obj %}
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card h-100">
+                    <a href="{% url 'gallery:photo_detail' photo.pk %}">
+                        <img src="{{ photo.photo.url }}" class="card-img-top" alt="{{ photo.title }}" style="height: 200px; object-fit: cover;">
+                    </a>
+                    <div class="card-body">
+                        <h6 class="card-title">{{ photo.title }}</h6>
+                        <small class="text-muted">{% trans "by" %} {{ photo.uploaded_by.username }}</small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <nav>
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans "Previous" %}</a></li>
+                {% endif %}
+                <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans "Next" %}</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        <a href="{% url 'gallery:gallery_list' %}" class="btn btn-secondary">{% trans "Back to Gallery" %}</a>
+    </div>
+</div>
+{% endblock %}
+

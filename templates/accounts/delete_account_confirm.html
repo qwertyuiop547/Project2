@@ -1,0 +1,407 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete Account" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Matching System Design - Glassmorphism with Warning Theme */
+    :root {
+        --glass-bg: rgba(15, 15, 25, 0.6);
+        --glass-bg-light: rgba(255, 255, 255, 0.05);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --danger-color: #ef4444;
+        --danger-secondary: #dc2626;
+        --text-secondary: rgba(255, 255, 255, 0.7);
+        --text-muted: rgba(255, 255, 255, 0.5);
+    }
+
+    .delete-page {
+        padding: 40px 0;
+        min-height: calc(100vh - 200px);
+    }
+    
+    /* Page Hero - Warning Theme */
+    .page-hero {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 40px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(239, 68, 68, 0.3);
+        text-align: center;
+    }
+    
+    .page-hero::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(239, 68, 68, 0.2) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: pulse-danger 3s ease-in-out infinite;
+        transform: translate(-50%, -50%);
+    }
+    
+    @keyframes pulse-danger {
+        0%, 100% { 
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0.5;
+        }
+        50% { 
+            transform: translate(-50%, -50%) scale(1.2);
+            opacity: 0.3;
+        }
+    }
+    
+    .page-hero-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .page-hero h1 {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+        color: white;
+        background: linear-gradient(135deg, #fca5a5 0%, #ef4444 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .page-hero h1 i {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .page-hero p {
+        font-size: 1rem;
+        color: var(--text-secondary);
+        margin-bottom: 0;
+    }
+    
+    /* Main Delete Card */
+    .delete-main-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 50px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    /* Warning Icon */
+    .warning-icon-wrapper {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .warning-icon {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1));
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid rgba(239, 68, 68, 0.4);
+        animation: shake 3s ease-in-out infinite;
+    }
+
+    .warning-icon i {
+        font-size: 3rem;
+        color: #ef4444;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: rotate(0deg); }
+        10%, 30% { transform: rotate(-5deg); }
+        20%, 40% { transform: rotate(5deg); }
+        50% { transform: rotate(0deg); }
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    /* Warning Box */
+    .warning-box {
+        background: rgba(239, 68, 68, 0.1);
+        border: 2px solid rgba(239, 68, 68, 0.3);
+        border-left: 5px solid #ef4444;
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+    }
+
+    .warning-box h4 {
+        color: #fca5a5;
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .warning-box ul {
+        margin: 0;
+        padding-left: 1.5rem;
+        list-style: none;
+    }
+
+    .warning-box li {
+        color: var(--text-secondary);
+        margin-bottom: 10px;
+        position: relative;
+        padding-left: 10px;
+    }
+
+    .warning-box li::before {
+        content: '✗';
+        color: #ef4444;
+        font-weight: bold;
+        position: absolute;
+        left: -15px;
+    }
+
+    /* Confirmation Text */
+    .confirmation-text {
+        text-align: center;
+        margin: 30px 0;
+    }
+
+    .confirmation-text h3 {
+        color: white;
+        font-weight: 700;
+        font-size: 1.4rem;
+        margin-bottom: 10px;
+    }
+
+    .confirmation-text p {
+        color: var(--text-secondary);
+        font-size: 1rem;
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 40px;
+    }
+
+    /* Buttons */
+    .btn-delete-confirm {
+        flex: 1;
+        padding: 16px;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .btn-delete-confirm:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(239, 68, 68, 0.6);
+    }
+
+    .btn-delete-confirm:active {
+        transform: translateY(-1px);
+    }
+
+    .btn-cancel-modern {
+        flex: 1;
+        padding: 16px;
+        background: transparent;
+        border: 2px solid var(--glass-border);
+        border-radius: 12px;
+        color: white;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .btn-cancel-modern:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: var(--text-muted);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+
+    /* Additional Info */
+    .additional-info {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .additional-info p {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    .additional-info a {
+        color: #60a5fa;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .additional-info a:hover {
+        color: #93c5fd;
+        text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .page-hero {
+            padding: 30px 20px;
+        }
+        
+        .page-hero h1 {
+            font-size: 2rem;
+        }
+        
+        .delete-main-card {
+            padding: 30px 20px;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn-delete-confirm,
+        .btn-cancel-modern {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delete-page">
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="page-hero">
+            <div class="page-hero-content">
+                <h1>
+                    <i class="fas fa-exclamation-triangle me-3"></i>{% trans "Delete Account" %}
+                </h1>
+                <p>{% trans "Permanent account deletion" %}</p>
+            </div>
+        </div>
+        
+        <!-- Delete Form Card -->
+        <div class="delete-main-card">
+            <!-- Warning Icon -->
+            <div class="warning-icon-wrapper">
+                <div class="warning-icon">
+                    <i class="fas fa-skull-crossbones"></i>
+                </div>
+            </div>
+
+            <!-- Warning Box -->
+            <div class="warning-box">
+                <h4>
+                    <i class="fas fa-exclamation-circle"></i>
+                    {% trans "Warning: This Action is Irreversible!" %}
+                </h4>
+                <ul>
+                    <li>{% trans "Your account will be permanently deleted" %}</li>
+                    <li>{% trans "All your complaints and submissions will be lost" %}</li>
+                    <li>{% trans "Your personal data will be removed from the system" %}</li>
+                    <li>{% trans "You cannot recover your account after deletion" %}</li>
+                    <li>{% trans "You'll need to register again to use the system" %}</li>
+                </ul>
+            </div>
+
+            <!-- Additional Info -->
+            <div class="additional-info">
+                <p>
+                    <i class="fas fa-info-circle me-2"></i>
+                    {% trans "If you're having issues, consider" %} 
+                    <a href="{% url 'accounts:change_password' %}">{% trans "changing your password" %}</a>
+                    {% trans "or" %}
+                    <a href="{% url 'feedback:submit_feedback' %}">{% trans "contacting support" %}</a>
+                    {% trans "instead." %}
+                </p>
+            </div>
+
+            <!-- Confirmation Text -->
+            <div class="confirmation-text">
+                <h3>{% trans "Are you absolutely sure?" %}</h3>
+                <p>{% trans "This action cannot be undone. Please confirm your decision." %}</p>
+            </div>
+
+            <!-- Delete Form -->
+            <form method="post" action="{% url 'accounts:delete_own_account' %}" id="deleteForm">
+                {% csrf_token %}
+                
+                <div class="form-actions">
+                    <a href="{% url 'accounts:profile' %}" class="btn-cancel-modern">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>{% trans "Cancel, Keep My Account" %}</span>
+                    </a>
+                    <button type="submit" class="btn-delete-confirm" id="deleteBtn">
+                        <i class="fas fa-trash-alt"></i>
+                        <span>{% trans "Yes, Delete My Account" %}</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Confirmation dialog before submission
+document.getElementById('deleteForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const confirmed = confirm('{% trans "FINAL WARNING: Are you absolutely sure you want to delete your account? This cannot be undone!" %}');
+    
+    if (confirmed) {
+        const deleteBtn = document.getElementById('deleteBtn');
+        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>{% trans "Deleting..." %}</span>';
+        deleteBtn.disabled = true;
+        deleteBtn.style.opacity = '0.7';
+        
+        // Submit the form
+        this.submit();
+    }
+});
+</script>
+{% endblock %}
+

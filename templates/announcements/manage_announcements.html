@@ -1,0 +1,504 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Manage Announcements" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .manage-announcements-page {
+        padding: 2rem 0;
+        min-height: 100vh;
+    }
+
+    /* Header Section */
+    .page-header-modern {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .page-header-modern h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .page-header-modern h2 i {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-size: 2rem;
+    }
+
+    .btn-create-modern {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-create-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        color: white;
+    }
+
+    /* Filter Card */
+    .filter-card-modern {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .filter-card-modern label {
+        color: var(--text-primary);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-select {
+        background-color: var(--glass-bg-light) !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 0.75rem center !important;
+        background-size: 16px 12px !important;
+        border: 2px solid var(--glass-border) !important;
+        border-radius: 12px;
+        padding: 0.75rem 2.5rem 0.75rem 1rem;
+        color: var(--text-primary) !important;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        width: 100%;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+
+    .form-select:focus {
+        border-color: var(--primary-color) !important;
+        background-color: var(--glass-hover) !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 0.75rem center !important;
+        background-size: 16px 12px !important;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        outline: none;
+        color: var(--text-primary) !important;
+    }
+
+    .form-select option {
+        background: #1a1a2e !important;
+        color: #ffffff !important;
+        padding: 0.5rem;
+    }
+
+    .btn-filter-modern {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        width: 100%;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-filter-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        color: white;
+    }
+
+    /* Table Modern */
+    .table-container-modern {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+    }
+
+    .table-modern {
+        margin: 0;
+        width: 100%;
+        color: var(--text-primary);
+    }
+
+    .table-modern thead {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    }
+
+    .table-modern thead th {
+        color: white;
+        font-weight: 600;
+        padding: 1.25rem 1rem;
+        border: none;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .table-modern tbody tr {
+        border-bottom: 1px solid var(--glass-border);
+        transition: all 0.3s ease;
+    }
+
+    .table-modern tbody tr:hover {
+        background: var(--glass-hover);
+        transform: scale(1.01);
+    }
+
+    .table-modern tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .table-modern tbody td {
+        padding: 1.25rem 1rem;
+        color: var(--text-primary);
+        vertical-align: middle;
+    }
+
+    /* Badge Modern */
+    .badge-modern {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .badge-urgent {
+        background: rgba(239, 68, 68, 0.2);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .badge-high {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .badge-normal {
+        background: rgba(148, 163, 184, 0.2);
+        color: #94a3b8;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    .badge-low {
+        background: rgba(100, 116, 139, 0.2);
+        color: #64748b;
+        border: 1px solid rgba(100, 116, 139, 0.3);
+    }
+
+    .badge-published {
+        background: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-pending {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .badge-rejected {
+        background: rgba(239, 68, 68, 0.2);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    /* Action Buttons */
+    .btn-action-modern {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .btn-view {
+        background: rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-view:hover {
+        background: rgba(59, 130, 246, 0.3);
+        color: #93c5fd;
+        transform: translateY(-2px);
+    }
+
+    .btn-edit {
+        background: rgba(102, 126, 234, 0.2);
+        color: #818cf8;
+        border: 1px solid rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-edit:hover {
+        background: rgba(102, 126, 234, 0.3);
+        color: #a5b4fc;
+        transform: translateY(-2px);
+    }
+
+    .btn-delete {
+        background: rgba(239, 68, 68, 0.2);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-delete:hover {
+        background: rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
+        transform: translateY(-2px);
+    }
+
+    /* Pagination Modern */
+    .pagination-modern {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+    }
+
+    .page-link-modern {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        color: var(--text-primary);
+        padding: 0.75rem 1.25rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .page-link-modern:hover {
+        background: var(--glass-hover);
+        border-color: var(--primary-color);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .page-link-modern.active {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-color: transparent;
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Empty State */
+    .empty-state-modern {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-state-modern i {
+        font-size: 4rem;
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-state-modern h4 {
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="manage-announcements-page">
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header-modern">
+            <h2>
+                <i class="fas fa-bullhorn"></i>
+                {% trans "Manage Announcements" %}
+            </h2>
+            <a href="{% url 'announcements:create_announcement' %}" class="btn-create-modern">
+                <i class="fas fa-plus-circle"></i>
+                {% trans "Create New" %}
+            </a>
+        </div>
+        
+        <!-- Filter Card -->
+        <div class="filter-card-modern">
+            <form method="get" class="row g-3">
+                <div class="col-md-10">
+                    <label for="status-filter">
+                        <i class="fas fa-filter me-2"></i>{% trans "Filter by Status" %}
+                    </label>
+                    <select class="form-select" id="status-filter" name="status">
+                        <option value="">{% trans "All Status" %}</option>
+                        <option value="pending" {% if status == 'pending' %}selected{% endif %}>{% trans "Pending" %}</option>
+                        <option value="published" {% if status == 'published' %}selected{% endif %}>{% trans "Published" %}</option>
+                        <option value="rejected" {% if status == 'rejected' %}selected{% endif %}>{% trans "Rejected" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn-filter-modern w-100">
+                        <i class="fas fa-search me-2"></i>{% trans "Filter" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Announcements Table -->
+        <div class="table-container-modern">
+            {% if page_obj %}
+            <div class="table-responsive">
+                <table class="table table-modern">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Title" %}</th>
+                            <th>{% trans "Priority" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Created By" %}</th>
+                            <th>{% trans "Created Date" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for announcement in page_obj %}
+                        <tr>
+                            <td>
+                                <strong style="color: var(--text-primary);">{{ announcement.title }}</strong>
+                            </td>
+                            <td>
+                                {% if announcement.priority == 'urgent' %}
+                                <span class="badge-modern badge-urgent">
+                                    <i class="fas fa-exclamation-circle"></i>{% trans "Urgent" %}
+                                </span>
+                                {% elif announcement.priority == 'high' %}
+                                <span class="badge-modern badge-high">
+                                    <i class="fas fa-arrow-up"></i>{% trans "High" %}
+                                </span>
+                                {% elif announcement.priority == 'normal' %}
+                                <span class="badge-modern badge-normal">
+                                    <i class="fas fa-minus"></i>{% trans "Normal" %}
+                                </span>
+                                {% else %}
+                                <span class="badge-modern badge-low">
+                                    <i class="fas fa-arrow-down"></i>{{ announcement.priority|title }}
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if announcement.status == 'published' %}
+                                <span class="badge-modern badge-published">
+                                    <i class="fas fa-check-circle"></i>{% trans "Published" %}
+                                </span>
+                                {% elif announcement.status == 'pending' %}
+                                <span class="badge-modern badge-pending">
+                                    <i class="fas fa-clock"></i>{% trans "Pending" %}
+                                </span>
+                                {% else %}
+                                <span class="badge-modern badge-rejected">
+                                    <i class="fas fa-times-circle"></i>{% trans "Rejected" %}
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span style="color: var(--text-secondary);">
+                                    <i class="fas fa-user me-1"></i>{{ announcement.created_by.username }}
+                                </span>
+                            </td>
+                            <td>
+                                <span style="color: var(--text-secondary);">
+                                    <i class="fas fa-calendar me-1"></i>{{ announcement.created_at|date:"M d, Y" }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <a href="{% url 'announcements:announcement_detail' announcement.pk %}" class="btn-action-modern btn-view">
+                                        <i class="fas fa-eye"></i>{% trans "View" %}
+                                    </a>
+                                    <a href="{% url 'announcements:edit_announcement' announcement.pk %}" class="btn-action-modern btn-edit">
+                                        <i class="fas fa-edit"></i>{% trans "Edit" %}
+                                    </a>
+                                    <a href="{% url 'announcements:delete_announcement' announcement.pk %}" class="btn-action-modern btn-delete">
+                                        <i class="fas fa-trash"></i>{% trans "Delete" %}
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state-modern">
+                <i class="fas fa-inbox"></i>
+                <h4>{% trans "No Announcements Found" %}</h4>
+                <p>{% trans "There are no announcements matching your filter criteria." %}</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="pagination-modern">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if status %}&status={{ status }}{% endif %}" class="page-link-modern">
+                <i class="fas fa-chevron-left"></i>{% trans "Previous" %}
+            </a>
+            {% endif %}
+            <span class="page-link-modern active">
+                {% trans "Page" %} {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}
+            </span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if status %}&status={{ status }}{% endif %}" class="page-link-modern">
+                {% trans "Next" %}<i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

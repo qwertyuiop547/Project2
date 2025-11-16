@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "My Photos" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>{% trans "My Photos" %}</h2>
+            <a href="{% url 'gallery:upload_photo' %}" class="btn btn-primary">{% trans "Upload New Photo" %}</a>
+        </div>
+        
+        <div class="row">
+            {% for photo in page_obj %}
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card h-100">
+                    <a href="{% url 'gallery:photo_detail' photo.pk %}">
+                        <img src="{{ photo.image.url }}" class="card-img-top" alt="{{ photo.title }}" style="height: 200px; object-fit: cover;">
+                    </a>
+                    <div class="card-body">
+                        <h6 class="card-title">{{ photo.title }}</h6>
+                        <div class="d-flex justify-content-between">
+                            <small><i class="fas fa-heart"></i> {{ photo.like_count }}</small>
+                            <small><i class="fas fa-eye"></i> {{ photo.view_count }}</small>
+                        </div>
+                        <div class="mt-2">
+                            {% if photo.status == 'pending' %}
+                            <span class="badge bg-warning">{% trans "Pending" %}</span>
+                            {% elif photo.status == 'approved' %}
+                            <span class="badge bg-success">{% trans "Approved" %}</span>
+                            {% else %}
+                            <span class="badge bg-danger">{% trans "Rejected" %}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <nav>
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans "Previous" %}</a></li>
+                {% endif %}
+                <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans "Next" %}</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

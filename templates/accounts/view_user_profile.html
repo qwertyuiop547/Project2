@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "User Profile" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                {% if viewed_user.profile_photo %}
+                <img src="{{ viewed_user.profile_photo.url }}" alt="Profile" class="img-fluid rounded-circle mb-3" style="max-width: 200px;">
+                {% else %}
+                <i class="fas fa-user-circle fa-5x mb-3"></i>
+                {% endif %}
+                <h4>{{ viewed_user.get_full_name|default:viewed_user.username }}</h4>
+                <p class="text-muted">{{ viewed_user.role|title }}</p>
+                <p>
+                    {% if viewed_user.is_approved %}
+                    <span class="badge bg-success">{% trans "Approved" %}</span>
+                    {% else %}
+                    <span class="badge bg-warning">{% trans "Pending" %}</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>{% trans "User Details" %}</h3>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">{% trans "Username" %}</dt>
+                    <dd class="col-sm-8">{{ viewed_user.username }}</dd>
+                    
+                    <dt class="col-sm-4">{% trans "Email" %}</dt>
+                    <dd class="col-sm-8">{{ viewed_user.email }}</dd>
+                    
+                    <dt class="col-sm-4">{% trans "Phone" %}</dt>
+                    <dd class="col-sm-8">{{ viewed_user.phone|default:"-" }}</dd>
+                    
+                    <dt class="col-sm-4">{% trans "Address" %}</dt>
+                    <dd class="col-sm-8">{{ viewed_user.address|default:"-" }}</dd>
+                    
+                    <dt class="col-sm-4">{% trans "Registration Date" %}</dt>
+                    <dd class="col-sm-8">{{ viewed_user.date_joined|date:"M d, Y" }}</dd>
+                    
+                    <dt class="col-sm-4">{% trans "Role" %}</dt>
+                    <dd class="col-sm-8">{{ viewed_user.role|title }}</dd>
+                </dl>
+                
+                <div class="mt-4">
+                    <a href="{% url 'accounts:view_user_documents' viewed_user.id %}" class="btn btn-info">{% trans "View Documents" %}</a>
+                    {% if not viewed_user.is_approved %}
+                    <a href="{% url 'accounts:approve_user' viewed_user.id %}" class="btn btn-success">{% trans "Approve" %}</a>
+                    {% endif %}
+                    <a href="{% url 'accounts:user_approval_list' %}" class="btn btn-secondary">{% trans "Back" %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

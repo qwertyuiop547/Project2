@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Complaint Submitted" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-check-circle fa-5x text-success mb-4"></i>
+                <h2>{% trans "Complaint Submitted Successfully!" %}</h2>
+                <p class="lead">{% trans "Thank you for submitting your complaint anonymously." %}</p>
+                <p>{% trans "Your complaint has been received and will be reviewed by our team. Since this was submitted anonymously, you won't be able to track its status." %}</p>
+                
+                <div class="mt-4">
+                    <a href="{% url 'home:index' %}" class="btn btn-primary">{% trans "Back to Home" %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

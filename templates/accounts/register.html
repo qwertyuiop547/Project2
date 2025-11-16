@@ -1,0 +1,714 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Register" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modern Register Page - Matches Login Design */
+    html, body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .register-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .register-container {
+        max-width: 900px;
+        width: 100%;
+        background: rgba(15, 15, 25, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 32px;
+        overflow: hidden;
+        box-shadow: 
+            0 0 0 1px rgba(255, 255, 255, 0.1),
+            0 30px 80px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        animation: fadeInUp 0.6s ease-out;
+        transform: translateZ(0);
+        backface-visibility: hidden;
+        contain: layout style paint;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.98);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    
+    /* Header Section */
+    .register-header {
+        padding: 50px 50px 40px 50px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.25) 0%, rgba(118, 75, 162, 0.25) 100%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+    }
+    
+    .register-icon {
+        width: 70px;
+        height: 70px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .register-icon i {
+        font-size: 2rem;
+        color: white;
+    }
+    
+    .register-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 8px;
+        background: linear-gradient(135deg, #fff, #a5b4fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .register-header p {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.95rem;
+        margin: 0;
+    }
+    
+    /* Form Body */
+    .register-body {
+        padding: 40px 50px 50px 50px;
+    }
+    
+    /* Progress Steps */
+    .progress-steps {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 40px;
+        padding: 0 20px;
+    }
+    
+    .step {
+        flex: 1;
+        text-align: center;
+        position: relative;
+    }
+    
+    .step:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 18px;
+        left: 60%;
+        width: 80%;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .step-number {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.5);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+        position: relative;
+        z-index: 2;
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        transition: all 0.3s ease;
+    }
+    
+    .step.active .step-number {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .step-label {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.5);
+        font-weight: 500;
+    }
+    
+    .step.active .step-label {
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    /* Form Sections */
+    .form-section {
+        margin-bottom: 35px;
+    }
+    
+    .section-title {
+        color: white;
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .section-title i {
+        color: #8b9cff;
+    }
+    
+    /* Modern Input Groups */
+    .input-group-modern {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    
+    .input-group-modern label {
+        display: block;
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        padding-left: 4px;
+    }
+    
+    .input-modern {
+        width: 100%;
+        height: 50px;
+        padding: 0 16px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        color: white;
+        font-size: 0.95rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        transform: translateZ(0);
+    }
+    
+    .input-modern::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+    }
+    
+    .input-modern:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.12);
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    }
+    
+    .input-help {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 4px;
+        padding-left: 4px;
+    }
+    
+    /* Password Toggle */
+    .password-wrapper {
+        position: relative;
+    }
+    
+    .password-toggle {
+        position: absolute;
+        right: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 1.1rem;
+        cursor: pointer;
+        z-index: 2;
+        transition: all 0.3s ease;
+        user-select: none;
+    }
+    
+    .password-toggle:hover {
+        color: #8b9cff;
+    }
+    
+    .password-input {
+        padding-right: 50px !important;
+    }
+    
+    /* File Upload */
+    .file-upload-wrapper {
+        border: 2px dashed rgba(255, 255, 255, 0.2);
+        border-radius: 14px;
+        padding: 30px 20px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.05);
+        transition: all 0.2s ease;
+        cursor: pointer;
+        position: relative;
+    }
+    
+    .file-upload-wrapper:hover {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.1);
+    }
+    
+    .file-upload-icon {
+        font-size: 2.5rem;
+        color: #8b9cff;
+        margin-bottom: 12px;
+    }
+    
+    .file-upload-wrapper p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+    }
+    
+    .file-upload-wrapper strong {
+        color: white;
+        font-weight: 600;
+    }
+    
+    .file-upload-wrapper.has-file {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.15);
+    }
+    
+    /* Error Alert */
+    .alert-modern {
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 14px;
+        padding: 20px;
+        margin-bottom: 30px;
+        color: white;
+    }
+    
+    .alert-modern strong {
+        color: #fca5a5;
+    }
+    
+    .alert-modern ul {
+        margin-top: 10px;
+        margin-bottom: 0;
+        padding-left: 20px;
+    }
+    
+    .alert-modern li {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+        margin-bottom: 4px;
+    }
+    
+    /* Buttons */
+    .btn-modern {
+        height: 54px;
+        padding: 0 35px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        transform: translateZ(0);
+        backface-visibility: hidden;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .btn-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+    }
+    
+    .btn-modern:active {
+        transform: translateY(0);
+    }
+    
+    .back-link {
+        color: #8b9cff;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .back-link:hover {
+        color: #a5b4fc;
+        transform: translateX(-3px);
+    }
+    
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .register-page {
+            padding: 30px 15px;
+        }
+        
+        .register-container {
+            border-radius: 24px;
+        }
+        
+        .register-header,
+        .register-body {
+            padding: 40px 30px;
+        }
+        
+        .register-header h1 {
+            font-size: 1.75rem;
+        }
+        
+        .progress-steps {
+            padding: 0 10px;
+        }
+        
+        .step-label {
+            font-size: 0.7rem;
+        }
+        
+        .step-number {
+            width: 35px;
+            height: 35px;
+            font-size: 0.85rem;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .btn-modern {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="register-page">
+    <div class="register-container">
+        <!-- Header -->
+        <div class="register-header">
+            <div class="register-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <h1>{% trans "Create Your Account" %}</h1>
+            <p>{% trans "Join the barangay community portal" %}</p>
+        </div>
+        
+        <!-- Body -->
+        <div class="register-body">
+            <!-- Progress Steps -->
+            <div class="progress-steps">
+                <div class="step active">
+                    <div class="step-number">1</div>
+                    <div class="step-label">{% trans "Personal" %}</div>
+                </div>
+                <div class="step active">
+                    <div class="step-number">2</div>
+                    <div class="step-label">{% trans "Security" %}</div>
+                </div>
+                <div class="step active">
+                    <div class="step-number">3</div>
+                    <div class="step-label">{% trans "Verify" %}</div>
+                </div>
+            </div>
+            
+            <!-- Form -->
+            <form method="post" enctype="multipart/form-data" autocomplete="off">
+                {% csrf_token %}
+                
+                <!-- Error Messages -->
+                {% if form.errors %}
+                <div class="alert-modern">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>{% trans "Please correct the following errors:" %}</strong>
+                    <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ field.label }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <!-- Personal Information -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-user"></i>
+                        {% trans "Personal Information" %}
+                    </h3>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="input-group-modern">
+                                <label for="id_username">{{ form.username.label }}</label>
+                                <input 
+                                    type="text" 
+                                    name="{{ form.username.name }}" 
+                                    id="id_username"
+                                    class="input-modern" 
+                                    placeholder="{% trans 'Choose a username' %}" 
+                                    required
+                                    autocomplete="off">
+                                {% if form.username.help_text %}
+                                <div class="input-help">{{ form.username.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group-modern">
+                                <label for="id_email">{{ form.email.label }}</label>
+                                <input 
+                                    type="email" 
+                                    name="{{ form.email.name }}" 
+                                    id="id_email"
+                                    class="input-modern" 
+                                    placeholder="{% trans 'your@email.com' %}" 
+                                    required
+                                    autocomplete="email">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="input-group-modern">
+                                <label for="id_first_name">{{ form.first_name.label }}</label>
+                                <input 
+                                    type="text" 
+                                    name="{{ form.first_name.name }}" 
+                                    id="id_first_name"
+                                    class="input-modern" 
+                                    placeholder="{% trans 'First name' %}"
+                                    autocomplete="given-name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group-modern">
+                                <label for="id_last_name">{{ form.last_name.label }}</label>
+                                <input 
+                                    type="text" 
+                                    name="{{ form.last_name.name }}" 
+                                    id="id_last_name"
+                                    class="input-modern" 
+                                    placeholder="{% trans 'Last name' %}"
+                                    autocomplete="family-name">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="input-group-modern">
+                                <label for="id_phone">{{ form.phone.label }}</label>
+                                <input 
+                                    type="tel" 
+                                    name="{{ form.phone.name }}" 
+                                    id="id_phone"
+                                    class="input-modern" 
+                                    placeholder="{% trans '+63 912 345 6789' %}"
+                                    autocomplete="tel">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group-modern">
+                                <label for="id_address">{{ form.address.label }}</label>
+                                <input 
+                                    type="text" 
+                                    name="{{ form.address.name }}" 
+                                    id="id_address"
+                                    class="input-modern" 
+                                    placeholder="{% trans 'Your complete address' %}"
+                                    autocomplete="street-address">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Account Security -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-lock"></i>
+                        {% trans "Account Security" %}
+                    </h3>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="input-group-modern">
+                                <label for="id_password1">{{ form.password1.label }}</label>
+                                <div class="password-wrapper">
+                                    <input 
+                                        type="password" 
+                                        name="{{ form.password1.name }}" 
+                                        id="id_password1"
+                                        class="input-modern password-input" 
+                                        placeholder="{% trans 'Enter strong password' %}" 
+                                        required
+                                        autocomplete="new-password">
+                                    <i class="fas fa-eye password-toggle" onclick="togglePassword('id_password1')"></i>
+                                </div>
+                                {% if form.password1.help_text %}
+                                <div class="input-help">{{ form.password1.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group-modern">
+                                <label for="id_password2">{{ form.password2.label }}</label>
+                                <div class="password-wrapper">
+                                    <input 
+                                        type="password" 
+                                        name="{{ form.password2.name }}" 
+                                        id="id_password2"
+                                        class="input-modern password-input" 
+                                        placeholder="{% trans 'Confirm your password' %}" 
+                                        required
+                                        autocomplete="new-password">
+                                    <i class="fas fa-eye password-toggle" onclick="togglePassword('id_password2')"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Verification Documents -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-id-card"></i>
+                        {% trans "Verification Documents" %}
+                    </h3>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="input-group-modern">
+                                <label>{{ form.profile_photo.label }} <span style="color: #ef4444;">*</span></label>
+                                <div class="file-upload-wrapper" data-target="profile_photo">
+                                    <div class="file-upload-icon">
+                                        <i class="fas fa-camera"></i>
+                                    </div>
+                                    <p><strong class="file-name">{% trans "Upload Profile Photo" %}</strong></p>
+                                    <p class="text-muted">{% trans "Required - Click to browse" %}</p>
+                                    <input type="file" name="{{ form.profile_photo.name }}" class="d-none" accept="image/*" id="profile_photo" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="input-group-modern">
+                                <label>{{ form.verification_document.label }}</label>
+                                <div class="file-upload-wrapper" data-target="verification_document">
+                                    <div class="file-upload-icon">
+                                        <i class="fas fa-file-upload"></i>
+                                    </div>
+                                    <p><strong class="file-name">{% trans "Upload Verification Document" %}</strong></p>
+                                    <p class="text-muted">{% trans "PDF or Image file" %}</p>
+                                    <input type="file" name="{{ form.verification_document.name }}" class="d-none" accept=".pdf,image/*" id="verification_document">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <a href="{% url 'accounts:login' %}" class="back-link">
+                        <i class="fas fa-arrow-left"></i>
+                        {% trans "Back to Login" %}
+                    </a>
+                    <button type="submit" class="btn-modern">
+                        {% trans "Create Account" %}
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Password toggle function
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const icon = input.parentElement.querySelector('.password-toggle');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+// File upload handlers
+document.querySelectorAll('.file-upload-wrapper').forEach(wrapper => {
+    wrapper.addEventListener('click', () => {
+        const targetId = wrapper.dataset.target;
+        document.getElementById(targetId).click();
+    });
+    
+    const targetId = wrapper.dataset.target;
+    const fileInput = document.getElementById(targetId);
+    
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const fileName = this.files[0].name;
+            wrapper.querySelector('.file-name').textContent = fileName;
+            wrapper.classList.add('has-file');
+        }
+    });
+});
+
+// Smooth input animations
+document.querySelectorAll('.input-modern').forEach(input => {
+    input.addEventListener('focus', function() {
+        const parent = this.classList.contains('password-input') ? this.parentElement.parentElement : this.parentElement;
+        parent.style.transform = 'scale(1.005)';
+        parent.style.transition = 'transform 0.2s ease';
+    });
+    
+    input.addEventListener('blur', function() {
+        const parent = this.classList.contains('password-input') ? this.parentElement.parentElement : this.parentElement;
+        parent.style.transform = 'scale(1)';
+    });
+});
+</script>
+{% endblock %}

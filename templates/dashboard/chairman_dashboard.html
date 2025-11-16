@@ -1,0 +1,743 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Chairman Dashboard" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modern Chairman Dashboard - Dark Glassmorphism */
+    
+    .dashboard-hero {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.25) 0%, rgba(118, 75, 162, 0.25) 100%);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 40px;
+        margin-bottom: 40px;
+        position: relative;
+        overflow: hidden;
+        animation: fadeInUp 0.6s ease;
+    }
+    
+    .dashboard-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        animation: float 20s infinite ease-in-out;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(180deg); }
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .hero-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 10px;
+    }
+    
+    .hero-subtitle {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1.1rem;
+    }
+    
+    .hero-icon {
+        font-size: 4rem;
+        color: rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Modern Stat Card */
+    .stat-card-modern {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 25px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        transform: translateZ(0);
+        backface-visibility: hidden;
+        margin-bottom: 20px;
+        animation: fadeInUp 0.6s ease;
+    }
+    
+    .stat-card-modern:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+    }
+    
+    .stat-icon-modern {
+        width: 70px;
+        height: 70px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 15px;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: white;
+        margin: 10px 0;
+    }
+    
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+    
+    .section-title {
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .section-title i {
+        color: #8b9cff;
+    }
+    
+    /* Table Modern */
+    .table-modern {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    
+    .table-modern thead {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    }
+    
+    .table-modern thead th {
+        color: white;
+        font-weight: 600;
+        padding: 16px;
+        border: none;
+    }
+    
+    .table-modern tbody tr {
+        border-bottom: 1px solid var(--glass-border);
+        color: var(--text-primary);
+        transition: background 0.2s ease;
+    }
+    
+    .table-modern tbody tr:hover {
+        background: var(--glass-hover);
+    }
+    
+    .table-modern tbody td {
+        padding: 14px 16px;
+        border: none;
+    }
+    
+    /* List Modern */
+    .list-modern {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 20px;
+    }
+    
+    .list-item-modern {
+        padding: 15px;
+        border-radius: 10px;
+        background: var(--glass-bg-light);
+        color: var(--text-primary);
+        margin-bottom: 10px;
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent;
+    }
+    
+    .list-item-modern:hover {
+        background: var(--glass-hover);
+        transform: translateX(5px);
+        border-left-color: var(--primary-color);
+    }
+    
+    /* Quick Actions */
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+    
+    .quick-action-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 2px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+        text-decoration: none;
+        color: var(--text-primary);
+        transition: all 0.2s ease;
+        transform: translateZ(0);
+    }
+    
+    .quick-action-card:hover {
+        background: var(--glass-hover);
+        border-color: var(--primary-color);
+        transform: translateY(-3px);
+        color: white;
+    }
+    
+    .quick-action-icon {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        color: #8b9cff;
+    }
+    
+    .quick-action-label {
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    
+    /* Category Item */
+    .category-item {
+        padding: 20px;
+        border-radius: 12px;
+        background: var(--glass-bg-light);
+        margin-bottom: 15px;
+        transition: all 0.2s ease;
+        border-left: 4px solid transparent;
+    }
+    
+    .category-item:hover {
+        background: var(--glass-hover);
+        border-left-color: var(--primary-color);
+        transform: translateX(5px);
+    }
+    
+    .category-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+    
+    .category-name {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: white;
+        margin-bottom: 4px;
+    }
+    
+    .category-subtitle {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+    
+    .category-count {
+        text-align: right;
+    }
+    
+    .count-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        line-height: 1;
+    }
+    
+    .category-progress {
+        margin-top: 15px;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .progress-bar-modern {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        border-radius: 10px;
+        transition: width 0.6s ease;
+    }
+    
+    /* Complaint Card Modern */
+    .complaint-card-modern {
+        display: block;
+        padding: 20px;
+        border-radius: 12px;
+        background: var(--glass-bg-light);
+        margin-bottom: 12px;
+        transition: all 0.2s ease;
+        border-left: 4px solid transparent;
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .complaint-card-modern:hover {
+        background: var(--glass-hover);
+        border-left-color: var(--primary-color);
+        transform: translateX(5px);
+        color: inherit;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .complaint-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .complaint-icon-wrapper {
+        width: 45px;
+        height: 45px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+    
+    .complaint-title {
+        font-weight: 700;
+        font-size: 1rem;
+        color: white;
+        margin-bottom: 6px;
+        line-height: 1.4;
+    }
+    
+    .complaint-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .meta-item i {
+        font-size: 0.75rem;
+    }
+    
+    .meta-separator {
+        opacity: 0.5;
+    }
+    
+    .complaint-status {
+        flex-shrink: 0;
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    
+    .status-pending {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    
+    .status-in_progress {
+        background: rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    
+    .status-resolved {
+        background: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    
+    .status-closed {
+        background: rgba(107, 114, 128, 0.2);
+        color: #9ca3af;
+        border: 1px solid rgba(107, 114, 128, 0.3);
+    }
+    
+    .complaint-footer {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .complaint-category {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        background: rgba(102, 126, 234, 0.15);
+        border-radius: 12px;
+        font-size: 0.8rem;
+        color: #8b9cff;
+        font-weight: 500;
+    }
+    
+    .complaint-category i {
+        font-size: 0.7rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .dashboard-hero {
+            padding: 30px 20px;
+        }
+        
+        .hero-title {
+            font-size: 1.75rem;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="dashboard-hero">
+    <div class="hero-content">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="hero-title">
+                    <i class="fas fa-crown me-3"></i>
+                    {% trans "Chairman Dashboard" %}
+                </h1>
+                <p class="hero-subtitle">
+                    {% trans "Welcome back" %}, {{ user.get_full_name|default:user.username }}! {% trans "Manage your barangay operations" %}
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'accounts:profile' %}" style="text-decoration: none; display: inline-block;">
+                    {% if user.profile_photo %}
+                    <img src="{{ user.profile_photo.url }}" alt="{{ user.username }}" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover; border: 4px solid rgba(255,255,255,0.3); box-shadow: 0 8px 25px rgba(0,0,0,0.4); transition: all 0.3s ease; display: block;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 10px 30px rgba(102, 126, 234, 0.6)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.4)';">
+                    {% else %}
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px; background: linear-gradient(135deg, #667eea, #764ba2); border: 4px solid rgba(255,255,255,0.3); box-shadow: 0 8px 25px rgba(0,0,0,0.4); transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 10px 30px rgba(102, 126, 234, 0.6)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.4)';">
+                        <i class="fas fa-user" style="font-size: 2.5rem; color: white;"></i>
+                    </div>
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <!-- Quick Actions -->
+    <h3 class="section-title">
+        <i class="fas fa-bolt"></i>
+        {% trans "Quick Actions" %}
+    </h3>
+    <div class="quick-actions">
+        <a href="{% url 'accounts:user_approval_list' %}" class="quick-action-card">
+            <i class="fas fa-user-check quick-action-icon"></i>
+            <div class="quick-action-label">{% trans "Approve Users" %}</div>
+        </a>
+        <a href="{% url 'complaints:complaint_list' %}" class="quick-action-card">
+            <i class="fas fa-exclamation-triangle quick-action-icon"></i>
+            <div class="quick-action-label">{% trans "View Complaints" %}</div>
+        </a>
+        <a href="{% url 'suggestions:manage_suggestions' %}" class="quick-action-card">
+            <i class="fas fa-lightbulb quick-action-icon"></i>
+            <div class="quick-action-label">{% trans "Manage Suggestions" %}</div>
+        </a>
+        <a href="{% url 'announcements:pending_approvals' %}" class="quick-action-card">
+            <i class="fas fa-bullhorn quick-action-icon"></i>
+            <div class="quick-action-label">{% trans "Approve Announcements" %}</div>
+        </a>
+        <a href="{% url 'analytics:analytics_overview' %}" class="quick-action-card">
+            <i class="fas fa-chart-line quick-action-icon"></i>
+            <div class="quick-action-label">{% trans "View Analytics" %}</div>
+        </a>
+    </div>
+    
+    <!-- User Statistics -->
+    <h3 class="section-title">
+        <i class="fas fa-users"></i>
+        {% trans "User Statistics" %}
+    </h3>
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card-modern">
+                <div class="stat-icon-modern" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="fas fa-users text-white"></i>
+                </div>
+                <div class="stat-number">{{ total_users }}</div>
+                <div class="stat-label">{% trans "Total Users" %}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card-modern">
+                <div class="stat-icon-modern" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                    <i class="fas fa-clock text-white"></i>
+                </div>
+                <div class="stat-number">{{ pending_approvals }}</div>
+                <div class="stat-label">{% trans "Pending Approvals" %}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card-modern">
+                <div class="stat-icon-modern" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <i class="fas fa-user-check text-white"></i>
+                </div>
+                <div class="stat-number">{{ active_residents }}</div>
+                <div class="stat-label">{% trans "Active Residents" %}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card-modern">
+                <div class="stat-icon-modern" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                    <i class="fas fa-exclamation-circle text-white"></i>
+                </div>
+                <div class="stat-number">{{ total_complaints }}</div>
+                <div class="stat-label">{% trans "Total Complaints" %}</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Complaint Statistics -->
+    <h3 class="section-title">
+        <i class="fas fa-chart-bar"></i>
+        {% trans "Complaint Statistics" %}
+    </h3>
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card-modern">
+                <div class="stat-icon-modern" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                    <i class="fas fa-hourglass-half text-white"></i>
+                </div>
+                <div class="stat-number">{{ pending_complaints }}</div>
+                <div class="stat-label">{% trans "Pending" %}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card-modern">
+                <div class="stat-icon-modern" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                    <i class="fas fa-spinner text-white"></i>
+                </div>
+                <div class="stat-number">{{ in_progress }}</div>
+                <div class="stat-label">{% trans "In Progress" %}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card-modern">
+                <div class="stat-icon-modern" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <i class="fas fa-check-circle text-white"></i>
+                </div>
+                <div class="stat-number">{{ resolved_complaints }}</div>
+                <div class="stat-label">{% trans "Resolved" %}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card-modern">
+                <div class="stat-icon-modern" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                    <i class="fas fa-percentage text-white"></i>
+                </div>
+                <div class="stat-number">{{ resolution_rate }}%</div>
+                <div class="stat-label">{% trans "Resolution Rate" %}</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Other Statistics -->
+    <h3 class="section-title">
+        <i class="fas fa-th-large"></i>
+        {% trans "Other Services" %}
+    </h3>
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stat-card-modern">
+                <div class="stat-icon-modern" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="fas fa-concierge-bell text-white"></i>
+                </div>
+                <div class="stat-number">{{ pending_services }}</div>
+                <div class="stat-label">{% trans "Pending Services" %}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card-modern">
+                <div class="stat-icon-modern" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                    <i class="fas fa-bullhorn text-white"></i>
+                </div>
+                <div class="stat-number">{{ pending_announcements }}</div>
+                <div class="stat-label">{% trans "Pending Announcements" %}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card-modern">
+                <div class="stat-icon-modern" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <i class="fas fa-star text-white"></i>
+                </div>
+                <div class="stat-number">{{ avg_rating|floatformat:1 }}/5</div>
+                <div class="stat-label">{% trans "Average Rating" %}</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Category Breakdown & Recent Activity -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <h3 class="section-title">
+                <i class="fas fa-chart-pie"></i>
+                {% trans "Complaints by Category" %}
+            </h3>
+            <div class="list-modern">
+                {% for item in complaints_by_category %}
+                <div class="category-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="category-icon">
+                                <i class="fas fa-folder"></i>
+                            </div>
+                            <div>
+                                <div class="category-name">{{ item.category__name }}</div>
+                                <div class="category-subtitle">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    {% trans "Total complaints" %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="category-count">
+                            <span class="count-number">{{ item.count }}</span>
+                        </div>
+                    </div>
+                    <div class="category-progress">
+                        <div class="progress-bar-modern" style="width: {% widthratio item.count total_complaints 100 %}%"></div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-inbox fa-3x mb-3 opacity-50"></i>
+                    <p>{% trans "No data available" %}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <h3 class="section-title">
+                <i class="fas fa-clock"></i>
+                {% trans "Recent Complaints" %}
+            </h3>
+            <div class="list-modern">
+                {% for complaint in recent_complaints %}
+                <a href="{% url 'complaints:complaint_detail' complaint.id %}" class="complaint-card-modern">
+                    <div class="complaint-header">
+                        <div class="complaint-icon-wrapper">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="complaint-title">{{ complaint.title|truncatewords:8 }}</div>
+                            <div class="complaint-meta">
+                                <span class="meta-item">
+                                    <i class="fas fa-user"></i>
+                                    {% if complaint.is_anonymous %}
+                                        {% if user.can_view_anonymous_identity and complaint.user %}
+                                            <span class="badge bg-secondary me-1">
+                                                <i class="fas fa-user-secret me-1"></i>
+                                                {% trans "Anonymous to residents" %}
+                                            </span>
+                                            {{ complaint.user.get_full_name|default:complaint.user.username }}
+                                        {% else %}
+                                            <span class="text-muted">
+                                                <i class="fas fa-user-secret me-1"></i>
+                                                {% trans "Anonymous Resident" %}
+                                            </span>
+                                        {% endif %}
+                                    {% else %}
+                                        {{ complaint.user.get_full_name|default:complaint.user.username }}
+                                    {% endif %}
+                                </span>
+                                <span class="meta-separator">•</span>
+                                <span class="meta-item">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    {{ complaint.created_at|date:"M d, Y" }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="complaint-status">
+                            <span class="status-badge status-{{ complaint.status }}">
+                                {% if complaint.status == 'pending' %}
+                                    <i class="fas fa-clock"></i>
+                                {% elif complaint.status == 'in_progress' %}
+                                    <i class="fas fa-spinner"></i>
+                                {% elif complaint.status == 'resolved' %}
+                                    <i class="fas fa-check-circle"></i>
+                                {% else %}
+                                    <i class="fas fa-times-circle"></i>
+                                {% endif %}
+                                {{ complaint.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    {% if complaint.category %}
+                    <div class="complaint-footer">
+                        <span class="complaint-category">
+                            <i class="fas fa-tag"></i>
+                            {{ complaint.category.name }}
+                        </span>
+                    </div>
+                    {% endif %}
+                </a>
+                {% empty %}
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-inbox fa-3x mb-3 opacity-50"></i>
+                    <p class="mb-0">{% trans "No recent complaints" %}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,94 @@
+/* ULTRA OPTIMIZED CARD EFFECTS - Minimal Performance Impact */
+
+/* Feature cards - Simple lift effect */
+.feature-card {
+    position: relative;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    will-change: transform;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.25);
+}
+
+/* Simplified icon scale - no rotation */
+.feature-icon-box {
+    transition: transform 0.25s ease;
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+.feature-card:hover .feature-icon-box {
+    transform: scale(1.1);
+}
+
+/* Stat cards - subtle lift */
+.stat-card {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    will-change: transform;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.2);
+}
+
+/* Announcement cards - minimal effect */
+.announcement-card {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+.announcement-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.15);
+}
+
+/* Card border highlight */
+.feature-card,
+.stat-card {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: border-color 0.25s ease;
+}
+
+.feature-card:hover,
+.stat-card:hover {
+    border-color: rgba(102, 126, 234, 0.4);
+}
+
+/* Link animation - simple */
+.feature-link {
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.feature-card:hover .feature-link {
+    transform: translateX(5px);
+    color: #764ba2;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .feature-card,
+    .stat-card,
+    .announcement-card,
+    .feature-icon-box,
+    .feature-link {
+        transition: none;
+        animation: none;
+    }
+}
+
+/* Performance optimizations */
+@supports (-webkit-appearance: none) {
+    .feature-card,
+    .stat-card {
+        -webkit-transform: translateZ(0);
+        -webkit-backface-visibility: hidden;
+    }
+}

@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ feedback.subject }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h3>{{ feedback.subject }}</h3>
+                    <div>
+                        {% for i in "12345" %}
+                        {% if forloop.counter <= feedback.rating %}
+                        <i class="fas fa-star text-warning fa-lg"></i>
+                        {% else %}
+                        <i class="far fa-star text-warning fa-lg"></i>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="fas fa-user"></i> {{ feedback.user.username }} | 
+                        <i class="fas fa-calendar"></i> {{ feedback.created_at|date:"M d, Y H:i" }}
+                    </small>
+                </div>
+                
+                {% if feedback.is_reviewed %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> {% trans "This feedback has been reviewed" %}
+                    {% if feedback.reviewed_at %}
+                    <br><small>{% trans "Reviewed on" %}: {{ feedback.reviewed_at|date:"M d, Y" }} {% trans "by" %} {{ feedback.reviewed_by.username }}</small>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-clock"></i> {% trans "This feedback is pending review" %}
+                </div>
+                {% endif %}
+                
+                {% if feedback.attachment %}
+                <div class="mb-3">
+                    <strong>{% trans "Attachment" %}:</strong>
+                    <a href="{{ feedback.attachment.url }}" target="_blank" class="btn btn-sm btn-info">
+                        <i class="fas fa-paperclip"></i> {% trans "View Attachment" %}
+                    </a>
+                </div>
+                {% endif %}
+                
+                <hr>
+                
+                <h5>{% trans "Message" %}</h5>
+                <p>{{ feedback.message|linebreaks }}</p>
+                
+                {% if feedback.admin_response %}
+                <hr>
+                <h5>{% trans "Admin Response" %}</h5>
+                <div class="alert alert-info">
+                    {{ feedback.admin_response|linebreaks }}
+                </div>
+                {% endif %}
+                
+                {% if user.is_official and not feedback.is_reviewed %}
+                <hr>
+                <h5>{% trans "Mark as Reviewed" %}</h5>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="admin_response" class="form-label">{% trans "Admin Response" %}</label>
+                        <textarea class="form-control" id="admin_response" name="admin_response" rows="4"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">{% trans "Mark as Reviewed" %}</button>
+                </form>
+                {% endif %}
+                
+                <div class="mt-4">
+                    <a href="{% url 'feedback:feedback_list' %}" class="btn btn-secondary">{% trans "Back to List" %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

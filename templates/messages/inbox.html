@@ -1,0 +1,601 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Messages" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .messages-container {
+        min-height: 80vh;
+        padding: 30px 0;
+    }
+    
+    .sidebar-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 20px;
+        height: fit-content;
+        position: sticky;
+        top: 100px;
+    }
+    
+    .sidebar-btn {
+        display: block;
+        width: 100%;
+        padding: 15px 20px;
+        margin-bottom: 10px;
+        border-radius: 15px;
+        background: transparent;
+        border: 2px solid transparent;
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .sidebar-btn i {
+        margin-right: 12px;
+        font-size: 1.1rem;
+    }
+    
+    .sidebar-btn:hover {
+        background: var(--glass-hover);
+        border-color: rgba(102, 126, 234, 0.3);
+        color: var(--text-primary);
+        transform: translateX(5px);
+    }
+    
+    .sidebar-btn.active {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+        border-color: rgba(102, 126, 234, 0.5);
+        color: white;
+    }
+    
+    .sidebar-btn .badge {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    
+    .inbox-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    
+    .inbox-header {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+        padding: 25px 30px;
+        border-bottom: 1px solid var(--glass-border);
+    }
+    
+    .inbox-header h3 {
+        margin: 0;
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+    
+    .new-message-btn {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 24px;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .new-message-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .message-item {
+        padding: 20px 30px;
+        border-bottom: 1px solid var(--glass-border);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+    }
+    
+    .message-item:last-child {
+        border-bottom: none;
+    }
+    
+    .message-item:hover {
+        background: var(--glass-hover);
+        padding-left: 35px;
+    }
+    
+    .message-item.unread {
+        background: linear-gradient(90deg, rgba(102, 126, 234, 0.1) 0%, transparent 100%);
+    }
+    
+    .message-item.unread::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 8px;
+        height: 8px;
+        background: #667eea;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(102, 126, 234, 0.6);
+    }
+    
+    .message-sender {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 5px;
+        font-size: 1rem;
+    }
+    
+    .message-subject {
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+    
+    .message-date {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+    
+    .message-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .empty-state {
+        padding: 80px 40px;
+        text-align: center;
+    }
+    
+    .empty-state-icon {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 30px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--glass-border);
+    }
+    
+    .empty-state-icon i {
+        font-size: 3.5rem;
+        color: var(--text-secondary);
+    }
+    
+    .empty-state h4 {
+        color: var(--text-primary);
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+    
+    .empty-state p {
+        color: var(--text-secondary);
+        margin-bottom: 30px;
+    }
+    
+    .view-message-btn {
+        background: transparent;
+        border: 2px solid var(--glass-border);
+        color: var(--text-primary);
+        padding: 8px 16px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .view-message-btn:hover {
+        background: var(--glass-hover);
+        border-color: rgba(102, 126, 234, 0.5);
+        color: var(--text-primary);
+    }
+    
+    .delete-message-btn {
+        background: transparent;
+        border: 2px solid var(--glass-border);
+        color: #ef4444;
+        padding: 8px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .delete-message-btn:hover {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.5);
+        color: #ef4444;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hidden CSRF token for JavaScript -->
+{% csrf_token %}
+
+<div class="container messages-container">
+    <div class="row g-4">
+        <!-- Sidebar -->
+        <div class="col-lg-3">
+            <div class="sidebar-card">
+                <a href="{% url 'direct_messages:inbox' %}" class="sidebar-btn {% if inbox_active %}active{% endif %}">
+                    <i class="fas fa-inbox"></i>{% trans "My Messages" %}
+                    {% if unread_count > 0 %}
+                    <span class="badge bg-danger">{{ unread_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'direct_messages:compose' %}" class="sidebar-btn" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3)); border-color: rgba(102, 126, 234, 0.5);">
+                    <i class="fas fa-plus-circle"></i>
+                    {% if user.is_official %}
+                        {% trans "Message Resident" %}
+                    {% else %}
+                        {% trans "Message Admin" %}
+                    {% endif %}
+                </a>
+            </div>
+            
+            {% if not user.is_official %}
+            <div class="sidebar-card mt-3" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); padding: 20px;">
+                <div style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+                    <i class="fas fa-info-circle mb-2" style="font-size: 1.5rem; color: #667eea;"></i>
+                    <p class="mb-0">{% trans "Send messages directly to the barangay admin. They will reply here." %}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <div class="inbox-card">
+                <div class="inbox-header d-flex justify-content-between align-items-center">
+                    <h3>
+                        <i class="fas fa-comments me-2"></i>{% trans "My Messages" %}
+                    </h3>
+                    <a href="{% url 'direct_messages:compose' %}" class="new-message-btn">
+                        <i class="fas fa-plus me-2"></i>
+                        {% if user.is_official %}
+                            {% trans "Message Resident" %}
+                        {% else %}
+                            {% trans "Message Admin" %}
+                        {% endif %}
+                    </a>
+                </div>
+                
+                {% if messages %}
+                <div class="messages-list">
+                    {% for message in messages %}
+                    <div class="message-item {% if not message.is_read %}unread{% endif %}" data-message-url="{% url 'direct_messages:detail' message.pk %}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="message-sender">
+                                    {{ message.sender.get_full_name|default:message.sender.username }}
+                                </div>
+                                <div class="message-subject">
+                                    {{ message.subject }}
+                                </div>
+                                <div class="message-date">
+                                    <i class="fas fa-clock me-1"></i>{{ message.created_at|date:"M d, Y H:i" }}
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column align-items-end gap-2">
+                                {% if message.is_read %}
+                                <span class="message-badge bg-secondary">{% trans "Read" %}</span>
+                                {% else %}
+                                <span class="message-badge bg-primary">{% trans "Unread" %}</span>
+                                {% endif %}
+                                <div class="d-flex gap-2">
+                                    <button class="view-message-btn" data-message-url="{% url 'direct_messages:detail' message.pk %}" title="{% trans 'View message' %}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="delete-message-btn" data-message-id="{{ message.pk }}" title="{% trans 'Delete message' %}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-envelope-open"></i>
+                    </div>
+                    <h4>{% trans "No messages yet" %}</h4>
+                    {% if user.is_official %}
+                    <p>{% trans "Send a message to a resident to start the conversation." %}</p>
+                    <a href="{% url 'direct_messages:compose' %}" class="new-message-btn">
+                        <i class="fas fa-paper-plane me-2"></i>{% trans "Message Resident Now" %}
+                    </a>
+                    {% else %}
+                    <p>{% trans "Send a message to the barangay admin. They will reply here." %}</p>
+                    <a href="{% url 'direct_messages:compose' %}" class="new-message-btn">
+                        <i class="fas fa-paper-plane me-2"></i>{% trans "Message Admin Now" %}
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle message item clicks
+    document.querySelectorAll('.message-item').forEach(function(item) {
+        item.addEventListener('click', function() {
+            window.location.href = this.getAttribute('data-message-url');
+        });
+    });
+    
+    // Handle view button clicks
+    document.querySelectorAll('.view-message-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            window.location.href = this.getAttribute('data-message-url');
+        });
+    });
+    
+    // Get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Handle delete button clicks - direct delete without confirmation
+    document.querySelectorAll('.delete-message-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const messageId = this.getAttribute('data-message-id');
+            const csrftoken = getCookie('csrftoken');
+            
+            // Delete immediately
+            fetch(`/en/messages/${messageId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Reload page to show updated list
+                    window.location.reload();
+                } else {
+                    alert('Failed to delete message');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the message');
+            });
+        });
+    });
+});
+
+// Custom confirmation modal
+function showConfirmModal(title, message) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('confirmModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const confirmBtn = document.getElementById('modalConfirm');
+        const cancelBtn = document.getElementById('modalCancel');
+        const overlay = modal.querySelector('.custom-modal-overlay');
+        
+        modalTitle.textContent = title;
+        modalMessage.textContent = message;
+        modal.classList.add('show');
+        
+        const handleConfirm = () => {
+            modal.classList.remove('show');
+            cleanup();
+            resolve(true);
+        };
+        
+        const handleCancel = () => {
+            modal.classList.remove('show');
+            cleanup();
+            resolve(false);
+        };
+        
+        const cleanup = () => {
+            confirmBtn.removeEventListener('click', handleConfirm);
+            cancelBtn.removeEventListener('click', handleCancel);
+            overlay.removeEventListener('click', handleCancel);
+        };
+        
+        confirmBtn.addEventListener('click', handleConfirm);
+        cancelBtn.addEventListener('click', handleCancel);
+        overlay.addEventListener('click', handleCancel);
+    });
+}
+</script>
+
+<!-- Custom Confirmation Modal -->
+<div class="custom-modal" id="confirmModal">
+    <div class="custom-modal-overlay"></div>
+    <div class="custom-modal-content">
+        <div class="custom-modal-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3 class="custom-modal-title" id="modalTitle">Confirm Action</h3>
+        <p class="custom-modal-message" id="modalMessage">Are you sure you want to proceed?</p>
+        <div class="custom-modal-buttons">
+            <button class="custom-modal-btn btn-cancel" id="modalCancel">
+                <i class="fas fa-times me-2"></i>Cancel
+            </button>
+            <button class="custom-modal-btn btn-confirm" id="modalConfirm">
+                <i class="fas fa-check me-2"></i>Confirm
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.custom-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+}
+
+.custom-modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.custom-modal-content {
+    position: relative;
+    background: linear-gradient(135deg, rgba(30, 30, 45, 0.95), rgba(20, 20, 35, 0.95));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 2px solid rgba(239, 68, 68, 0.3);
+    border-radius: 24px;
+    padding: 40px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.3s ease;
+    text-align: center;
+}
+
+.custom-modal-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2));
+    border: 2px solid rgba(239, 68, 68, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-modal-icon i {
+    font-size: 2.5rem;
+    color: #ef4444;
+}
+
+.custom-modal-title {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.custom-modal-message {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    margin-bottom: 30px;
+    line-height: 1.5;
+}
+
+.custom-modal-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.custom-modal-btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.custom-modal-btn.btn-cancel {
+    background: transparent;
+    border: 2px solid var(--glass-border);
+    color: var(--text-primary);
+}
+
+.custom-modal-btn.btn-cancel:hover {
+    background: var(--glass-hover);
+    border-color: rgba(102, 126, 234, 0.5);
+    transform: translateY(-2px);
+}
+
+.custom-modal-btn.btn-confirm {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.custom-modal-btn.btn-confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+</style>
+{% endblock %}

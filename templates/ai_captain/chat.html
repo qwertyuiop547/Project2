@@ -1,0 +1,899 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Virtual Barangay Captain" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .captain-chat-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        height: calc(100vh - 200px);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .captain-header {
+        background: radial-gradient(circle at top left, rgba(129, 140, 248, 0.9), rgba(168, 85, 247, 0.9));
+        border-radius: 20px 20px 0 0;
+        padding: 25px;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    
+    .captain-avatar {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .captain-info h3 {
+        margin: 0;
+        font-size: 1.6rem;
+        font-weight: 800;
+    }
+    
+    .captain-info p {
+        margin: 4px 0 0 0;
+        opacity: 0.98;
+        font-size: 0.9rem;
+    }
+    
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 30px;
+        background: rgba(15, 15, 25, 0.3);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .message {
+        display: flex;
+        gap: 15px;
+        max-width: 80%;
+        animation: slideIn 0.3s ease;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .message.user-message {
+        align-self: flex-end;
+        flex-direction: row-reverse;
+    }
+    
+    .message.captain-message {
+        align-self: flex-start;
+    }
+    
+    .message-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+    
+    .user-message .message-avatar {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+    
+    .captain-message .message-avatar {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        color: white;
+    }
+    
+    .message-content {
+        background: var(--glass-bg-light);
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(10px);
+        padding: 15px 20px;
+        border-radius: 20px;
+        color: var(--text-primary);
+        line-height: 1.6;
+    }
+    
+    .user-message .message-content {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+    
+    .captain-message .message-content {
+        background: var(--glass-bg-light);
+    }
+    
+    .message-time {
+        font-size: 0.75rem;
+        opacity: 0.6;
+        margin-top: 5px;
+    }
+    
+    .message-policies {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .policy-tag {
+        display: inline-block;
+        background: rgba(255,255,255,0.1);
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        margin-right: 5px;
+        margin-top: 5px;
+    }
+    
+    .message-feedback {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .feedback-btn {
+        background: rgba(255,255,255,0.1);
+        border: none;
+        padding: 5px 12px;
+        border-radius: 15px;
+        color: white;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.3s;
+    }
+    
+    .feedback-btn:hover {
+        background: rgba(255,255,255,0.2);
+        transform: scale(1.05);
+    }
+    
+    .feedback-btn.helpful {
+        background: rgba(16, 185, 129, 0.3);
+    }
+    
+    .chat-input-area {
+        padding: 25px;
+        background: var(--glass-bg-light);
+        border: 1px solid var(--glass-border);
+        border-radius: 0 0 20px 20px;
+        backdrop-filter: blur(10px);
+    }
+    
+    .input-wrapper {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+    
+    .chat-input {
+        flex: 1;
+        background: rgba(15, 15, 25, 0.5);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 25px;
+        padding: 15px 25px;
+        color: white;
+        font-size: 1rem;
+        transition: all 0.3s;
+    }
+    
+    .chat-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        background: rgba(15, 15, 25, 0.7);
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    .send-btn {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border: none;
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        color: white;
+        font-size: 1.3rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .send-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 5px 25px rgba(102, 126, 234, 0.5);
+    }
+    
+    .send-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: scale(1);
+    }
+    
+    .typing-indicator {
+        display: none;
+        align-items: center;
+        gap: 15px;
+        max-width: 80px;
+    }
+    
+    .typing-indicator.active {
+        display: flex;
+    }
+    
+    .typing-dots {
+        display: flex;
+        gap: 5px;
+        padding: 15px;
+        background: var(--glass-bg-light);
+        border-radius: 20px;
+    }
+    
+    .typing-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        animation: typingDot 1.4s infinite;
+    }
+    
+    .typing-dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    
+    .typing-dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+    
+    @keyframes typingDot {
+        0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: 0.7;
+        }
+        30% {
+            transform: translateY(-10px);
+            opacity: 1;
+        }
+    }
+    
+    .end-chat-btn {
+        background: rgba(239, 68, 68, 0.2);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+        padding: 8px 20px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .end-chat-btn:hover {
+        background: rgba(239, 68, 68, 0.3);
+    }
+    
+    .quick-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 15px;
+    }
+    
+    .quick-action-btn {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: var(--text-primary);
+        padding: 10px 20px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+    }
+    
+    .quick-action-btn:hover {
+        background: rgba(255,255,255,0.1);
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+    
+    /* Custom Modal Styles */
+    .custom-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+        z-index: 99999;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    .custom-modal-overlay.active {
+        display: flex;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    
+    .custom-modal {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 25px;
+        padding: 40px;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        animation: slideUp 0.3s ease;
+        position: relative;
+    }
+    
+    @keyframes slideUp {
+        from {
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    .modal-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 25px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+    }
+    
+    .modal-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+    
+    .modal-message {
+        font-size: 1.1rem;
+        color: rgba(255, 255, 255, 0.8);
+        text-align: center;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+    
+    .modal-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+    }
+    
+    .modal-btn {
+        padding: 14px 35px;
+        border-radius: 50px;
+        border: none;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .modal-btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .modal-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+    }
+    
+    .modal-btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .modal-btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-2px);
+    }
+    
+    /* Rating Input */
+    .rating-input {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin: 20px 0;
+    }
+    
+    .rating-star {
+        font-size: 2rem;
+        color: rgba(255, 255, 255, 0.3);
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .rating-star:hover,
+    .rating-star.active {
+        color: #fbbf24;
+        transform: scale(1.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Custom Modal Overlay -->
+<div class="custom-modal-overlay" id="customModal">
+    <div class="custom-modal">
+        <div class="modal-icon" id="modalIcon">
+            🏛️
+        </div>
+        <h3 class="modal-title" id="modalTitle">End Conversation</h3>
+        <p class="modal-message" id="modalMessage">Are you sure you want to end this conversation?</p>
+        <div id="ratingSection" style="display: none;">
+            <p style="color: rgba(255,255,255,0.8); text-align: center; margin-bottom: 10px;">Rate your experience:</p>
+            <div class="rating-input" id="ratingInput">
+                <span class="rating-star" data-rating="1">⭐</span>
+                <span class="rating-star" data-rating="2">⭐</span>
+                <span class="rating-star" data-rating="3">⭐</span>
+                <span class="rating-star" data-rating="4">⭐</span>
+                <span class="rating-star" data-rating="5">⭐</span>
+            </div>
+        </div>
+        <div class="modal-buttons" id="modalButtons">
+            <button class="modal-btn modal-btn-secondary" onclick="closeModal()">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+            <button class="modal-btn modal-btn-primary" id="modalConfirmBtn" onclick="confirmEndConversation()">
+                <i class="fas fa-check"></i> Yes, End Chat
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="captain-chat-container">
+    <div class="captain-header">
+        <div class="captain-avatar">
+            🏛️
+        </div>
+        <div class="captain-info">
+            <h3 id="captainName">{{ captain_name }}</h3>
+            <p>{% trans "Your AI-powered Virtual Barangay Captain" %}</p>
+        </div>
+        <div class="ms-auto">
+            <button class="end-chat-btn" onclick="endConversation()">
+                <i class="fas fa-sign-out-alt me-2"></i>{% trans "End Chat" %}
+            </button>
+        </div>
+    </div>
+    
+    <div class="chat-messages" id="chatMessages">
+        <!-- Messages will be added here dynamically -->
+    </div>
+    
+    <div class="chat-input-area">
+        <div class="quick-actions" id="quickActions">
+            <button class="quick-action-btn" onclick="sendQuickMessage('How do I file a complaint?')">
+                📝 {% trans "File Complaint" %}
+            </button>
+            <button class="quick-action-btn" onclick="sendQuickMessage('What documents do I need for barangay clearance?')">
+                📄 {% trans "Documents" %}
+            </button>
+            <button class="quick-action-btn" onclick="sendQuickMessage('Tell me about business permits')">
+                💼 {% trans "Business Permit" %}
+            </button>
+            <button class="quick-action-btn" onclick="sendQuickMessage('How do I resolve a neighbor dispute?')">
+                🤝 {% trans "Neighbor Issue" %}
+            </button>
+        </div>
+        
+        <div class="input-wrapper">
+            <input 
+                type="text" 
+                class="chat-input" 
+                id="messageInput" 
+                placeholder="{% trans 'Type your message here...' %}"
+                onkeypress="handleKeyPress(event)"
+            >
+            <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let sessionId = null;
+let isProcessing = false;
+
+// Start conversation on page load
+document.addEventListener('DOMContentLoaded', function() {
+    startConversation();
+    
+    // Rating star functionality
+    const stars = document.querySelectorAll('.rating-star');
+    
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            selectedRating = parseInt(this.dataset.rating);
+            
+            // Update star display
+            stars.forEach((s, index) => {
+                if (index < selectedRating) {
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('active');
+                }
+            });
+        });
+        
+        star.addEventListener('mouseenter', function() {
+            const rating = parseInt(this.dataset.rating);
+            stars.forEach((s, index) => {
+                if (index < rating) {
+                    s.style.color = '#fbbf24';
+                    s.style.transform = 'scale(1.2)';
+                }
+            });
+        });
+        
+        star.addEventListener('mouseleave', function() {
+            stars.forEach((s, index) => {
+                if (index >= selectedRating) {
+                    s.style.color = 'rgba(255, 255, 255, 0.3)';
+                    s.style.transform = 'scale(1)';
+                }
+            });
+        });
+    });
+    
+    // Close modal on overlay click
+    document.getElementById('customModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+});
+
+async function startConversation() {
+    try {
+        const response = await fetch('{% url "ai_captain:start_conversation" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            }
+        });
+        
+        const data = await response.json();
+        sessionId = data.session_id;
+        
+        // Display greeting
+        addCaptainMessage(data.greeting);
+        
+    } catch (error) {
+        console.error('Error starting conversation:', error);
+        addCaptainMessage('Sorry, there was an error starting the conversation. Please refresh the page.');
+    }
+}
+
+async function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    
+    if (!message || isProcessing) return;
+    
+    // Clear input
+    input.value = '';
+    
+    // Display user message
+    addUserMessage(message);
+    
+    // Show typing indicator
+    showTypingIndicator();
+    isProcessing = true;
+    document.getElementById('sendBtn').disabled = true;
+    
+    try {
+        const formData = new FormData();
+        formData.append('message', message);
+        formData.append('session_id', sessionId);
+        
+        const response = await fetch('{% url "ai_captain:chat_api" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        // Hide typing indicator
+        hideTypingIndicator();
+        
+        // Display captain response
+        addCaptainMessage(data.response, data.message_id, data.policies);
+        
+    } catch (error) {
+        console.error('Error sending message:', error);
+        hideTypingIndicator();
+        addCaptainMessage('Sorry, there was an error processing your message. Please try again.');
+    } finally {
+        isProcessing = false;
+        document.getElementById('sendBtn').disabled = false;
+    }
+}
+
+function sendQuickMessage(message) {
+    document.getElementById('messageInput').value = message;
+    sendMessage();
+}
+
+function addUserMessage(message) {
+    const messagesContainer = document.getElementById('chatMessages');
+    const now = new Date();
+    
+    const messageHtml = `
+        <div class="message user-message">
+            <div class="message-content">
+                ${escapeHtml(message)}
+                <div class="message-time">${formatTime(now)}</div>
+            </div>
+            <div class="message-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+    `;
+    
+    messagesContainer.insertAdjacentHTML('beforeend', messageHtml);
+    scrollToBottom();
+}
+
+function addCaptainMessage(message, messageId = null, policies = []) {
+    const messagesContainer = document.getElementById('chatMessages');
+    const now = new Date();
+    
+    let policiesHtml = '';
+    if (policies && policies.length > 0) {
+        policiesHtml = '<div class="message-policies">';
+        policies.forEach(policy => {
+            policiesHtml += `<span class="policy-tag">📋 ${escapeHtml(policy.title)}</span>`;
+        });
+        policiesHtml += '</div>';
+    }
+    
+    let feedbackHtml = '';
+    if (messageId) {
+        feedbackHtml = `
+            <div class="message-feedback">
+                <button class="feedback-btn" onclick="submitFeedback(${messageId}, true)">
+                    <i class="fas fa-thumbs-up"></i> Helpful
+                </button>
+                <button class="feedback-btn" onclick="submitFeedback(${messageId}, false)">
+                    <i class="fas fa-thumbs-down"></i> Not Helpful
+                </button>
+            </div>
+        `;
+    }
+    
+    const messageHtml = `
+        <div class="message captain-message">
+            <div class="message-avatar">
+                🏛️
+            </div>
+            <div class="message-content">
+                ${formatMessage(message)}
+                <div class="message-time">${formatTime(now)}</div>
+                ${policiesHtml}
+                ${feedbackHtml}
+            </div>
+        </div>
+    `;
+    
+    messagesContainer.insertAdjacentHTML('beforeend', messageHtml);
+    scrollToBottom();
+}
+
+function showTypingIndicator() {
+    const messagesContainer = document.getElementById('chatMessages');
+    const indicatorHtml = `
+        <div class="message captain-message typing-indicator active" id="typingIndicator">
+            <div class="message-avatar">
+                🏛️
+            </div>
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+    `;
+    messagesContainer.insertAdjacentHTML('beforeend', indicatorHtml);
+    scrollToBottom();
+}
+
+function hideTypingIndicator() {
+    const indicator = document.getElementById('typingIndicator');
+    if (indicator) {
+        indicator.remove();
+    }
+}
+
+async function submitFeedback(messageId, wasHelpful) {
+    try {
+        const formData = new FormData();
+        formData.append('message_id', messageId);
+        formData.append('was_helpful', wasHelpful);
+        
+        await fetch('{% url "ai_captain:message_feedback" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: formData
+        });
+        
+        // Update button appearance
+        event.target.classList.add('helpful');
+        event.target.disabled = true;
+        
+    } catch (error) {
+        console.error('Error submitting feedback:', error);
+    }
+}
+
+let selectedRating = 0;
+
+function endConversation() {
+    // Show custom modal
+    const modal = document.getElementById('customModal');
+    const ratingSection = document.getElementById('ratingSection');
+    
+    // Reset rating
+    selectedRating = 0;
+    document.querySelectorAll('.rating-star').forEach(star => {
+        star.classList.remove('active');
+    });
+    
+    // Show rating section
+    ratingSection.style.display = 'block';
+    
+    modal.classList.add('active');
+}
+
+function closeModal() {
+    const modal = document.getElementById('customModal');
+    modal.classList.remove('active');
+}
+
+async function confirmEndConversation() {
+    try {
+        const formData = new FormData();
+        formData.append('session_id', sessionId);
+        if (selectedRating > 0) {
+            formData.append('rating', selectedRating);
+        }
+        
+        await fetch('{% url "ai_captain:end_conversation" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: formData
+        });
+        
+        // Show success message
+        showSuccessModal();
+        
+        // Redirect after a short delay
+        setTimeout(() => {
+            window.location.href = '{% url "dashboard:home" %}';
+        }, 1500);
+        
+    } catch (error) {
+        console.error('Error ending conversation:', error);
+        closeModal();
+    }
+}
+
+function showSuccessModal() {
+    const modalIcon = document.getElementById('modalIcon');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    const modalButtons = document.getElementById('modalButtons');
+    const ratingSection = document.getElementById('ratingSection');
+    
+    modalIcon.innerHTML = '✅';
+    modalIcon.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+    modalTitle.textContent = 'Thank You!';
+    modalMessage.textContent = 'Your conversation has been saved. Redirecting...';
+    modalButtons.style.display = 'none';
+    ratingSection.style.display = 'none';
+}
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+    }
+}
+
+function scrollToBottom() {
+    const messagesContainer = document.getElementById('chatMessages');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function formatMessage(message) {
+    // Convert newlines to <br>
+    return message.replace(/\n/g, '<br>');
+}
+
+function formatTime(date) {
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}
+

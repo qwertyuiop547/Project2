@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Analytics Overview" %}{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>{% trans "Analytics Overview" %}</h2>
+        
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h5>{% trans "Total Users" %}</h5>
+                        <h2>{{ total_users }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h5>{% trans "Residents" %}</h5>
+                        <h2>{{ total_residents }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <h5>{% trans "Complaints" %}</h5>
+                        <h2>{{ total_complaints }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h5>{% trans "Resolution Rate" %}</h5>
+                        <h2>{{ resolution_rate }}%</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>{% trans "Complaints by Status" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>{% trans "Complaints by Priority" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="priorityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>{% trans "Top Categories" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top Complainants -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>{% trans "Top Complainants" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "User" %}</th>
+                                    <th>{% trans "Complaints" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in top_complainants %}
+                                <tr>
+                                    <td>{{ item.user__username }}</td>
+                                    <td>{{ item.count }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Status Chart
+    const statusData = {{ complaints_by_status|safe }};
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: statusData.map(item => item.status),
+            datasets: [{
+                data: statusData.map(item => item.count),
+                backgroundColor: ['#ffc107', '#17a2b8', '#28a745', '#6c757d', '#dc3545']
+            }]
+        }
+    });
+    
+    // Priority Chart
+    const priorityData = {{ complaints_by_priority|safe }};
+    const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+    new Chart(priorityCtx, {
+        type: 'pie',
+        data: {
+            labels: priorityData.map(item => item.priority),
+            datasets: [{
+                data: priorityData.map(item => item.count),
+                backgroundColor: ['#dc3545', '#ffc107', '#28a745']
+            }]
+        }
+    });
+    
+    // Category Chart
+    const categoryData = {{ complaints_by_category|safe }};
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(categoryCtx, {
+        type: 'bar',
+        data: {
+            labels: categoryData.map(item => item.category__name),
+            datasets: [{
+                label: 'Complaints',
+                data: categoryData.map(item => item.count),
+                backgroundColor: '#007bff'
+            }]
+        }
+    });
+</script>
+{% endblock %}
+

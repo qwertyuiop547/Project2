@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Service Requests" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>{% trans "Service Requests" %}</h2>
+        
+        <!-- Filters -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-10">
+                        <select class="form-select" name="status">
+                            <option value="">{% trans "All Status" %}</option>
+                            <option value="pending" {% if status == 'pending' %}selected{% endif %}>{% trans "Pending" %}</option>
+                            <option value="in_progress" {% if status == 'in_progress' %}selected{% endif %}>{% trans "In Progress" %}</option>
+                            <option value="completed" {% if status == 'completed' %}selected{% endif %}>{% trans "Completed" %}</option>
+                            <option value="rejected" {% if status == 'rejected' %}selected{% endif %}>{% trans "Rejected" %}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">{% trans "Filter" %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Service Requests Table -->
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>{% trans "Reference" %}</th>
+                        <th>{% trans "Service" %}</th>
+                        {% if user.is_official %}
+                        <th>{% trans "User" %}</th>
+                        {% endif %}
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Date" %}</th>
+                        <th>{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in page_obj %}
+                    <tr>
+                        <td>{{ request.reference_number }}</td>
+                        <td>{{ request.service.name }}</td>
+                        {% if user.is_official %}
+                        <td>{{ request.user.username }}</td>
+                        {% endif %}
+                        <td>
+                            {% if request.status == 'pending' %}
+                            <span class="badge bg-warning">{% trans "Pending" %}</span>
+                            {% elif request.status == 'in_progress' %}
+                            <span class="badge bg-info">{% trans "In Progress" %}</span>
+                            {% elif request.status == 'completed' %}
+                            <span class="badge bg-success">{% trans "Completed" %}</span>
+                            {% else %}
+                            <span class="badge bg-danger">{% trans "Rejected" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ request.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <a href="{% url 'services:service_request_detail' request.pk %}" class="btn btn-sm btn-info">{% trans "View" %}</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <nav>
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans "Previous" %}</a></li>
+                {% endif %}
+                <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans "Next" %}</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

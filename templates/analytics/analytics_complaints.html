@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Complaint Analytics" %}{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>{% trans "Complaint Analytics" %}</h2>
+        
+        <!-- Time Series Chart -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>{% trans "Daily Complaints (Last 30 Days)" %}</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="timeSeriesChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Weekly Status Chart -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>{% trans "Weekly Status Breakdown" %}</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="weeklyStatusChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Category Performance -->
+        <div class="card">
+            <div class="card-header">
+                <h5>{% trans "Category Performance" %}</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Category" %}</th>
+                            <th>{% trans "Total" %}</th>
+                            <th>{% trans "Resolved" %}</th>
+                            <th>{% trans "Resolution Rate" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cat in category_performance %}
+                        <tr>
+                            <td>{{ cat.category }}</td>
+                            <td>{{ cat.total }}</td>
+                            <td>{{ cat.resolved }}</td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ cat.resolution_rate }}%" aria-valuenow="{{ cat.resolution_rate }}" aria-valuemin="0" aria-valuemax="100">
+                                        {{ cat.resolution_rate }}%
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Time Series Chart
+    const dailyData = {{ daily_complaints|safe }};
+    const timeCtx = document.getElementById('timeSeriesChart').getContext('2d');
+    new Chart(timeCtx, {
+        type: 'line',
+        data: {
+            labels: dailyData.map(item => item.date),
+            datasets: [{
+                label: 'Complaints',
+                data: dailyData.map(item => item.count),
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Weekly Status Chart
+    const weeklyData = {{ weekly_by_status|safe }};
+    const weeklyCtx = document.getElementById('weeklyStatusChart').getContext('2d');
+    new Chart(weeklyCtx, {
+        type: 'bar',
+        data: {
+            labels: weeklyData.map(item => item.status),
+            datasets: [{
+                label: 'Count',
+                data: weeklyData.map(item => item.count),
+                backgroundColor: ['#ffc107', '#17a2b8', '#28a745', '#6c757d', '#dc3545']
+            }]
+        }
+    });
+</script>
+{% endblock %}
+

@@ -1,0 +1,1210 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "Submit Complaint" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ========================================
+       COMPLAINT FORM - MODERN REDESIGN 🎨
+       Premium Glassmorphism Dark Theme
+       ======================================== */
+    
+    /* Page Hero - Redesigned */
+    .page-hero {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        border-radius: 24px;
+        padding: 50px;
+        margin-bottom: 35px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.2);
+    }
+    
+    .page-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(118, 75, 162, 0.3) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: heroFloat 6s ease-in-out infinite;
+    }
+    
+    @keyframes heroFloat {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(-30px, 20px) scale(1.1); }
+    }
+    
+    .page-hero h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 12px;
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .page-hero p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.15rem;
+        margin-bottom: 0;
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Form Card - Premium Glassmorphism */
+    .form-card {
+        background: rgba(15, 15, 25, 0.8);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        border: 2px solid rgba(255, 255, 255, 0.12);
+        border-radius: 28px;
+        padding: 50px;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .form-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--primary-color));
+        background-size: 200% 100%;
+        animation: gradientShift 3s ease infinite;
+    }
+    
+    @keyframes gradientShift {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    
+    /* Section Title - Redesigned */
+    .form-section-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid rgba(102, 126, 234, 0.4);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .form-section-title i {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    /* Form Labels - Enhanced */
+    .form-label {
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: var(--text-primary);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .form-label i {
+        color: var(--primary-color);
+        font-size: 0.9rem;
+    }
+    
+    /* ========================================
+       ULTRA PREMIUM INPUT FIELDS REDESIGN 💎✨
+       With Enhanced Visual Effects
+       ======================================== */
+    
+    .form-control {
+        /* Premium gradient background with shine */
+        background: 
+            linear-gradient(135deg, rgba(15, 15, 25, 0.95) 0%, rgba(25, 25, 35, 0.95) 100%),
+            linear-gradient(135deg, transparent 0%, rgba(102, 126, 234, 0.03) 50%, transparent 100%) !important;
+        background-blend-mode: normal;
+        
+        /* Elegant border with subtle glow */
+        border: 2px solid rgba(102, 126, 234, 0.35) !important;
+        
+        /* Text styling - Premium look */
+        color: #ffffff !important;
+        font-size: 1.08rem;
+        font-weight: 500;
+        line-height: 1.6;
+        letter-spacing: 0.4px;
+        
+        /* Shape and spacing */
+        border-radius: 16px;
+        padding: 18px 24px;
+        
+        /* Smooth transitions */
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        
+        /* Multi-layer depth effect */
+        box-shadow: 
+            0 4px 15px rgba(0, 0, 0, 0.4),
+            0 2px 8px rgba(102, 126, 234, 0.1),
+            inset 0 1px 3px rgba(255, 255, 255, 0.08),
+            inset 0 -1px 2px rgba(0, 0, 0, 0.3);
+        
+        /* Prevent weird mobile styles */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        
+        /* Add a subtle inner glow */
+        position: relative;
+    }
+    
+    /* Add decorative left accent line */
+    .form-control::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+        border-radius: 16px 0 0 16px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    /* Hover State - Enhanced with shimmer */
+    .form-control:hover {
+        border-color: rgba(102, 126, 234, 0.55) !important;
+        background: 
+            linear-gradient(135deg, rgba(20, 20, 30, 1) 0%, rgba(30, 30, 40, 1) 100%),
+            linear-gradient(110deg, transparent 0%, rgba(102, 126, 234, 0.08) 50%, transparent 100%) !important;
+        
+        /* Enhanced shadows */
+        box-shadow: 
+            0 6px 25px rgba(102, 126, 234, 0.2),
+            0 3px 12px rgba(0, 0, 0, 0.4),
+            inset 0 2px 4px rgba(255, 255, 255, 0.1),
+            inset 0 -2px 3px rgba(0, 0, 0, 0.3);
+        
+        transform: translateY(-3px);
+    }
+    
+    /* Focus State - ULTRA Premium glow effect */
+    .form-control:focus {
+        background: 
+            linear-gradient(135deg, rgba(25, 25, 35, 1) 0%, rgba(35, 35, 45, 1) 100%),
+            radial-gradient(circle at top left, rgba(102, 126, 234, 0.1), transparent 70%) !important;
+        
+        border-color: var(--primary-color) !important;
+        
+        /* Epic multi-layer glow with neon effect */
+        box-shadow: 
+            0 0 0 5px rgba(102, 126, 234, 0.3),
+            0 0 0 10px rgba(102, 126, 234, 0.1),
+            0 10px 40px rgba(102, 126, 234, 0.4),
+            0 5px 20px rgba(118, 75, 162, 0.3),
+            0 0 30px rgba(102, 126, 234, 0.2),
+            inset 0 3px 6px rgba(255, 255, 255, 0.12),
+            inset 0 -2px 4px rgba(0, 0, 0, 0.4) !important;
+        
+        color: #ffffff !important;
+        outline: none;
+        transform: translateY(-4px) scale(1.008);
+    }
+    
+    /* Shimmer effect on focus */
+    @keyframes shimmerEffect {
+        0% {
+            background-position: -200% center;
+        }
+        100% {
+            background-position: 200% center;
+        }
+    }
+    
+    /* Active state animation - Breathing glow */
+    @keyframes inputPulse {
+        0%, 100% {
+            border-color: rgba(102, 126, 234, 0.8);
+            box-shadow: 
+                0 0 0 5px rgba(102, 126, 234, 0.3),
+                0 0 0 10px rgba(102, 126, 234, 0.1),
+                0 10px 40px rgba(102, 126, 234, 0.4),
+                0 5px 20px rgba(118, 75, 162, 0.3);
+        }
+        50% {
+            border-color: rgba(118, 75, 162, 0.9);
+            box-shadow: 
+                0 0 0 6px rgba(118, 75, 162, 0.35),
+                0 0 0 12px rgba(118, 75, 162, 0.12),
+                0 12px 45px rgba(118, 75, 162, 0.45),
+                0 6px 25px rgba(102, 126, 234, 0.35);
+        }
+    }
+    
+    .form-control:focus {
+        animation: inputPulse 2.5s ease-in-out infinite;
+    }
+    
+    /* Placeholder styling - Enhanced */
+    .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.35);
+        font-weight: 400;
+        font-style: italic;
+        transition: all 0.4s ease;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .form-control:hover::placeholder {
+        color: rgba(255, 255, 255, 0.45);
+    }
+    
+    .form-control:focus::placeholder {
+        color: rgba(255, 255, 255, 0.55);
+        transform: translateX(8px);
+        opacity: 0.7;
+    }
+    
+    /* Add icon support for inputs */
+    .input-wrapper {
+        position: relative;
+    }
+    
+    .input-wrapper .form-control {
+        padding-left: 50px;
+    }
+    
+    .input-icon {
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.2rem;
+        color: rgba(102, 126, 234, 0.6);
+        pointer-events: none;
+        transition: all 0.3s ease;
+        z-index: 1;
+    }
+    
+    .input-wrapper:hover .input-icon {
+        color: rgba(102, 126, 234, 0.8);
+        transform: translateY(-50%) scale(1.1);
+    }
+    
+    .input-wrapper .form-control:focus ~ .input-icon {
+        color: var(--primary-color);
+        transform: translateY(-50%) scale(1.15);
+        filter: drop-shadow(0 0 8px rgba(102, 126, 234, 0.6));
+    }
+    
+    /* Textarea specific - Premium style */
+    textarea.form-control {
+        min-height: 210px;
+        resize: vertical;
+        line-height: 1.85;
+        font-size: 1.05rem;
+        padding: 20px 24px;
+        
+        /* Custom scrollbar */
+        scrollbar-width: thin;
+        scrollbar-color: rgba(102, 126, 234, 0.5) rgba(20, 20, 30, 0.5);
+    }
+    
+    /* Webkit scrollbar for textarea - Enhanced */
+    textarea.form-control::-webkit-scrollbar {
+        width: 10px;
+    }
+    
+    textarea.form-control::-webkit-scrollbar-track {
+        background: rgba(20, 20, 30, 0.7);
+        border-radius: 12px;
+        border: 1px solid rgba(102, 126, 234, 0.1);
+    }
+    
+    textarea.form-control::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: 12px;
+        border: 2px solid rgba(20, 20, 30, 0.3);
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+    
+    textarea.form-control::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+        box-shadow: 0 3px 12px rgba(118, 75, 162, 0.5);
+    }
+    
+    /* Add typing indicator effect */
+    @keyframes typingGlow {
+        0%, 100% {
+            box-shadow: 
+                0 0 0 5px rgba(102, 126, 234, 0.3),
+                0 0 0 10px rgba(102, 126, 234, 0.1),
+                0 10px 40px rgba(102, 126, 234, 0.4);
+        }
+        50% {
+            box-shadow: 
+                0 0 0 6px rgba(102, 126, 234, 0.4),
+                0 0 0 12px rgba(102, 126, 234, 0.15),
+                0 12px 45px rgba(102, 126, 234, 0.5);
+        }
+    }
+    
+    /* Form field wrapper enhancements */
+    .mb-4 {
+        position: relative;
+    }
+    
+    /* Add subtle background pattern to input groups */
+    .row .col-md-12 {
+        position: relative;
+    }
+    
+    /* Disabled state */
+    .form-control:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: rgba(10, 10, 15, 0.5) !important;
+        border-color: rgba(100, 100, 100, 0.3) !important;
+    }
+    
+    /* Error state - if needed */
+    .form-control.is-invalid,
+    .form-control:invalid {
+        border-color: rgba(239, 68, 68, 0.6) !important;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+    }
+    
+    /* Success state - if needed */
+    .form-control.is-valid {
+        border-color: rgba(16, 185, 129, 0.6) !important;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+    }
+    
+    /* ========================================
+       PREMIUM SELECT BOX REDESIGN 🎨
+       ======================================== */
+    
+    .form-select {
+        background: linear-gradient(135deg, rgba(10, 10, 15, 0.95) 0%, rgba(20, 20, 30, 0.95) 100%) !important;
+        border: 2px solid rgba(102, 126, 234, 0.3) !important;
+        color: #ffffff !important;
+        border-radius: 14px;
+        padding: 16px 50px 16px 20px;
+        font-size: 1.05rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        position: relative;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        
+        /* Custom dropdown arrow */
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667eea' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 15px center;
+        background-size: 20px;
+    }
+    
+    .form-select:hover {
+        border-color: rgba(102, 126, 234, 0.6) !important;
+        background: linear-gradient(135deg, rgba(15, 15, 25, 1) 0%, rgba(25, 25, 35, 1) 100%) !important;
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.2);
+        transform: translateY(-2px);
+        
+        /* Animated arrow on hover */
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23764ba2' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    }
+    
+    .form-select:focus {
+        background: linear-gradient(135deg, rgba(15, 15, 25, 1) 0%, rgba(25, 25, 35, 1) 100%) !important;
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.25), 0 8px 25px rgba(102, 126, 234, 0.3) !important;
+        color: #ffffff !important;
+        outline: none;
+        transform: translateY(-3px) scale(1.01);
+        
+        /* Glowing arrow on focus */
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667eea' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    }
+    
+    /* Select options styling */
+    .form-select option {
+        background: #1a1a2e;
+        color: #ffffff;
+        padding: 12px 20px;
+        font-weight: 600;
+        font-size: 1rem;
+        border-radius: 8px;
+    }
+    
+    .form-select option:hover,
+    .form-select option:checked {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+        color: #ffffff;
+    }
+    
+    /* Gradient border animation on focus */
+    @keyframes selectBorderGlow {
+        0%, 100% {
+            border-color: rgba(102, 126, 234, 0.6);
+        }
+        50% {
+            border-color: rgba(118, 75, 162, 0.8);
+        }
+    }
+    
+    .form-select:focus {
+        animation: selectBorderGlow 2s ease-in-out infinite;
+    }
+    
+    /* Input Group - Visual Enhancement */
+    .input-group-enhanced {
+        background: rgba(10, 10, 15, 0.5);
+        border: 2px solid rgba(102, 126, 234, 0.2);
+        border-radius: 14px;
+        padding: 25px;
+        margin-bottom: 25px;
+        transition: all 0.3s ease;
+    }
+    
+    .input-group-enhanced:hover {
+        border-color: rgba(102, 126, 234, 0.4);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.15);
+    }
+    
+    /* Category Selection - Card Style */
+    .category-select-wrapper {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(37, 99, 235, 0.08));
+        border: 2px solid rgba(59, 130, 246, 0.25);
+        border-radius: 16px;
+        padding: 20px;
+        transition: all 0.3s ease;
+    }
+    
+    .category-select-wrapper:hover {
+        border-color: rgba(59, 130, 246, 0.5);
+        box-shadow: 0 5px 20px rgba(59, 130, 246, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    /* Priority Box - REDESIGNED */
+    
+    .input-box-special {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.18), rgba(118, 75, 162, 0.12));
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 2px solid rgba(102, 126, 234, 0.35);
+        border-radius: 22px;
+        padding: 30px;
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .input-box-special::before {
+        content: '';
+        position: absolute;
+        top: -100%;
+        left: -100%;
+        width: 300%;
+        height: 300%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+        opacity: 0;
+        transition: opacity 0.5s ease, transform 0.5s ease;
+        pointer-events: none;
+        z-index: 0;
+    }
+    
+    .input-box-special:hover::before {
+        opacity: 1;
+        transform: translate(30%, 30%);
+    }
+    
+    .input-box-special:hover {
+        border-color: rgba(102, 126, 234, 0.7);
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
+    }
+    
+    .input-box-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        margin-bottom: 18px;
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        position: relative;
+        z-index: 1;
+        pointer-events: none;
+    }
+    
+    .input-box-special:hover .input-box-icon {
+        transform: scale(1.15) rotate(10deg);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    }
+    
+    /* Priority box specific */
+    .priority-box {
+        border-color: rgba(245, 158, 11, 0.4);
+    }
+    
+    .priority-box .input-box-icon {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+        box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
+    }
+    
+    .priority-box:hover {
+        border-color: rgba(245, 158, 11, 0.7);
+        box-shadow: 0 15px 40px rgba(245, 158, 11, 0.3);
+    }
+    
+    
+    .input-box-label {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: relative;
+        z-index: 1;
+        pointer-events: none;
+    }
+    
+    .input-box-special .form-select,
+    .input-box-special .form-control {
+        background: rgba(10, 10, 15, 0.9) !important;
+        border: 2px solid rgba(255, 255, 255, 0.1) !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        font-size: 1.05rem;
+        position: relative;
+        z-index: 10 !important;
+        cursor: pointer;
+        pointer-events: auto !important;
+    }
+    
+    .input-box-special .form-select:focus,
+    .input-box-special .form-control:focus {
+        background: rgba(10, 10, 15, 1) !important;
+        border-color: rgba(255, 255, 255, 0.3) !important;
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    /* File Upload Area - ULTRA MODERN */
+    .file-upload-area {
+        border: 3px dashed rgba(102, 126, 234, 0.4);
+        border-radius: 20px;
+        padding: 50px 30px;
+        text-align: center;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.05));
+        backdrop-filter: blur(10px);
+        transition: all 0.4s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .file-upload-area::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 0;
+        height: 0;
+        background: radial-gradient(circle, rgba(102, 126, 234, 0.2), transparent);
+        border-radius: 50%;
+        transition: width 0.5s ease, height 0.5s ease;
+    }
+    
+    .file-upload-area:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+    
+    .file-upload-area:hover {
+        border-color: var(--primary-color);
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.1));
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+        transform: translateY(-3px);
+    }
+    
+    .file-upload-icon {
+        font-size: 3.5rem;
+        color: var(--primary-color);
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+        transition: all 0.3s ease;
+    }
+    
+    .file-upload-area:hover .file-upload-icon {
+        transform: scale(1.1) rotateY(10deg);
+        filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.6));
+    }
+    
+    .file-upload-area h5 {
+        color: var(--text-primary);
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .file-upload-area p {
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Buttons - Enhanced */
+    .btn-submit {
+        padding: 16px 50px;
+        font-size: 1.15rem;
+        font-weight: 700;
+        border-radius: 14px;
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-submit::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translate(-50%, -50%);
+        transition: width 0.5s, height 0.5s;
+    }
+    
+    .btn-submit:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+    
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+    }
+    
+    .btn-outline-secondary {
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        color: var(--text-primary);
+        font-weight: 600;
+        padding: 16px 35px;
+        border-radius: 14px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-outline-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+    }
+    
+    /* Info Box - Redesigned */
+    .info-box {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(37, 99, 235, 0.12));
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-left: 5px solid var(--info-color);
+        border: 2px solid rgba(59, 130, 246, 0.35);
+        border-radius: 18px;
+        padding: 30px;
+        margin-bottom: 35px;
+        color: var(--text-primary);
+        box-shadow: 0 8px 30px rgba(59, 130, 246, 0.15);
+    }
+    
+    .info-box h5 {
+        color: var(--text-primary);
+        font-weight: 800;
+        margin-bottom: 18px;
+        font-size: 1.25rem;
+    }
+    
+    .info-box ul {
+        margin-bottom: 0;
+        padding-left: 25px;
+    }
+    
+    .info-box li {
+        color: var(--text-secondary);
+        margin-bottom: 10px;
+        font-size: 1.05rem;
+        line-height: 1.6;
+    }
+    
+    .info-box li::marker {
+        color: var(--info-color);
+    }
+    
+    /* Helper Text */
+    small.text-muted {
+        color: rgba(255, 255, 255, 0.5) !important;
+        font-size: 0.9rem;
+        display: block;
+        margin-top: 8px;
+        pointer-events: none;
+    }
+    
+    /* Required Asterisk */
+    .text-danger {
+        color: #ef4444 !important;
+        font-weight: bold;
+    }
+    
+    /* Form Row Spacing */
+    .row.mb-4 {
+        margin-bottom: 25px !important;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .page-hero {
+            padding: 35px 25px;
+        }
+        
+        .page-hero h1 {
+            font-size: 1.8rem;
+        }
+        
+        .form-card {
+            padding: 30px 20px;
+        }
+        
+        .input-box-special {
+            padding: 25px 20px;
+        }
+        
+        .input-box-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+        }
+        
+        .file-upload-area {
+            padding: 40px 20px;
+        }
+        
+        .btn-submit {
+            width: 100%;
+            padding: 14px 30px;
+        }
+        
+        .btn-outline-secondary {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        .d-flex.justify-content-between {
+            flex-direction: column-reverse;
+        }
+    }
+    
+    /* Loading Animation (optional) */
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    .form-control:disabled,
+    .form-select:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Hero -->
+    <div class="page-hero">
+        <h1>
+            <i class="fas fa-file-alt me-2"></i>{% trans "Submit New Complaint" %}
+        </h1>
+        <p>{% trans "Report your concerns and we'll address them promptly" %}</p>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="info-box">
+                <h5><i class="fas fa-info-circle me-2"></i>{% trans "Before you submit:" %}</h5>
+                <ul class="mb-0">
+                    <li>{% trans "Provide clear and detailed information about your complaint" %}</li>
+                    <li>{% trans "Include any relevant photos or documents" %}</li>
+                    <li>{% trans "You will receive a reference number to track your complaint" %}</li>
+                </ul>
+            </div>
+            
+            <div class="form-card">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                    <div class="alert alert-danger rounded-3 mb-4">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>{% trans "Please correct the errors below:" %}</strong>
+                        {{ form.errors }}
+                    </div>
+                    {% endif %}
+                    
+                    <h4 class="form-section-title">
+                        <i class="fas fa-clipboard-list"></i>
+                        {% trans "Complaint Details" %}
+                    </h4>
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-heading"></i>
+                                {% trans "Title" %} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.title }}
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                {% trans "Brief summary of your complaint" %}
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label">
+                                <i class="fas fa-align-left"></i>
+                                {% trans "Description" %} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.description }}
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                {% trans "Provide detailed information about your complaint" %}
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="category-select-wrapper">
+                                <label class="form-label">
+                                    <i class="fas fa-tag"></i>
+                                    {% trans "Category" %} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.category }}
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    {% trans "Select the most appropriate category for your complaint" %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Priority Selection Box - Featured -->
+                    <!-- Priority is now set by the barangay secretary during review -->
+
+                    <!-- Privacy & Anonymity -->
+                    <h4 class="form-section-title mt-4">
+                        <i class="fas fa-user-secret"></i>
+                        {% trans "Privacy & Anonymity" %}
+                    </h4>
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="id_is_anonymous" name="is_anonymous">
+                                <label class="form-check-label text-light" for="id_is_anonymous">
+                                    {% trans "Submit this complaint anonymously" %}
+                                </label>
+                            </div>
+                            <small class="text-muted">
+                                <i class="fas fa-lock me-1"></i>
+                                {% trans "If you submit anonymously, your name will be hidden from other residents. Only authorized barangay officials may see your identity for verification and follow-up." %}
+                            </small>
+                        </div>
+                    </div>
+
+                    <h4 class="form-section-title mt-4">
+                        <i class="fas fa-paperclip"></i>
+                        {% trans "Attachments" %} <span class="text-muted" style="font-size: 0.9rem; font-weight: 500;">({% trans "Optional" %})</span>
+                    </h4>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-file-upload"></i>
+                            {% trans "Upload Photos or Documents" %}
+                        </label>
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <div class="file-upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <h5>{% trans "Click to browse or drag files here" %}</h5>
+                            <p class="text-muted mb-3">{% trans "Supported: JPG, PNG, PDF (Max 10MB each)" %}</p>
+                            <input type="file" name="attachments" id="attachmentInput" multiple class="d-none" accept="image/*,.pdf">
+                        </div>
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            {% trans "You can upload multiple files. They will help us better understand your complaint." %}
+                        </small>
+                        <div id="fileList" class="mt-3"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-5">
+                        <a href="{% url 'complaints:complaint_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>{% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-submit">
+                            <i class="fas fa-paper-plane me-2"></i>{% trans "Submit Complaint" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ========================================
+// FILE UPLOAD - ENHANCED FUNCTIONALITY
+// ========================================
+
+const fileUploadArea = document.getElementById('fileUploadArea');
+const fileInput = document.getElementById('attachmentInput');
+const fileList = document.getElementById('fileList');
+let selectedFiles = [];
+
+// Click to upload
+fileUploadArea.addEventListener('click', function() {
+    fileInput.click();
+});
+
+// Prevent default drag behaviors
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    fileUploadArea.addEventListener(eventName, preventDefaults, false);
+    document.body.addEventListener(eventName, preventDefaults, false);
+});
+
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+// Highlight on drag
+['dragenter', 'dragover'].forEach(eventName => {
+    fileUploadArea.addEventListener(eventName, highlight, false);
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+    fileUploadArea.addEventListener(eventName, unhighlight, false);
+});
+
+function highlight(e) {
+    fileUploadArea.style.borderColor = '#667eea';
+    fileUploadArea.style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.15))';
+    fileUploadArea.style.transform = 'scale(1.02)';
+}
+
+function unhighlight(e) {
+    fileUploadArea.style.borderColor = 'rgba(102, 126, 234, 0.4)';
+    fileUploadArea.style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.05))';
+    fileUploadArea.style.transform = 'scale(1)';
+}
+
+// Handle dropped files
+fileUploadArea.addEventListener('drop', handleDrop, false);
+
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    handleFiles(files);
+}
+
+// Handle selected files
+fileInput.addEventListener('change', function() {
+    handleFiles(this.files);
+});
+
+function handleFiles(files) {
+    selectedFiles = Array.from(files);
+    updateFileList();
+    updateUploadArea();
+}
+
+function updateUploadArea() {
+    const uploadIcon = fileUploadArea.querySelector('.file-upload-icon i');
+    const uploadTitle = fileUploadArea.querySelector('h5');
+    
+    if (selectedFiles.length > 0) {
+        uploadIcon.className = 'fas fa-check-circle';
+        uploadIcon.style.color = '#10b981';
+        uploadTitle.innerHTML = `<span style="color: #10b981;">${selectedFiles.length} file(s) selected</span>`;
+        fileUploadArea.style.borderColor = '#10b981';
+        fileUploadArea.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.08))';
+    } else {
+        uploadIcon.className = 'fas fa-cloud-upload-alt';
+        uploadIcon.style.color = '';
+        uploadTitle.textContent = '{% trans "Click to browse or drag files here" %}';
+        fileUploadArea.style.borderColor = 'rgba(102, 126, 234, 0.4)';
+        fileUploadArea.style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.05))';
+    }
+}
+
+function updateFileList() {
+    fileList.innerHTML = '';
+    
+    if (selectedFiles.length === 0) return;
+    
+    const listContainer = document.createElement('div');
+    listContainer.className = 'file-list-container';
+    listContainer.style.cssText = `
+        background: rgba(10, 10, 15, 0.6);
+        border: 2px solid rgba(102, 126, 234, 0.3);
+        border-radius: 16px;
+        padding: 20px;
+    `;
+    
+    const title = document.createElement('h6');
+    title.innerHTML = '<i class="fas fa-list me-2"></i>Selected Files:';
+    title.style.cssText = `
+        color: var(--text-primary);
+        font-weight: 700;
+        margin-bottom: 15px;
+    `;
+    listContainer.appendChild(title);
+    
+    selectedFiles.forEach((file, index) => {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item d-flex justify-content-between align-items-center mb-2 p-3';
+        fileItem.style.cssText = `
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        `;
+        
+        const fileIcon = getFileIcon(file.name);
+        const fileSize = formatFileSize(file.size);
+        
+        fileItem.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="${fileIcon} me-3" style="font-size: 1.5rem; color: #667eea;"></i>
+                <div>
+                    <div style="color: var(--text-primary); font-weight: 600;">${file.name}</div>
+                    <small class="text-muted">${fileSize}</small>
+                </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-danger" onclick="removeFile(${index})">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        // Hover effect
+        fileItem.addEventListener('mouseenter', function() {
+            this.style.background = 'rgba(102, 126, 234, 0.15)';
+            this.style.transform = 'translateX(5px)';
+        });
+        
+        fileItem.addEventListener('mouseleave', function() {
+            this.style.background = 'rgba(102, 126, 234, 0.1)';
+            this.style.transform = 'translateX(0)';
+        });
+        
+        listContainer.appendChild(fileItem);
+    });
+    
+    fileList.appendChild(listContainer);
+}
+
+function removeFile(index) {
+    selectedFiles.splice(index, 1);
+    
+    // Update the file input
+    const dt = new DataTransfer();
+    selectedFiles.forEach(file => {
+        dt.items.add(file);
+    });
+    fileInput.files = dt.files;
+    
+    updateFileList();
+    updateUploadArea();
+}
+
+function getFileIcon(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    switch(ext) {
+        case 'pdf':
+            return 'fas fa-file-pdf';
+        case 'jpg':
+        case 'jpeg':
+        case 'png':
+        case 'gif':
+        case 'webp':
+            return 'fas fa-file-image';
+        case 'doc':
+        case 'docx':
+            return 'fas fa-file-word';
+        default:
+            return 'fas fa-file';
+    }
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+// Form validation enhancement
+document.querySelector('form').addEventListener('submit', function(e) {
+                const requiredFields = ['id_title', 'id_description', 'id_category'];
+    let isValid = true;
+    
+    requiredFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field && !field.value.trim()) {
+            isValid = false;
+            field.style.borderColor = '#ef4444';
+            field.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.2)';
+            
+            // Remove error styling after input
+            field.addEventListener('input', function() {
+                this.style.borderColor = '';
+                this.style.boxShadow = '';
+            }, { once: true });
+        }
+    });
+    
+    if (!isValid) {
+        e.preventDefault();
+        alert('{% trans "Please fill in all required fields." %}');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Create Announcement" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .announcement-create-wrapper {
+        max-width: 960px;
+        margin: 0 auto;
+    }
+
+    .announcement-create-card {
+        border-radius: 24px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        overflow: hidden;
+        box-shadow: 0 24px 80px rgba(15, 23, 42, 0.9);
+        background: radial-gradient(circle at top left, rgba(129, 140, 248, 0.95), rgba(30, 64, 175, 0.98));
+        color: #f9fafb;
+    }
+
+    .announcement-create-card-header {
+        padding: 1.6rem 2.2rem 1.2rem 2.2rem;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+    }
+
+    .announcement-create-card-header h3 {
+        margin: 0;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+    }
+
+    .announcement-create-card-body {
+        padding: 1.8rem 2.2rem 1.6rem 2.2rem;
+        background: radial-gradient(circle at bottom right, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 1));
+    }
+
+    .announcement-create-card-body label.form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #9ca3af;
+        margin-bottom: 0.35rem;
+    }
+
+    .announcement-create-card-body .form-control,
+    .announcement-create-card-body .form-select {
+        background-color: rgba(15, 23, 42, 0.96);
+        border-radius: 0.9rem;
+        border: 1px solid rgba(148, 163, 184, 0.7);
+        color: #ffffff;
+        font-size: 0.95rem;
+    }
+
+    .announcement-create-card-body .form-control:focus,
+    .announcement-create-card-body .form-select:focus {
+        background-color: rgba(15, 23, 42, 0.98);
+        border-color: rgba(129, 140, 248, 0.9);
+        box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.45);
+        color: #ffffff;
+    }
+
+    .announcement-create-card-body textarea.form-control {
+        min-height: 180px;
+    }
+
+    .announcement-file-input {
+        background-color: rgba(15, 23, 42, 0.96);
+        border-radius: 0.9rem;
+        border: 1px solid rgba(148, 163, 184, 0.7);
+        color: #e5e7eb;
+        font-size: 0.9rem;
+    }
+
+    .announcement-file-input::file-selector-button {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: #e5e7eb;
+        border: none;
+        border-radius: 999px;
+        padding: 0.3rem 1rem;
+        margin-right: 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .announcement-help {
+        font-size: 0.8rem;
+        color: #9ca3af !important;
+    }
+
+    .announcement-errors small {
+        color: #fecaca;
+    }
+
+    .announcement-create-actions {
+        border-top: 1px solid rgba(31, 41, 55, 0.9);
+        padding: 1.2rem 2.2rem 1.4rem 2.2rem;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        background: radial-gradient(circle at top right, rgba(79, 70, 229, 0.16), transparent);
+    }
+
+    .btn-create-announcement {
+        border-radius: 999px;
+        padding-inline: 1.6rem;
+        font-weight: 600;
+        border: none;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #f9fafb;
+        box-shadow: 0 14px 32px rgba(79, 70, 229, 0.7);
+    }
+
+    .btn-create-announcement:hover {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: #ffffff;
+    }
+
+    .btn-cancel-announcement {
+        border-radius: 999px;
+        padding-inline: 1.6rem;
+        font-weight: 500;
+        border: 1px solid rgba(148, 163, 184, 0.8);
+        background: rgba(15, 23, 42, 0.9);
+        color: #e5e7eb;
+    }
+
+    .btn-cancel-announcement:hover {
+        background: rgba(15, 23, 42, 1);
+        color: #ffffff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="announcement-create-wrapper mt-4 mb-4">
+    <div class="announcement-create-card">
+        <div class="announcement-create-card-header">
+            <h3>{% trans "Create New Announcement" %}</h3>
+        </div>
+        <div class="announcement-create-card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                <div class="mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <small class="form-text announcement-help">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% if field.errors %}
+                    <div class="announcement-errors">
+                        {% for error in field.errors %}
+                        <small>{{ error }}</small><br>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+        </div>
+        <div class="announcement-create-actions">
+                <button type="submit" class="btn btn-create-announcement">
+                    {% trans "Create Announcement" %}
+                </button>
+                <a href="{% url 'announcements:announcement_list' %}" class="btn btn-cancel-announcement">
+                    {% trans "Cancel" %}
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

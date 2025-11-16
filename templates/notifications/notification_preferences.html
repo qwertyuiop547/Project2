@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Notification Preferences" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h3>{% trans "Notification Preferences" %}</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <h5>{% trans "Email Notifications" %}</h5>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="email_announcements" name="email_announcements" {% if preferences.email_announcements %}checked{% endif %}>
+                        <label class="form-check-label" for="email_announcements">
+                            {% trans "Announcements" %}
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="email_complaints" name="email_complaints" {% if preferences.email_complaints %}checked{% endif %}>
+                        <label class="form-check-label" for="email_complaints">
+                            {% trans "Complaint Updates" %}
+                        </label>
+                    </div>
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="email_services" name="email_services" {% if preferences.email_services %}checked{% endif %}>
+                        <label class="form-check-label" for="email_services">
+                            {% trans "Service Requests" %}
+                        </label>
+                    </div>
+                    
+                    <h5>{% trans "In-App Notifications" %}</h5>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="app_announcements" name="app_announcements" {% if preferences.app_announcements %}checked{% endif %}>
+                        <label class="form-check-label" for="app_announcements">
+                            {% trans "Announcements" %}
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="app_complaints" name="app_complaints" {% if preferences.app_complaints %}checked{% endif %}>
+                        <label class="form-check-label" for="app_complaints">
+                            {% trans "Complaint Updates" %}
+                        </label>
+                    </div>
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="app_services" name="app_services" {% if preferences.app_services %}checked{% endif %}>
+                        <label class="form-check-label" for="app_services">
+                            {% trans "Service Requests" %}
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">{% trans "Save Preferences" %}</button>
+                    <a href="{% url 'notifications:notification_list' %}" class="btn btn-secondary">{% trans "Cancel" %}</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

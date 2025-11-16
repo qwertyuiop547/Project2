@@ -1,0 +1,601 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Login" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modern Login Page - Complete Redesign */
+    html, body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .login-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .login-container {
+        max-width: 1200px;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        background: rgba(15, 15, 25, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 32px;
+        overflow: hidden;
+        box-shadow: 
+            0 0 0 1px rgba(255, 255, 255, 0.1),
+            0 30px 80px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        animation: fadeInUp 0.6s ease-out;
+        transform: translateZ(0);
+        backface-visibility: hidden;
+        contain: layout style paint;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.98);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    
+    /* Left Panel - Branding */
+    .login-brand {
+        padding: 60px 50px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.35) 0%, rgba(118, 75, 162, 0.35) 50%, rgba(56, 178, 172, 0.3) 100%);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+    }
+    
+    /* Removed expensive shimmer animation for performance */
+    
+    .brand-header {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .brand-logo {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transform: translateZ(0);
+    }
+    
+    .brand-logo i {
+        font-size: 2.5rem;
+        color: white;
+        filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+    }
+    
+    .brand-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 15px;
+        text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+        line-height: 1.2;
+    }
+    
+    .brand-subtitle {
+        font-size: 1.15rem;
+        color: rgba(255, 255, 255, 0.9);
+        line-height: 1.6;
+        text-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .brand-features {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .feature-badge {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px 20px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: transform 0.2s ease, background 0.2s ease;
+        transform: translateZ(0);
+        backface-visibility: hidden;
+    }
+    
+    .feature-badge:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateX(8px);
+    }
+    
+    .feature-badge-icon {
+        width: 45px;
+        height: 45px;
+        background: rgba(255, 255, 255, 0.25);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    
+    .feature-badge-icon i {
+        font-size: 1.3rem;
+        color: white;
+    }
+    
+    .feature-badge-text {
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    
+    /* Right Panel - Form */
+    .login-form-panel {
+        padding: 60px 50px;
+        background: rgba(255, 255, 255, 0.05);
+        position: relative;
+    }
+    
+    .form-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .form-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, #fff, #a5b4fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .form-header p {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.95rem;
+    }
+    
+    /* Modern Input Groups */
+    .input-group-modern {
+        position: relative;
+        margin-bottom: 24px;
+    }
+    
+    .input-group-modern label {
+        display: block;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        padding-left: 4px;
+    }
+    
+    .input-wrapper {
+        position: relative;
+    }
+    
+    .input-icon {
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 1.1rem;
+        z-index: 2;
+        transition: all 0.3s ease;
+    }
+    
+    .password-wrapper {
+        position: relative;
+    }
+    
+    .password-toggle {
+        position: absolute;
+        right: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 1.1rem;
+        cursor: pointer;
+        z-index: 2;
+        transition: all 0.3s ease;
+        user-select: none;
+    }
+    
+    .password-toggle:hover {
+        color: #8b9cff;
+    }
+    
+    .password-input {
+        padding-right: 50px !important;
+    }
+    
+    .input-modern {
+        width: 100%;
+        height: 56px;
+        padding: 0 20px 0 50px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        border-radius: 14px;
+        color: white;
+        font-size: 1rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        transform: translateZ(0);
+    }
+    
+    .input-modern::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+    }
+    
+    .input-modern:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.12);
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        transform: translateZ(0);
+    }
+    
+    .input-modern:focus + .input-icon {
+        color: #667eea;
+    }
+    
+    /* Checkbox & Links Row */
+    .form-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        font-size: 0.9rem;
+    }
+    
+    .custom-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    .custom-checkbox input {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #667eea;
+    }
+    
+    .custom-checkbox label {
+        color: rgba(255, 255, 255, 0.8);
+        cursor: pointer;
+        margin: 0;
+    }
+    
+    .forgot-link {
+        color: #8b9cff;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    
+    .forgot-link:hover {
+        color: #a5b4fc;
+        text-shadow: 0 0 15px rgba(139, 156, 255, 0.5);
+    }
+    
+    /* Modern Button */
+    .btn-modern {
+        width: 100%;
+        height: 58px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 14px;
+        color: white;
+        font-size: 1.05rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        transform: translateZ(0);
+        backface-visibility: hidden;
+    }
+    
+    .btn-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+    }
+    
+    .btn-modern:active {
+        transform: translateY(0);
+    }
+    
+    /* Divider */
+    .divider-modern {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin: 30px 0;
+    }
+    
+    .divider-modern::before,
+    .divider-modern::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    }
+    
+    .divider-modern span {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    /* Register Section */
+    .register-section {
+        text-align: center;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    
+    .register-section p {
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 12px;
+        font-size: 0.95rem;
+    }
+    
+    .btn-outline-modern {
+        width: 100%;
+        height: 50px;
+        background: transparent;
+        border: 2px solid rgba(102, 126, 234, 0.5);
+        border-radius: 12px;
+        color: #8b9cff;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s ease, border-color 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+        transform: translateZ(0);
+    }
+    
+    .btn-outline-modern:hover {
+        background: rgba(102, 126, 234, 0.15);
+        border-color: #667eea;
+        color: #a5b4fc;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 992px) {
+        .login-container {
+            grid-template-columns: 1fr;
+            max-width: 500px;
+        }
+        
+        .login-brand {
+            display: none;
+        }
+        
+        .login-form-panel {
+            padding: 50px 30px;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .login-page {
+            padding: 20px 15px;
+        }
+        
+        .login-form-panel {
+            padding: 40px 25px;
+        }
+        
+        .form-header h1 {
+            font-size: 1.75rem;
+        }
+        
+        .brand-title {
+            font-size: 2rem;
+        }
+        
+        .input-modern {
+            height: 52px;
+        }
+        
+        .btn-modern {
+            height: 54px;
+        }
+    }
+    
+    /* Particles removed for performance */
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-page">
+    <div class="login-container">
+        <!-- Left Panel: Branding -->
+        <div class="login-brand">
+            <div class="brand-header">
+                <div class="brand-logo">
+                    <i class="fas fa-landmark"></i>
+                </div>
+                <h2 class="brand-title">{% trans "Welcome to" %}<br>{% trans "Barangay Complaint" %}</h2>
+                <p class="brand-subtitle">{% trans "Your gateway to efficient community services, accessible anytime, anywhere." %}</p>
+            </div>
+            
+            <div class="brand-features">
+                <div class="feature-badge">
+                    <div class="feature-badge-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <span class="feature-badge-text">{% trans "Secure & Encrypted" %}</span>
+                </div>
+                
+                <div class="feature-badge">
+                    <div class="feature-badge-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <span class="feature-badge-text">{% trans "24/7 Availability" %}</span>
+                </div>
+                
+                <div class="feature-badge">
+                    <div class="feature-badge-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <span class="feature-badge-text">{% trans "Community Powered" %}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Panel: Login Form -->
+        <div class="login-form-panel">
+            <div class="form-header">
+                <h1>{% trans "Sign In" %}</h1>
+                <p>{% trans "Enter your credentials to access your account" %}</p>
+            </div>
+            
+            <form method="post" autocomplete="off">
+                {% csrf_token %}
+                
+                <!-- Username Input -->
+                <div class="input-group-modern">
+                    <label for="username">{% trans "Username" %}</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user input-icon"></i>
+                        <input 
+                            type="text" 
+                            class="input-modern" 
+                            id="username" 
+                            name="username" 
+                            placeholder="{% trans 'Enter your username' %}" 
+                            required 
+                            autofocus 
+                            autocomplete="username" 
+                            autocapitalize="none" 
+                            spellcheck="false">
+                    </div>
+                </div>
+                
+                <!-- Password Input -->
+                <div class="input-group-modern">
+                    <label for="password">{% trans "Password" %}</label>
+                    <div class="input-wrapper password-wrapper">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input 
+                            type="password" 
+                            class="input-modern password-input" 
+                            id="password" 
+                            name="password" 
+                            placeholder="{% trans 'Enter your password' %}" 
+                            required 
+                            autocomplete="current-password" 
+                            spellcheck="false">
+                        <i class="fas fa-eye password-toggle" onclick="togglePassword('password')"></i>
+                    </div>
+                </div>
+                
+                <!-- Remember Me & Forgot Password -->
+                <div class="form-options">
+                    <div class="custom-checkbox">
+                        <input type="checkbox" id="remember">
+                        <label for="remember">{% trans "Remember me" %}</label>
+                    </div>
+                    <a href="#" class="forgot-link">{% trans "Forgot password?" %}</a>
+                </div>
+                
+                <!-- Submit Button -->
+                <button type="submit" class="btn-modern">
+                    <i class="fas fa-sign-in-alt"></i>
+                    {% trans "Sign In" %}
+                </button>
+            </form>
+            
+            <!-- Divider -->
+            <div class="divider-modern">
+                <span>{% trans "or" %}</span>
+            </div>
+            
+            <!-- Register Section -->
+            <div class="register-section">
+                <p>{% trans "Don't have an account?" %}</p>
+                <a href="{% url 'accounts:register' %}" class="btn-outline-modern">
+                    <i class="fas fa-user-plus"></i>
+                    {% trans "Create New Account" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Password toggle function
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const icon = input.parentElement.querySelector('.password-toggle');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+// Optimized - minimal JS animations
+document.addEventListener('DOMContentLoaded', function() {
+    // Simple fade-in for badges (lighter animation)
+    const badges = document.querySelectorAll('.feature-badge');
+    badges.forEach((badge, index) => {
+        badge.style.opacity = '0';
+        setTimeout(() => {
+            badge.style.transition = 'opacity 0.3s ease';
+            badge.style.opacity = '1';
+        }, 200 + (index * 80));
+    });
+});
+</script>
+{% endblock %}
+
+

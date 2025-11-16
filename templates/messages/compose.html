@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Compose Message" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .messages-container {
+        min-height: 80vh;
+        padding: 30px 0;
+    }
+    
+    .sidebar-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 20px;
+        height: fit-content;
+        position: sticky;
+        top: 100px;
+    }
+    
+    .sidebar-btn {
+        display: block;
+        width: 100%;
+        padding: 15px 20px;
+        margin-bottom: 10px;
+        border-radius: 15px;
+        background: transparent;
+        border: 2px solid transparent;
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    
+    .sidebar-btn i {
+        margin-right: 12px;
+        font-size: 1.1rem;
+    }
+    
+    .sidebar-btn:hover {
+        background: var(--glass-hover);
+        border-color: rgba(102, 126, 234, 0.3);
+        color: var(--text-primary);
+        transform: translateX(5px);
+    }
+    
+    .sidebar-btn.active {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+        border-color: rgba(102, 126, 234, 0.5);
+        color: white;
+    }
+    
+    .compose-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    
+    .compose-header {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+        padding: 25px 30px;
+        border-bottom: 1px solid var(--glass-border);
+    }
+    
+    .compose-header h3 {
+        margin: 0;
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+    
+    .compose-body {
+        padding: 30px;
+    }
+    
+    .form-label {
+        color: var(--text-primary);
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    
+    .form-control {
+        background: var(--glass-bg-light);
+        border: 2px solid var(--glass-border);
+        border-radius: 12px;
+        color: var(--text-primary);
+        padding: 12px 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        background: var(--glass-bg);
+        border-color: rgba(102, 126, 234, 0.5);
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+        color: var(--text-primary);
+    }
+    
+    /* Dropdown select styling */
+    select.form-control {
+        color: var(--text-primary) !important;
+        background-color: rgba(30, 30, 45, 0.8) !important;
+    }
+    
+    select.form-control option {
+        background-color: #1e1e2d;
+        color: #ffffff;
+        padding: 10px;
+    }
+    
+    select.form-control option:hover {
+        background-color: #667eea;
+    }
+    
+    .form-control:read-only {
+        background: rgba(102, 126, 234, 0.1);
+        cursor: not-allowed;
+    }
+    
+    textarea.form-control {
+        min-height: 200px;
+        resize: vertical;
+    }
+    
+    .form-text {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+    }
+    
+    .btn-cancel {
+        background: transparent;
+        border: 2px solid var(--glass-border);
+        color: var(--text-primary);
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-cancel:hover {
+        background: var(--glass-hover);
+        border-color: rgba(255, 0, 0, 0.3);
+        color: var(--text-primary);
+        text-decoration: none;
+    }
+    
+    .btn-send {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .btn-send:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .recipient-info {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        padding: 15px;
+        border-radius: 12px;
+        border: 2px solid var(--glass-border);
+    }
+    
+    .recipient-info i {
+        color: #667eea;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container messages-container">
+    <div class="row g-4">
+        <!-- Sidebar -->
+        <div class="col-lg-3">
+            <div class="sidebar-card">
+                <a href="{% url 'direct_messages:inbox' %}" class="sidebar-btn">
+                    <i class="fas fa-inbox"></i>{% trans "My Messages" %}
+                </a>
+                <a href="{% url 'direct_messages:compose' %}" class="sidebar-btn active">
+                    <i class="fas fa-plus-circle"></i>{% trans "Message Admin" %}
+                </a>
+            </div>
+            
+            <div class="sidebar-card mt-3" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); padding: 20px;">
+                <div style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+                    <i class="fas fa-info-circle mb-2" style="font-size: 1.5rem; color: #667eea;"></i>
+                    <p class="mb-0">{% trans "Your message will be sent to the barangay admin. They will respond in your inbox." %}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <div class="compose-card">
+                <div class="compose-header">
+                    <h3>
+                        <i class="fas fa-paper-plane me-2"></i>
+                        {% if user.is_official %}
+                        {% trans "Send Message to Resident" %}
+                        {% else %}
+                        {% trans "Message to Admin" %}
+                        {% endif %}
+                    </h3>
+                </div>
+                
+                <div class="compose-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if user.is_official %}
+                        <!-- Admin can select recipient -->
+                        <div class="mb-4">
+                            <label for="{{ form.recipient.id_for_label }}" class="form-label">
+                                <i class="fas fa-user me-2"></i>{% trans "To" %}
+                            </label>
+                            {{ form.recipient }}
+                            {% if form.recipient.errors %}
+                            <div class="text-danger mt-2">{{ form.recipient.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>{% trans "Select a resident to send a message" %}
+                            </small>
+                        </div>
+                        {% else %}
+                        <!-- Resident sends to admin -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-user me-2"></i>{% trans "To" %}
+                            </label>
+                            <div class="recipient-info">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-building me-2"></i>
+                                    <div>
+                                        <strong>{% trans 'Barangay Admin' %}</strong><br>
+                                        <small class="text-muted">{% trans "Message will be sent to the barangay chairman or secretary" %}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.subject.id_for_label }}" class="form-label">
+                                <i class="fas fa-tag me-2"></i>{% trans "Subject" %}
+                            </label>
+                            {{ form.subject }}
+                            {% if form.subject.errors %}
+                            <div class="text-danger mt-2">{{ form.subject.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.message.id_for_label }}" class="form-label">
+                                <i class="fas fa-comment-alt me-2"></i>{% trans "Message" %}
+                            </label>
+                            {{ form.message }}
+                            {% if form.message.errors %}
+                            <div class="text-danger mt-2">{{ form.message.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{% url 'direct_messages:inbox' %}" class="btn-cancel">
+                                <i class="fas fa-times me-2"></i>{% trans "Cancel" %}
+                            </a>
+                            <button type="submit" class="btn-send">
+                                <i class="fas fa-paper-plane me-2"></i>{% trans "Send Message" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
