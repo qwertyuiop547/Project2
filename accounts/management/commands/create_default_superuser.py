@@ -17,7 +17,8 @@ class Command(BaseCommand):
                 'last_name': 'Admin',
                 'role': 'admin',
                 'is_superuser': True,
-                'is_staff': True
+                'is_staff': True,
+                'is_approved': True
             },
             {
                 'username': 'secretary',
@@ -27,7 +28,8 @@ class Command(BaseCommand):
                 'last_name': 'Secretary',
                 'role': 'secretary',
                 'is_superuser': False,
-                'is_staff': True
+                'is_staff': True,
+                'is_approved': True
             },
             {
                 'username': 'resident',
@@ -37,7 +39,8 @@ class Command(BaseCommand):
                 'last_name': 'Resident',
                 'role': 'resident',
                 'is_superuser': False,
-                'is_staff': False
+                'is_staff': False,
+                'is_approved': True
             }
         ]
 
@@ -74,6 +77,10 @@ class Command(BaseCommand):
                         role=user_data['role'],
                         is_staff=user_data['is_staff']
                     )
+                
+                # Approve the user automatically
+                user.is_approved = True
+                user.save()
                 
                 self.stdout.write(self.style.SUCCESS(f'✓ Created {user_data["role"]}: {username}'))
                 created_count += 1
