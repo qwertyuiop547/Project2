@@ -7,6 +7,23 @@ class Command(BaseCommand):
     help = 'Creates default users if they do not exist'
 
     def handle(self, *args, **options):
+        # First, delete existing default users to recreate them as approved
+        default_usernames = ['superadmin', 'secretary', 'resident']
+        deleted_count = 0
+        
+        for username in default_usernames:
+            try:
+                user = CustomUser.objects.filter(username=username).first()
+                if user:
+                    user.delete()
+                    self.stdout.write(self.style.WARNING(f'Deleted existing user: {username}'))
+                    deleted_count += 1
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f'Error deleting {username}: {e}'))
+        
+        if deleted_count > 0:
+            self.stdout.write(self.style.SUCCESS(f'\nDeleted {deleted_count} existing users. Creating fresh approved users...\n'))
+        
         # Default users configuration
         default_users = [
             {
@@ -45,17 +62,10 @@ class Command(BaseCommand):
         ]
 
         created_count = 0
-        skipped_count = 0
 
         for user_data in default_users:
             username = user_data['username']
             
-            # Check if user already exists
-            if CustomUser.objects.filter(username=username).exists():
-                self.stdout.write(self.style.WARNING(f'User "{username}" already exists. Skipping.'))
-                skipped_count += 1
-                continue
-
             try:
                 # Create user
                 if user_data['is_superuser']:
@@ -93,7 +103,6 @@ class Command(BaseCommand):
         # Summary
         self.stdout.write(self.style.SUCCESS('\n' + '='*50))
         self.stdout.write(self.style.SUCCESS(f'Created: {created_count} users'))
-        self.stdout.write(self.style.WARNING(f'Skipped: {skipped_count} users'))
         
         if created_count > 0:
             self.stdout.write(self.style.SUCCESS('\n**Default Login Credentials:**'))
