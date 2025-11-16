@@ -23,13 +23,17 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
     'http://127.0.0.1:53458',  # Browser preview proxy
     'http://localhost:53458',
+    'https://project2-g69i.onrender.com',  # Render production URL
 ]
 
 # Add Render domain to CSRF_TRUSTED_ORIGINS if in production
 RENDER_EXTERNAL_HOSTNAME = config('RENDER_EXTERNAL_HOSTNAME', default='')
 if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-    CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
+    if RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    render_url = f'https://{RENDER_EXTERNAL_HOSTNAME}'
+    if render_url not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(render_url)
 
 # Application definition
 
