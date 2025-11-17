@@ -505,6 +505,11 @@
 {% block content %}
 <div class="complaints-page">
     <div class="container">
+        <div class="mb-3">
+            <a href="{% url 'dashboard:home' %}" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Dashboard" %}
+            </a>
+        </div>
         <!-- Hero Section -->
         <div class="page-hero">
             <div class="page-hero-content">

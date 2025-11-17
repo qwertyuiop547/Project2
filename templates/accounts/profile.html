@@ -417,6 +417,10 @@
         color: white;
         flex-grow: 1;
         font-weight: 500;
+        min-width: 0;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        white-space: normal;
     }
     
     /* Activity Stats */
@@ -585,6 +589,11 @@
 {% block content %}
 <div class="profile-page">
     <div class="container">
+        <div class="mb-3">
+            <a href="{% url 'dashboard:home' %}" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Dashboard" %}
+            </a>
+        </div>
         <!-- Hero Section -->
         <div class="page-hero">
             <div class="page-hero-content">
@@ -597,236 +606,189 @@
         
         <!-- Profile Main Card -->
         <div class="profile-main-card">
-            <!-- Profile Photo Section -->
-            <div class="profile-photo-section">
-                <div class="profile-photo-wrapper">
-                    {% if user.profile_photo %}
-                    <img src="{{ user.profile_photo.url }}" alt="{{ user.get_full_name }}" class="profile-photo" id="profilePhotoDisplay">
-                    {% else %}
-                    <div class="profile-photo-placeholder" id="profilePhotoDisplay">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Photo Edit Overlay -->
-                    <div class="photo-edit-overlay" onclick="document.getElementById('photoUploadInput').click()">
-                        <i class="fas fa-camera"></i>
-                        <span>{% trans "Change Photo" %}</span>
-                    </div>
-                </div>
-                
-                <!-- Hidden File Input -->
-                <form method="post" enctype="multipart/form-data" id="photoUploadForm" style="display: none;">
-                    {% csrf_token %}
-                    <input type="file" name="profile_photo" id="photoUploadInput" accept="image/*">
-                </form>
-                
-                <h2 class="user-name">{{ user.get_full_name|default:user.username }}</h2>
-                
-                <div>
-                    <span class="user-role role-{{ user.role|default:'resident' }}">
-                        <i class="fas fa-shield-alt me-2"></i>{{ user.get_role_display|default:"Resident" }}
-                    </span>
-                </div>
-                
-                {% if user.is_verified %}
-                <div class="verification-badge verified">
-                    <i class="fas fa-check-circle"></i>
-                    {% trans "Verified Account" %}
-                </div>
-                {% else %}
-                <div class="verification-badge pending">
-                    <i class="fas fa-clock"></i>
-                    {% trans "Pending Verification" %}
-                </div>
-                {% endif %}
-                
-                <div>
-                    <a href="{% url 'accounts:change_password' %}" class="btn btn-edit-profile">
-                        <i class="fas fa-key me-2"></i>{% trans "Change Password" %}
-                    </a>
-                </div>
-            </div>
-            
-            <!-- Edit Profile Form -->
-            <div class="info-section">
-                <h3 class="section-title">
-                    <i class="fas fa-edit"></i>
-                    {% trans "Edit Profile" %}
-                </h3>
-                <form method="post" enctype="multipart/form-data" id="profileEditForm">
-                    {% csrf_token %}
-                    <div style="display: grid; gap: 20px;">
+            <div class="row g-4 align-items-start">
+                <div class="col-lg-4">
+                    <!-- Profile Summary & Photo -->
+                    <div class="profile-photo-section">
+                        <div class="profile-photo-wrapper">
+                            {% if user.profile_photo %}
+                            <img src="{{ user.profile_photo.url }}" alt="{{ user.get_full_name }}" class="profile-photo" id="profilePhotoDisplay">
+                            {% else %}
+                            <div class="profile-photo-placeholder" id="profilePhotoDisplay">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Photo Edit Overlay -->
+                            <div class="photo-edit-overlay" onclick="document.getElementById('photoUploadInput').click()">
+                                <i class="fas fa-camera"></i>
+                                <span>{% trans "Change Photo" %}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Hidden File Input -->
+                        <form method="post" enctype="multipart/form-data" id="photoUploadForm" style="display: none;">
+                            {% csrf_token %}
+                            <input type="file" name="profile_photo" id="photoUploadInput" accept="image/*">
+                        </form>
+                        
+                        <h2 class="user-name">{{ user.get_full_name|default:user.username }}</h2>
+                        
                         <div>
-                            <label for="{{ form.username.id_for_label }}" class="info-label" style="margin-bottom: 8px; display: block;">
+                            <span class="user-role role-{{ user.role|default:'resident' }}">
+                                <i class="fas fa-shield-alt me-2"></i>{{ user.get_role_display|default:"Resident" }}
+                            </span>
+                        </div>
+                        
+                        {% if user.is_verified %}
+                        <div class="verification-badge verified">
+                            <i class="fas fa-check-circle"></i>
+                            {% trans "Verified Account" %}
+                        </div>
+                        {% else %}
+                        <div class="verification-badge pending">
+                            <i class="fas fa-clock"></i>
+                            {% trans "Pending Verification" %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Compact Personal Info -->
+                    <div class="info-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-user"></i>
+                            {% trans "Profile Summary" %}
+                        </h3>
+                        <div class="info-row">
+                            <div class="info-label">
                                 <i class="fas fa-at"></i>
                                 {% trans "Username:" %}
-                            </label>
-                            {{ form.username }}
-                            {% if form.username.errors %}
-                                <div style="color: #ef4444; font-size: 0.875rem; margin-top: 5px;">
-                                    {{ form.username.errors }}
-                                </div>
-                            {% endif %}
+                            </div>
+                            <div class="info-value">{{ user.username }}</div>
                         </div>
-                        <div>
-                            <label for="{{ form.first_name.id_for_label }}" class="info-label" style="margin-bottom: 8px; display: block;">
-                                <i class="fas fa-user"></i>
-                                {% trans "First Name:" %}
-                            </label>
-                            {{ form.first_name }}
-                            {% if form.first_name.errors %}
-                                <div style="color: #ef4444; font-size: 0.875rem; margin-top: 5px;">
-                                    {{ form.first_name.errors }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div>
-                            <label for="{{ form.last_name.id_for_label }}" class="info-label" style="margin-bottom: 8px; display: block;">
-                                <i class="fas fa-user"></i>
-                                {% trans "Last Name:" %}
-                            </label>
-                            {{ form.last_name }}
-                            {% if form.last_name.errors %}
-                                <div style="color: #ef4444; font-size: 0.875rem; margin-top: 5px;">
-                                    {{ form.last_name.errors }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div>
-                            <label for="{{ form.email.id_for_label }}" class="info-label" style="margin-bottom: 8px; display: block;">
+                        <div class="info-row">
+                            <div class="info-label">
                                 <i class="fas fa-envelope"></i>
                                 {% trans "Email:" %}
-                            </label>
-                            {{ form.email }}
-                            {% if form.email.errors %}
-                                <div style="color: #ef4444; font-size: 0.875rem; margin-top: 5px;">
-                                    {{ form.email.errors }}
-                                </div>
-                            {% endif %}
+                            </div>
+                            <div class="info-value">{{ user.email }}</div>
                         </div>
-                        <div>
-                            <label for="{{ form.phone_number.id_for_label }}" class="info-label" style="margin-bottom: 8px; display: block;">
-                                <i class="fas fa-phone"></i>
-                                {% trans "Phone:" %}
-                            </label>
-                            {{ form.phone_number }}
-                            {% if form.phone_number.errors %}
-                                <div style="color: #ef4444; font-size: 0.875rem; margin-top: 5px;">
-                                    {{ form.phone_number.errors }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div>
-                            <label for="{{ form.address.id_for_label }}" class="info-label" style="margin-bottom: 8px; display: block;">
-                                <i class="fas fa-map-marker-alt"></i>
-                                {% trans "Address:" %}
-                            </label>
-                            {{ form.address }}
-                            {% if form.address.errors %}
-                                <div style="color: #ef4444; font-size: 0.875rem; margin-top: 5px;">
-                                    {{ form.address.errors }}
-                                </div>
-                            {% endif %}
+                        <div class="info-row">
+                            <div class="info-label">
+                                <i class="fas fa-calendar-check"></i>
+                                {% trans "Member Since:" %}
+                            </div>
+                            <div class="info-value">{{ user.date_joined|date:"F d, Y" }}</div>
                         </div>
                     </div>
-                    <div style="margin-top: 30px; display: flex; gap: 15px;">
-                        <button type="submit" class="btn-upload-save" style="flex: 1;">
-                            <i class="fas fa-save me-2"></i>{% trans "Save Changes" %}
-                        </button>
-                    </div>
-                </form>
-            </div>
-            
-            <!-- Personal Information -->
-            <div class="info-section">
-                <h3 class="section-title">
-                    <i class="fas fa-user"></i>
-                    {% trans "Personal Information" %}
-                </h3>
-                <div class="info-row">
-                    <div class="info-label">
-                        <i class="fas fa-at"></i>
-                        {% trans "Username:" %}
-                    </div>
-                    <div class="info-value">{{ user.username }}</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">
-                        <i class="fas fa-envelope"></i>
-                        {% trans "Email:" %}
-                    </div>
-                    <div class="info-value">{{ user.email }}</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">
-                        <i class="fas fa-phone"></i>
-                        {% trans "Phone:" %}
-                    </div>
-                    <div class="info-value">{{ user.phone|default:"Not provided" }}</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">
-                        <i class="fas fa-map-marker-alt"></i>
-                        {% trans "Address:" %}
-                    </div>
-                    <div class="info-value">{{ user.address|default:"Not provided" }}</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">
-                        <i class="fas fa-birthday-cake"></i>
-                        {% trans "Date of Birth:" %}
-                    </div>
-                    <div class="info-value">{{ user.date_of_birth|date:"F d, Y"|default:"Not provided" }}</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">
-                        <i class="fas fa-calendar-check"></i>
-                        {% trans "Member Since:" %}
-                    </div>
-                    <div class="info-value">{{ user.date_joined|date:"F d, Y" }}</div>
-                </div>
-            </div>
-            
-            <!-- Activity Statistics -->
-            <div class="info-section">
-                <h3 class="section-title">
-                    <i class="fas fa-chart-line"></i>
-                    {% trans "Activity Statistics" %}
-                </h3>
-                <div class="stats-grid">
-                    <div class="stat-box">
-                        <div class="stat-number">{{ user.complaints_count|default:0 }}</div>
-                        <div class="stat-label">{% trans "Complaints" %}</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-number">{{ user.services_count|default:0 }}</div>
-                        <div class="stat-label">{% trans "Service Requests" %}</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-number">{{ user.feedback_count|default:0 }}</div>
-                        <div class="stat-label">{% trans "Feedback Given" %}</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-number">{{ user.suggestions_count|default:0 }}</div>
-                        <div class="stat-label">{% trans "Suggestions" %}</div>
+
+                    <!-- Account Actions -->
+                    <div class="info-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-cog"></i>
+                            {% trans "Account" %}
+                        </h3>
+                        <div class="settings-buttons">
+                            <a href="{% url 'accounts:change_password' %}" class="btn btn-outline-primary btn-setting">
+                                <i class="fas fa-key me-2"></i>{% trans "Change Password" %}
+                            </a>
+                            <a href="{% url 'accounts:delete_account_confirm' %}" class="btn btn-outline-danger btn-setting">
+                                <i class="fas fa-trash-alt me-2"></i>{% trans "Delete Account" %}
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Account Settings -->
-            <div class="info-section">
-                <h3 class="section-title">
-                    <i class="fas fa-cog"></i>
-                    {% trans "Account Settings" %}
-                </h3>
-                <div class="settings-buttons">
-                    <a href="{% url 'accounts:change_password' %}" class="btn btn-outline-primary btn-setting">
-                        <i class="fas fa-key me-2"></i>{% trans "Change Password" %}
-                    </a>
-                    <a href="{% url 'accounts:delete_account_confirm' %}" class="btn btn-outline-danger btn-setting">
-                        <i class="fas fa-trash-alt me-2"></i>{% trans "Delete Account" %}
-                    </a>
+
+                <div class="col-lg-8">
+                    <!-- Edit Profile Form -->
+                    <div class="info-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-edit"></i>
+                            {% trans "Edit Profile" %}
+                        </h3>
+                        <form method="post" enctype="multipart/form-data" id="profileEditForm">
+                            {% csrf_token %}
+                            <div style="display: grid; gap: 20px;">
+                                <div>
+                                    <label for="{{ form.username.id_for_label }}" class="info-label" style="margin-bottom: 8px; display: block;">
+                                        <i class="fas fa-at"></i>
+                                        {% trans "Username:" %}
+                                    </label>
+                                    {{ form.username }}
+                                    {% if form.username.errors %}
+                                        <div style="color: #ef4444; font-size: 0.875rem; margin-top: 5px;">
+                                            {{ form.username.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label for="{{ form.first_name.id_for_label }}" class="info-label" style="margin-bottom: 8px; display: block;">
+                                        <i class="fas fa-user"></i>
+                                        {% trans "First Name:" %}
+                                    </label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        <div style="color: #ef4444; font-size: 0.875rem; margin-top: 5px;">
+                                            {{ form.first_name.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label for="{{ form.last_name.id_for_label }}" class="info-label" style="margin-bottom: 8px; display: block;">
+                                        <i class="fas fa-user"></i>
+                                        {% trans "Last Name:" %}
+                                    </label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div style="color: #ef4444; font-size: 0.875rem; margin-top: 5px;">
+                                            {{ form.last_name.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label for="{{ form.email.id_for_label }}" class="info-label" style="margin-bottom: 8px; display: block;">
+                                        <i class="fas fa-envelope"></i>
+                                        {% trans "Email:" %}
+                                    </label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <div style="color: #ef4444; font-size: 0.875rem; margin-top: 5px;">
+                                            {{ form.email.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label for="{{ form.phone_number.id_for_label }}" class="info-label" style="margin-bottom: 8px; display: block;">
+                                        <i class="fas fa-phone"></i>
+                                        {% trans "Phone:" %}
+                                    </label>
+                                    {{ form.phone_number }}
+                                    {% if form.phone_number.errors %}
+                                        <div style="color: #ef4444; font-size: 0.875rem; margin-top: 5px;">
+                                            {{ form.phone_number.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label for="{{ form.address.id_for_label }}" class="info-label" style="margin-bottom: 8px; display: block;">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        {% trans "Address:" %}
+                                    </label>
+                                    {{ form.address }}
+                                    {% if form.address.errors %}
+                                        <div style="color: #ef4444; font-size: 0.875rem; margin-top: 5px;">
+                                            {{ form.address.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div style="margin-top: 30px; display: flex; gap: 15px;">
+                                <button type="submit" class="btn-upload-save" style="flex: 1;">
+                                    <i class="fas fa-save me-2"></i>{% trans "Save Changes" %}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -856,7 +818,7 @@
             <button type="button" class="btn-upload-cancel" onclick="closeUploadModal()">
                 <i class="fas fa-times me-2"></i>{% trans "Cancel" %}
             </button>
-            <button type="button" class="btn-upload-save" onclick="saveProfilePhoto()">
+            <button type="button" class="btn-upload-save" onclick="saveProfilePhoto(event)">
                 <i class="fas fa-check me-2"></i>{% trans "Save Photo" %}
             </button>
         </div>
@@ -917,6 +879,9 @@
 
 {% block extra_js %}
 <script>
+// Whether the user currently has a profile photo (used to reset previews correctly)
+const userHasProfilePhoto = "{{ user.profile_photo|yesno:'true,false'|default:'false' }}" === 'true';
+
 // Handle photo upload input change
 document.getElementById('photoUploadInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
@@ -962,16 +927,14 @@ function closeUploadModal() {
     const photoPreview = document.getElementById('photoPreview');
     const placeholder = document.getElementById('photoPreviewPlaceholder');
     
-    {% if not user.profile_photo %}
-    if (placeholder) {
+    if (!userHasProfilePhoto && placeholder) {
         photoPreview.style.display = 'none';
         placeholder.style.display = 'flex';
     }
-    {% endif %}
 }
 
 // Save profile photo
-function saveProfilePhoto() {
+function saveProfilePhoto(event) {
     const fileInput = document.getElementById('photoUploadInput');
     const file = fileInput.files[0];
     

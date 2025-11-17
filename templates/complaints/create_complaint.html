@@ -846,6 +846,11 @@
 
 {% block content %}
 <div class="container">
+    <div class="mb-3">
+        <a href="{% url 'complaints:complaint_list' %}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Complaints" %}
+        </a>
+    </div>
     <!-- Page Hero -->
     <div class="page-hero">
         <h1>
