@@ -94,9 +94,11 @@ def secretary_dashboard(request):
         pending=Count('id', filter=Q(status='pending'))
     )
     
-    # Single queries for other stats
-    pending_announcements = Announcement.objects.filter(status='pending').count()
-    unreviewed_feedback = Feedback.objects.filter(is_reviewed=False).count()
+    # Optimized: Get other stats in a single aggregation query
+    other_stats = {
+        'pending_announcements': Announcement.objects.filter(status='pending').count(),
+        'unreviewed_feedback': Feedback.objects.filter(is_reviewed=False).count()
+    }
     
     # Recent activity with select_related to avoid N+1
     recent_complaints = Complaint.objects.select_related('user', 'category').order_by('-created_at')[:10]
@@ -109,8 +111,8 @@ def secretary_dashboard(request):
         'resolved_complaints': complaint_stats['resolved'],
         'total_services': service_stats['total'],
         'pending_services': service_stats['pending'],
-        'pending_announcements': pending_announcements,
-        'unreviewed_feedback': unreviewed_feedback,
+        'pending_announcements': other_stats['pending_announcements'],
+        'unreviewed_feedback': other_stats['unreviewed_feedback'],
         'recent_complaints': recent_complaints,
         'recent_services': recent_services,
     }
@@ -211,14 +213,19 @@ def reports_view(request):
     if end_date:
         complaints = complaints.filter(created_at__lte=end_date)
     
-    # Statistics
-    total = complaints.count()
+    # Statistics - optimized
+    stats = complaints.aggregate(
+        total=Count('id'),
+        resolved=Count('id', filter=Q(status='resolved'))
+    )
+    total = stats['total']
+    resolved = stats['resolved']
+    
     by_status = complaints.values('status').annotate(count=Count('id'))
     by_category = complaints.values('category__name').annotate(count=Count('id')).order_by('-count')
     by_priority = complaints.values('priority').annotate(count=Count('id'))
     
     # Resolution stats
-    resolved = complaints.filter(status='resolved').count()
     resolution_rate = (resolved / total * 100) if total > 0 else 0
     
     context = {

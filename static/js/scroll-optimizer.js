@@ -2,7 +2,8 @@
 (function() {
     'use strict';
     
-    console.log('📜 Scroll optimizer loading...');
+    // Optimized: Remove console.log for better performance
+    // console.log('📜 Scroll optimizer loading...');
     
     let isScrolling = false;
     let scrollTimeout;

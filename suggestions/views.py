@@ -39,10 +39,12 @@ def suggestion_list(request):
     else:
         suggestions = suggestions.order_by('-vote_count')
     
-    # Statistics
-    total = suggestions.count()
-    pending = suggestions.filter(status='pending').count()
-    approved = suggestions.filter(status='approved').count()
+    # Statistics - optimized with single aggregation query
+    stats = suggestions.aggregate(
+        total=Count('id'),
+        pending=Count('id', filter=Q(status='pending')),
+        approved=Count('id', filter=Q(status='approved'))
+    )
     
     # Track which suggestions current user has voted for (for UI state)
     user_voted_ids = []
@@ -58,9 +60,9 @@ def suggestion_list(request):
     
     context = {
         'page_obj': page_obj,
-        'total': total,
-        'pending': pending,
-        'approved': approved,
+        'total': stats['total'],
+        'pending': stats['pending'],
+        'approved': stats['approved'],
         'status': status,
         'search': search,
         'sort': sort_by,
@@ -178,12 +180,14 @@ def manage_suggestions(request):
     if status:
         suggestions = suggestions.filter(status=status)
     
-    # Statistics
-    total = suggestions.count()
-    pending = suggestions.filter(status='pending').count()
-    under_review = suggestions.filter(status='under_review').count()
-    approved = suggestions.filter(status='approved').count()
-    implemented = suggestions.filter(status='implemented').count()
+    # Statistics - optimized with single aggregation query
+    stats = suggestions.aggregate(
+        total=Count('id'),
+        pending=Count('id', filter=Q(status='pending')),
+        under_review=Count('id', filter=Q(status='under_review')),
+        approved=Count('id', filter=Q(status='approved')),
+        implemented=Count('id', filter=Q(status='implemented'))
+    )
     
     # Pagination
     paginator = Paginator(suggestions, 20)
@@ -192,11 +196,11 @@ def manage_suggestions(request):
     
     context = {
         'page_obj': page_obj,
-        'total': total,
-        'pending': pending,
-        'under_review': under_review,
-        'approved': approved,
-        'implemented': implemented,
+        'total': stats['total'],
+        'pending': stats['pending'],
+        'under_review': stats['under_review'],
+        'approved': stats['approved'],
+        'implemented': stats['implemented'],
         'status': status,
     }
     

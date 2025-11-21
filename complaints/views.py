@@ -55,10 +55,12 @@ def complaint_list(request):
             Q(title__icontains=search) | Q(description__icontains=search)
         )
     
-    # Statistics
-    total = complaints.count()
-    pending = complaints.filter(status='pending').count()
-    resolved = complaints.filter(status='resolved').count()
+    # Statistics - optimized with single aggregation query
+    stats = complaints.aggregate(
+        total=Count('id'),
+        pending=Count('id', filter=Q(status='pending')),
+        resolved=Count('id', filter=Q(status='resolved'))
+    )
     
     # Pagination
     paginator = Paginator(complaints, 20)
@@ -73,9 +75,9 @@ def complaint_list(request):
         'is_paginated': page_obj.has_other_pages(),
         'is_official': request.user.is_authenticated and request.user.is_official(),
         'categories': categories,
-        'total': total,
-        'pending': pending,
-        'resolved': resolved,
+        'total': stats['total'],
+        'pending': stats['pending'],
+        'resolved': stats['resolved'],
         'status': status,
         'category': category,
         'priority': priority,
@@ -130,7 +132,11 @@ def create_complaint(request):
 
 def complaint_detail(request, pk):
     """View complaint with chairman comments/attachments"""
-    complaint = get_object_or_404(Complaint, pk=pk)
+    # Optimized: Use select_related and prefetch_related to avoid N+1 queries
+    complaint = get_object_or_404(
+        Complaint.objects.select_related('category', 'user', 'assigned_to').prefetch_related('attachments'),
+        pk=pk
+    )
     
     # Access control
     if request.user.is_authenticated:
@@ -143,12 +149,12 @@ def complaint_detail(request, pk):
         messages.error(request, _('Please login to view complaints.'))
         return redirect('accounts:login')
     
-    # Filter comments based on role
+    # Filter comments based on role - optimized with select_related
     if request.user.is_official():
-        comments = complaint.comments.all()
+        comments = complaint.comments.select_related('user').all()
     else:
         # Residents only see non-internal comments
-        comments = complaint.comments.filter(is_internal=False)
+        comments = complaint.comments.select_related('user').filter(is_internal=False)
     
     # Comment & rating forms
     comment_form = ComplaintCommentForm()
@@ -415,13 +421,19 @@ def delete_attachment(request, attachment_id):
 
 
 def complaint_statistics_api(request):
-    """API: Aggregates + category breakdown"""
-    total = Complaint.objects.count()
+    """API: Aggregates + category breakdown - optimized"""
+    # Optimized: Get all stats in fewer queries
+    stats = Complaint.objects.aggregate(
+        total=Count('id'),
+        resolved=Count('id', filter=Q(status='resolved'))
+    )
+    total = stats['total']
+    resolved = stats['resolved']
+    
     by_status = dict(Complaint.objects.values_list('status').annotate(count=Count('id')))
     by_category = list(Complaint.objects.values('category__name').annotate(count=Count('id')).order_by('-count'))
     by_priority = dict(Complaint.objects.values_list('priority').annotate(count=Count('id')))
     
-    resolved = Complaint.objects.filter(status='resolved').count()
     resolution_rate = (resolved / total * 100) if total > 0 else 0
     
     data = {
@@ -437,10 +449,14 @@ def complaint_statistics_api(request):
 
 def complaint_tracking_api(request, pk):
     """API: AI timeline, ETA, confidence, assignment"""
-    complaint = get_object_or_404(Complaint, pk=pk)
+    # Optimized: Use select_related to avoid N+1 queries
+    complaint = get_object_or_404(
+        Complaint.objects.select_related('assigned_to', 'category', 'user'),
+        pk=pk
+    )
     
-    # Calculate timeline
-    history = complaint.status_history.all().values('new_status', 'changed_at', 'changed_by__username')
+    # Calculate timeline - optimized with select_related
+    history = complaint.status_history.select_related('changed_by').all().values('new_status', 'changed_at', 'changed_by__username')
     
     # Estimate ETA (simple logic)
     if complaint.status == 'pending':

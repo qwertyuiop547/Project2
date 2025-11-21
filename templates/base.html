@@ -7,16 +7,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Barangay Complaint & Feedback Portal{% endblock %}</title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 512'><path fill='%230d6efd' d='M0 488V171.3c0-26.2 15.9-49.7 40.2-59.4L308.1 4.8c7.6-3.1 16.1-3.1 23.8 0L599.8 111.9c24.3 9.7 40.2 33.3 40.2 59.4V488c0 13.3-10.7 24-24 24H568c-13.3 0-24-10.7-24-24V224c0-17.7-14.3-32-32-32H128c-17.7 0-32 14.3-32 32V488c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24z'/></svg>">
+    
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Google Fonts -->
+    <!-- Google Fonts - Optimized with preconnect and display=swap -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+    
+    <!-- DNS Prefetch for CDN resources -->
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://code.jquery.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/custom.css' %}">
@@ -140,29 +149,61 @@
         </div>
     </footer>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Loading Optimizer - Load first to prevent infinite loading -->
+    <script src="{% static 'js/loading-optimizer.js' %}"></script>
     
-    <!-- jQuery (required for main.js) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Navigation Optimizer - Load first for faster navigation -->
+    <script src="{% static 'js/navigation-optimizer.js' %}" defer></script>
     
-    <!-- Main JavaScript -->
-    <script src="{% static 'js/main.js' %}"></script>
+    <!-- Performance Optimizer - Load first to optimize everything (non-blocking) -->
+    <script src="{% static 'js/performance-optimizer.js' %}" defer></script>
     
-    <!-- OGL Library for Aurora Background -->
-    <script src="https://cdn.jsdelivr.net/npm/ogl@1.0.6/dist/ogl.umd.js"></script>
+    <!-- Bootstrap JS - Defer for non-blocking load -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
     
-    <!-- Aurora Background (Simplified) -->
-    <script src="{% static 'js/aurora-simple.js' %}"></script>
+    <!-- jQuery (required for main.js) - Load early but non-blocking -->
+    <script>
+        // Load jQuery asynchronously to not block page rendering
+        (function() {
+            const script = document.createElement('script');
+            script.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
+            script.async = true;
+            document.head.appendChild(script);
+        })();
+    </script>
     
-    <!-- Scroll Performance Optimizer -->
-    <script src="{% static 'js/scroll-optimizer.js' %}"></script>
+    <!-- OGL Library for Aurora Background - Load async to not block navigation -->
+    <script src="https://cdn.jsdelivr.net/npm/ogl@1.0.6/dist/ogl.umd.js" defer></script>
     
-    <!-- Card Flip Effects -->
-    <script src="{% static 'js/card-flip.js' %}"></script>
+    <!-- Aurora Background (Simplified) - Initialize after DOM and OGL are ready -->
+    <script>
+        // Optimized: Load Aurora after page is interactive to not block navigation
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                // Wait a bit more for OGL to load
+                setTimeout(function() {
+                    const script = document.createElement('script');
+                    script.src = '{% static "js/aurora-simple.js" %}';
+                    document.head.appendChild(script);
+                }, 100);
+            });
+        } else {
+            setTimeout(function() {
+                const script = document.createElement('script');
+                script.src = '{% static "js/aurora-simple.js" %}';
+                document.head.appendChild(script);
+            }, 100);
+        }
+    </script>
     
-    <!-- Performance Optimizer -->
-    <script src="{% static 'js/performance-optimizer.js' %}"></script>
+    <!-- Main JavaScript - Load after Aurora (defer for performance) -->
+    <script src="{% static 'js/main.js' %}" defer></script>
+    
+    <!-- Scroll Performance Optimizer - Non-critical, defer -->
+    <script src="{% static 'js/scroll-optimizer.js' %}" defer></script>
+    
+    <!-- Card Flip Effects - Non-critical, defer -->
+    <script src="{% static 'js/card-flip.js' %}" defer></script>
     
     <!-- Auto-dismiss alerts -->
     <script>

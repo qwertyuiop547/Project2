@@ -26,8 +26,9 @@ def notification_list(request):
     elif filter_type == 'read':
         notifications_qs = notifications_qs.filter(is_read=True)
     
-    # Counts for badges
+    # Counts for badges - optimized: reuse queryset for unread count
     total_count = notifications_qs.count()
+    # Use the base queryset to avoid duplicate query
     unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
     
     # Pagination

@@ -15,12 +15,13 @@ from .forms import AnnouncementForm
 
 def announcement_list(request):
     """Public announcements (approved, published, unexpired)"""
+    # Optimized: Add select_related to avoid N+1 queries
     announcements = Announcement.objects.filter(
         status='published',
         publish_date__lte=timezone.now()
     ).exclude(
         expiry_date__lt=timezone.now()
-    )
+    ).select_related('created_by')
     
     # Filters
     priority = request.GET.get('priority')
@@ -127,7 +128,8 @@ def manage_announcements(request):
         messages.error(request, _('Access denied.'))
         return redirect('announcements:announcement_list')
     
-    announcements = Announcement.objects.all().order_by('-created_at')
+    # Optimized: Add select_related to avoid N+1 queries
+    announcements = Announcement.objects.select_related('created_by', 'approved_by').order_by('-created_at')
     
     # Filter by status
     status = request.GET.get('status')
@@ -250,24 +252,44 @@ def create_announcement_notification(announcement, user):
 
 
 def notify_all_residents_about_announcement(announcement):
-    """Notify all residents about new announcement"""
+    """Notify all residents about new announcement - optimized with bulk_create"""
     from accounts.models import CustomUser
     from notifications.models import Notification
     
     residents = CustomUser.objects.filter(is_approved=True, role='resident')
     
+    # Optimized: Use bulk_create to avoid N+1 queries
+    announcement_notifications = []
+    general_notifications = []
+    
     for resident in residents:
         # Create announcement notification
-        create_announcement_notification(announcement, resident)
+        announcement_notifications.append(
+            AnnouncementNotification(
+                announcement=announcement,
+                user=resident
+            )
+        )
         
         # Create general notification
-        Notification.objects.create(
-            user=resident,
-            title=_('New Announcement'),
-            message=f'{announcement.title}',
-            notification_type='announcement',
-            link=f'/announcements/{announcement.id}/'
+        general_notifications.append(
+            Notification(
+                user=resident,
+                title=_('New Announcement'),
+                message=f'{announcement.title}',
+                notification_type='announcement',
+                link=f'/announcements/{announcement.id}/'
+            )
         )
+    
+    # Bulk create all notifications at once
+    if announcement_notifications:
+        AnnouncementNotification.objects.bulk_create(
+            announcement_notifications,
+            ignore_conflicts=True  # Ignore if notification already exists
+        )
+    if general_notifications:
+        Notification.objects.bulk_create(general_notifications)
 
 
 def notify_chairman_for_approval(announcement):

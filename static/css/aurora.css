@@ -28,6 +28,8 @@
   z-index: 0 !important; /* content uses z-index:10 in custom.css */
   pointer-events: none !important;
   overflow: hidden !important;
+  opacity: 1 !important; /* Ensure Aurora is always visible, not black */
+  background: transparent !important; /* No black background */
   /* Ensure it covers everything even when zoomed */
   transform: scale(1.1) translateZ(0);
   transform-origin: center center;
@@ -97,6 +99,20 @@
   opacity: 0.8;
   pointer-events: none;
 }
+/* Optimized: Use will-change and transform for better performance */
+#aurora-background {
+    will-change: transform, opacity;
+    transform: translateZ(0); /* Force GPU acceleration */
+    contain: layout style paint; /* CSS containment for better performance */
+    isolation: isolate; /* Create new stacking context */
+}
+
+/* Optimized: Reduce repaints on particles */
+.aurora-particle {
+    will-change: transform, opacity;
+    contain: layout style paint;
+}
+
 /* Single simplified aurora layer */
 #aurora-layer-1 {
   position: absolute;

@@ -69,13 +69,21 @@ class Suggestion(models.Model):
             import random
             import string
 
-            while True:
+            # Optimized: Add max attempts to prevent infinite loop
+            max_attempts = 100
+            attempts = 0
+            while attempts < max_attempts:
                 reference = ''.join(
                     random.choices(string.ascii_uppercase + string.digits, k=10)
                 )
                 if not Suggestion.objects.filter(anonymous_reference=reference).exists():
                     self.anonymous_reference = reference
                     break
+                attempts += 1
+            else:
+                # Fallback: Use timestamp-based reference if all attempts fail
+                import time
+                self.anonymous_reference = f"REF{int(time.time())}{random.randint(1000, 9999)}"
 
         super().save(*args, **kwargs)
 

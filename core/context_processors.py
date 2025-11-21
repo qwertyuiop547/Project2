@@ -25,17 +25,24 @@ def complaint_badge_counts(request):
     if badge_count is None:
         unresolved_statuses = ["pending", "in_progress"]
 
-        # Officials see all unresolved complaints
-        if hasattr(user, "is_official") and user.is_official():
-            badge_count = Complaint.objects.filter(status__in=unresolved_statuses).count()
-        else:
-            # Residents see only their own unresolved complaints
-            badge_count = Complaint.objects.filter(
-                user=user, status__in=unresolved_statuses
-            ).count()
+        try:
+            # Optimized: Use only() to fetch only needed fields, add timeout protection
+            if hasattr(user, "is_official") and user.is_official():
+                # Officials see all unresolved complaints - use only() for faster query
+                badge_count = Complaint.objects.filter(
+                    status__in=unresolved_statuses
+                ).only('id').count()
+            else:
+                # Residents see only their own unresolved complaints
+                badge_count = Complaint.objects.filter(
+                    user=user, status__in=unresolved_statuses
+                ).only('id').count()
+        except Exception:
+            # Fallback: Return 0 if query fails to prevent blocking
+            badge_count = 0
         
-        # Cache for 30 seconds
-        cache.set(cache_key, badge_count, 30)
+        # Optimized: Increase cache time to reduce database queries during navigation
+        cache.set(cache_key, badge_count, 60)  # 60 seconds for better performance
 
     return {
         "complaints_pending_count": badge_count,

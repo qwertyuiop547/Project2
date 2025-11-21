@@ -32,9 +32,11 @@ def gallery_list(request):
             Q(title__icontains=search) | Q(description__icontains=search)
         )
     
-    # Counts
-    total = photos.count()
-    featured = photos.filter(is_featured=True).count()
+    # Counts - optimized with single aggregation query
+    counts = photos.aggregate(
+        total=Count('id'),
+        featured=Count('id', filter=Q(is_featured=True))
+    )
     
     # Pagination
     paginator = Paginator(photos, 12)
@@ -47,8 +49,8 @@ def gallery_list(request):
     context = {
         'page_obj': page_obj,
         'categories': categories,
-        'total': total,
-        'featured': featured,
+        'total': counts['total'],
+        'featured': counts['featured'],
         'category': category,
         'search': search,
     }
@@ -58,7 +60,11 @@ def gallery_list(request):
 
 def photo_detail(request, pk):
     """Photo detail with views, comments, like state"""
-    photo = get_object_or_404(Photo, pk=pk)
+    # Optimized: Use select_related to avoid N+1 queries
+    photo = get_object_or_404(
+        Photo.objects.select_related('uploaded_by', 'category'),
+        pk=pk
+    )
     
     # Increment view count
     photo.view_count += 1
@@ -98,7 +104,8 @@ def photo_detail(request, pk):
 def category_photos(request, category_id):
     """Photos by category"""
     category = get_object_or_404(PhotoCategory, pk=category_id)
-    photos = Photo.objects.filter(category=category, status='approved')
+    # Optimized: Add select_related to avoid N+1 queries
+    photos = Photo.objects.filter(category=category, status='approved').select_related('uploaded_by', 'category')
     
     # Pagination
     paginator = Paginator(photos, 12)
@@ -231,11 +238,13 @@ def manage_gallery(request):
     if category:
         photos = photos.filter(category_id=category)
     
-    # Statistics
-    total = photos.count()
-    pending = photos.filter(status='pending').count()
-    approved = photos.filter(status='approved').count()
-    featured = photos.filter(is_featured=True).count()
+    # Statistics - optimized with single aggregation query
+    stats = photos.aggregate(
+        total=Count('id'),
+        pending=Count('id', filter=Q(status='pending')),
+        approved=Count('id', filter=Q(status='approved')),
+        featured=Count('id', filter=Q(is_featured=True))
+    )
     
     # Pagination
     paginator = Paginator(photos, 20)
@@ -247,10 +256,10 @@ def manage_gallery(request):
     context = {
         'page_obj': page_obj,
         'categories': categories,
-        'total': total,
-        'pending': pending,
-        'approved': approved,
-        'featured': featured,
+        'total': stats['total'],
+        'pending': stats['pending'],
+        'approved': stats['approved'],
+        'featured': stats['featured'],
         'status': status,
         'category': category,
     }

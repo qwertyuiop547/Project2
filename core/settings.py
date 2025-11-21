@@ -133,14 +133,18 @@ LOCALE_PATHS = [
 ]
 
 
-# Static files (CSS, JavaScript, Images)
+# Static files (CSS, JavaScript, Images) - Optimized
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# Static files storage - WhiteNoise for production
+# Static files storage - WhiteNoise for production with optimizations
 if not DEBUG:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    # WhiteNoise settings for better performance
+    WHITENOISE_MAX_AGE = 31536000  # 1 year cache for static files
+    WHITENOISE_USE_FINDERS = True
+    WHITENOISE_AUTOREFRESH = False
 else:
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
@@ -176,21 +180,27 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
 }
 
-# Caching Configuration
+# Caching Configuration - optimized
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         'LOCATION': 'unique-snowflake',
         'TIMEOUT': 300,  # 5 minutes default timeout
         'OPTIONS': {
-            'MAX_ENTRIES': 1000
+            'MAX_ENTRIES': 5000  # Increased cache size for better performance
         }
     }
 }
 
-# Session Configuration (for better performance)
+# Session Configuration (for better performance and stability)
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 SESSION_CACHE_ALIAS = 'default'
+SESSION_COOKIE_AGE = 86400  # 24 hours
+SESSION_SAVE_EVERY_REQUEST = False  # Only save when session is modified
+SESSION_COOKIE_HTTPONLY = True  # Prevent XSS attacks
+SESSION_COOKIE_SECURE = not DEBUG  # HTTPS only in production
+SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Keep session after browser close
 
 # Database optimization for SQLite
 DATABASES = {
@@ -198,9 +208,11 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
         'OPTIONS': {
-            'timeout': 20,
+            'timeout': 10,  # Reduced timeout to fail faster if locked
+            'check_same_thread': False,  # Allow connection sharing
         },
-        'CONN_MAX_AGE': 60,  # Keep connection alive for 60 seconds
+        'CONN_MAX_AGE': 300,  # Keep connection alive for 5 minutes (optimized)
+        'ATOMIC_REQUESTS': False,  # Disable atomic requests for better performance
     }
 }
 

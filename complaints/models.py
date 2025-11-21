@@ -100,14 +100,21 @@ class Complaint(models.Model):
             import random
             import string
 
-            # Keep trying until we find an unused reference (very unlikely to loop)
-            while True:
+            # Optimized: Add max attempts to prevent infinite loop
+            max_attempts = 100
+            attempts = 0
+            while attempts < max_attempts:
                 reference = ''.join(
                     random.choices(string.ascii_uppercase + string.digits, k=10)
                 )
                 if not Complaint.objects.filter(anonymous_reference=reference).exists():
                     self.anonymous_reference = reference
                     break
+                attempts += 1
+            else:
+                # Fallback: Use timestamp-based reference if all attempts fail
+                import time
+                self.anonymous_reference = f"REF{int(time.time())}{random.randint(1000, 9999)}"
         super().save(*args, **kwargs)
 
 

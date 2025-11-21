@@ -2,7 +2,8 @@
 (function() {
     'use strict';
     
-    console.log('⚡ Performance Optimizer loading...');
+    // Optimized: Remove console.log for better performance
+    // console.log('⚡ Performance Optimizer loading...');
     
     // 1. Throttle resize events globally
     let resizeTimer;
@@ -158,8 +159,9 @@
         animationObserver.disconnect();
     });
     
-    console.log('✅ Performance Optimizer ACTIVE!');
-    console.log('📊 Features: FPS limiting, Visibility detection, Scroll optimization, Lazy animations');
+    // Optimized: Remove console.log for better performance
+    // console.log('✅ Performance Optimizer ACTIVE!');
+    // console.log('📊 Features: FPS limiting, Visibility detection, Scroll optimization, Lazy animations');
     
 })();
 

@@ -34,10 +34,11 @@ def submit_feedback(request):
 @login_required
 def feedback_list(request):
     """Role-scoped feedback list with filters and stats"""
+    # Optimized: Add select_related to avoid N+1 queries
     if request.user.is_official():
-        feedbacks = Feedback.objects.all()
+        feedbacks = Feedback.objects.select_related('user', 'reviewed_by')
     else:
-        feedbacks = Feedback.objects.filter(user=request.user)
+        feedbacks = Feedback.objects.filter(user=request.user).select_related('user', 'reviewed_by')
     
     # Filters
     rating = request.GET.get('rating')
@@ -56,10 +57,13 @@ def feedback_list(request):
             Q(subject__icontains=search) | Q(message__icontains=search)
         )
     
-    # Statistics
-    total = feedbacks.count()
-    reviewed = feedbacks.filter(is_reviewed=True).count()
-    avg_rating = feedbacks.aggregate(Avg('rating'))['rating__avg'] or 0
+    # Statistics - optimized with single aggregation query
+    stats = feedbacks.aggregate(
+        total=Count('id'),
+        reviewed=Count('id', filter=Q(is_reviewed=True)),
+        avg_rating=Avg('rating')
+    )
+    avg_rating = stats['avg_rating'] or 0
     
     # Pagination
     paginator = Paginator(feedbacks, 20)
@@ -68,8 +72,8 @@ def feedback_list(request):
     
     context = {
         'page_obj': page_obj,
-        'total': total,
-        'reviewed': reviewed,
+        'total': stats['total'],
+        'reviewed': stats['reviewed'],
         'avg_rating': round(avg_rating, 1),
         'rating': rating,
         'is_reviewed': is_reviewed,
@@ -82,7 +86,8 @@ def feedback_list(request):
 @login_required
 def feedback_detail(request, pk):
     """Feedback detail with admin response"""
-    feedback = get_object_or_404(Feedback, pk=pk)
+    # Optimized: Add select_related to avoid N+1 queries
+    feedback = get_object_or_404(Feedback.objects.select_related('user', 'reviewed_by'), pk=pk)
     
     # Access control
     if not request.user.is_official() and feedback.user != request.user:
@@ -111,8 +116,13 @@ def feedback_statistics(request):
         messages.error(request, _('Access denied.'))
         return redirect('feedback:feedback_list')
     
-    total = Feedback.objects.count()
-    reviewed = Feedback.objects.filter(is_reviewed=True).count()
+    # Optimized: Get stats in single query
+    stats = Feedback.objects.aggregate(
+        total=Count('id'),
+        reviewed=Count('id', filter=Q(is_reviewed=True))
+    )
+    total = stats['total']
+    reviewed = stats['reviewed']
     unreviewed = total - reviewed
     
     # Rating distribution
@@ -143,15 +153,19 @@ def feedback_statistics(request):
 
 
 def feedback_statistics_api(request):
-    """API: Feedback statistics JSON"""
-    total = Feedback.objects.count()
-    reviewed = Feedback.objects.filter(is_reviewed=True).count()
+    """API: Feedback statistics JSON - optimized"""
+    # Optimized: Get stats in single query
+    stats = Feedback.objects.aggregate(
+        total=Count('id'),
+        reviewed=Count('id', filter=Q(is_reviewed=True)),
+        avg_rating=Avg('rating')
+    )
+    total = stats['total']
+    reviewed = stats['reviewed']
+    avg_rating = stats['avg_rating'] or 0
     
     # Rating distribution
     rating_dist = dict(Feedback.objects.values_list('rating').annotate(count=Count('id')))
-    
-    # Average rating
-    avg_rating = Feedback.objects.aggregate(Avg('rating'))['rating__avg'] or 0
     
     data = {
         'total': total,

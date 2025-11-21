@@ -55,12 +55,37 @@ def index(request):
 
 
 def quick_stats_api(request):
-    """JSON API for quick stats (AJAX)"""
-    total_residents = CustomUser.objects.filter(is_approved=True, role='resident').count()
-    total_complaints = Complaint.objects.count()
-    pending_complaints = Complaint.objects.filter(status='pending').count()
-    resolved_complaints = Complaint.objects.filter(status='resolved').count()
-    resolution_rate = (resolved_complaints / total_complaints * 100) if total_complaints > 0 else 0
+    """JSON API for quick stats (AJAX) - optimized"""
+    from django.db.models import Count, Q
+    from django.core.cache import cache
+    
+    # Cache stats for 1 minute
+    cache_key = 'quick_stats_api'
+    data = cache.get(cache_key)
+    if data is None:
+        # Optimized: Get all stats in fewer queries
+        user_stats = CustomUser.objects.aggregate(
+            total_residents=Count('id', filter=Q(is_approved=True, role='resident'))
+        )
+        
+        complaint_stats = Complaint.objects.aggregate(
+            total=Count('id'),
+            pending=Count('id', filter=Q(status='pending')),
+            resolved=Count('id', filter=Q(status='resolved'))
+        )
+        
+        total_complaints = complaint_stats['total']
+        resolved_complaints = complaint_stats['resolved']
+        resolution_rate = (resolved_complaints / total_complaints * 100) if total_complaints > 0 else 0
+        
+        data = {
+            'total_residents': user_stats['total_residents'],
+            'total_complaints': total_complaints,
+            'pending_complaints': complaint_stats['pending'],
+            'resolved_complaints': resolved_complaints,
+            'resolution_rate': round(resolution_rate, 1),
+        }
+        cache.set(cache_key, data, 60)  # Cache for 1 minute
     
     data = {
         'total_residents': total_residents,

@@ -2,24 +2,18 @@
 (function() {
     'use strict';
     
-    console.log('🌌 MAXIMUM EFFECTS Aurora loading...');
+    // Optimized: Remove console.log for better performance during navigation
+    // console.log('🌌 MAXIMUM EFFECTS Aurora loading...');
     
     function createMaximumAurora() {
         const container = document.getElementById('aurora-background');
         if (!container) return;
         
-        // Create all CSS layers (12 layers total!)
-        const layers = [
-            'aurora-layer-1',
-            'aurora-layer-2', 
-            'aurora-layer-3',
-            'nebula-layer',
-            'glow-orbs',
-            'color-shift',
-            'light-beams',
-            'gradient-flow',
-            'light-shimmer'
-        ];
+        // Optimized: Reduced layers for better performance
+        const isLowEndDevice = navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4;
+        const layers = isLowEndDevice 
+            ? ['aurora-layer-1', 'aurora-layer-2'] // Only 2 layers for low-end
+            : ['aurora-layer-1', 'aurora-layer-2', 'aurora-layer-3']; // 3 layers for better devices
         
         layers.forEach(id => {
             const layer = document.createElement('div');
@@ -27,10 +21,11 @@
             container.appendChild(layer);
         });
         
-        // Optimized canvas
+        // Optimized canvas - reduce DPR for better performance
+        const dpr = Math.min(window.devicePixelRatio, isLowEndDevice ? 1.0 : 1.2);
         const canvas = document.createElement('canvas');
-        const dpr = Math.min(window.devicePixelRatio, 1.5);
-        canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2;mix-blend-mode:screen';
+        // Optimized: Add will-change and GPU acceleration
+        canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2;mix-blend-mode:screen;will-change:contents;transform:translateZ(0)';
         container.appendChild(canvas);
         
         const ctx = canvas.getContext('2d', { 
@@ -66,19 +61,23 @@
                 resizeCanvas();
             }, 200);
         });
+        // Optimized: Reduced from 8 to 5 waves for better performance
         const waves = [
-            { amp: 115, freq: 0.0011, speed: 0.026, y: 0.20, c1: 'rgba(74,222,128,0.38)', c2: 'rgba(74,222,128,0.06)' },
-            { amp: 92, freq: 0.0015, speed: 0.021, y: 0.30, c1: 'rgba(139,92,246,0.38)', c2: 'rgba(139,92,246,0.06)' },
-            { amp: 135, freq: 0.0009, speed: 0.029, y: 0.40, c1: 'rgba(99,102,241,0.34)', c2: 'rgba(99,102,241,0.06)' },
-            { amp: 78, freq: 0.0017, speed: 0.019, y: 0.50, c1: 'rgba(16,185,129,0.32)', c2: 'rgba(16,185,129,0.06)' },
-            { amp: 105, freq: 0.0013, speed: 0.024, y: 0.60, c1: 'rgba(236,72,153,0.3)', c2: 'rgba(236,72,153,0.06)' },
-            { amp: 88, freq: 0.0012, speed: 0.022, y: 0.70, c1: 'rgba(74,222,128,0.35)', c2: 'rgba(74,222,128,0.06)' },
-            { amp: 98, freq: 0.0014, speed: 0.027, y: 0.80, c1: 'rgba(139,92,246,0.36)', c2: 'rgba(139,92,246,0.06)' },
-            { amp: 110, freq: 0.0010, speed: 0.025, y: 0.90, c1: 'rgba(99,102,241,0.38)', c2: 'rgba(99,102,241,0.06)' }
+            { amp: 115, freq: 0.0011, speed: 0.026, y: 0.25, c1: 'rgba(74,222,128,0.35)', c2: 'rgba(74,222,128,0.05)' },
+            { amp: 92, freq: 0.0015, speed: 0.021, y: 0.40, c1: 'rgba(139,92,246,0.35)', c2: 'rgba(139,92,246,0.05)' },
+            { amp: 135, freq: 0.0009, speed: 0.029, y: 0.55, c1: 'rgba(99,102,241,0.32)', c2: 'rgba(99,102,241,0.05)' },
+            { amp: 105, freq: 0.0013, speed: 0.024, y: 0.70, c1: 'rgba(236,72,153,0.28)', c2: 'rgba(236,72,153,0.05)' },
+            { amp: 98, freq: 0.0014, speed: 0.027, y: 0.85, c1: 'rgba(139,92,246,0.32)', c2: 'rgba(139,92,246,0.05)' }
         ];
         
         let time = 0;
-        const step = 5;
+        // Optimized: Increased step from 5 to 8 for fewer calculations (better performance)
+        let step = 8;
+        
+        // Adaptive quality based on device performance (isLowEndDevice already declared above)
+        if (isLowEndDevice) {
+            step = 12; // Even larger step for low-end devices
+        }
         
         const gradients = waves.map(w => {
             const g = ctx.createLinearGradient(0, 0, 0, height);
@@ -109,26 +108,59 @@
         
         let lastTime = performance.now();
         let frameSkip = 0;
+        let frameCount = 0;
+        let lastFpsCheck = performance.now();
+        let currentFPS = 60;
+        let qualityMode = 'high'; // 'high', 'medium', 'low'
         
         function animate(currentTime) {
-            if (document.hidden && frameSkip++ % 2 !== 0) {
+            // Skip frames when page is hidden
+            if (document.hidden && frameSkip++ % 3 !== 0) {
                 requestAnimationFrame(animate);
                 return;
             }
             
+            // Calculate FPS every second
+            frameCount++;
+            if (currentTime - lastFpsCheck > 1000) {
+                currentFPS = frameCount;
+                frameCount = 0;
+                lastFpsCheck = currentTime;
+                
+                // Adaptive quality based on FPS
+                if (currentFPS < 30) {
+                    qualityMode = 'low';
+                    step = 15;
+                } else if (currentFPS < 45) {
+                    qualityMode = 'medium';
+                    step = 10;
+                } else {
+                    qualityMode = 'high';
+                    step = isLowEndDevice ? 12 : 8;
+                }
+            }
+            
             const elapsed = currentTime - lastTime;
             
-            const targetFPS = document.hidden ? 30 : 60;
+            // Adaptive FPS target based on performance
+            let targetFPS = 60;
+            if (qualityMode === 'low') targetFPS = 30;
+            else if (qualityMode === 'medium') targetFPS = 45;
+            
+            if (document.hidden) targetFPS = 20;
+            
             const frameTime = 1000 / targetFPS;
             
             if (elapsed > frameTime) {
                 ctx.clearRect(0, 0, width, height);
                 
-                waves.forEach((wave, idx) => {
+                // Draw waves - skip some in low quality mode
+                const wavesToDraw = qualityMode === 'low' ? waves.slice(0, 3) : waves;
+                wavesToDraw.forEach((wave, idx) => {
                     drawWave(wave, gradients[idx]);
                 });
                 
-                time += 0.42;
+                time += qualityMode === 'low' ? 0.3 : 0.42;
                 lastTime = currentTime;
             }
             
@@ -137,7 +169,8 @@
         
         requestAnimationFrame(animate);
         
-        const maxParticles = 15;
+        // Optimized: Reduced particles for better performance
+        const maxParticles = isLowEndDevice ? 8 : 12;
         const particleShapes = ['circle', 'circle', 'circle', 'diamond', 'star'];
         const particleColors = [
             { c: 'rgba(74,222,128,0.75)', s: [2, 7] },
@@ -173,15 +206,24 @@
             setTimeout(() => p.remove(), (duration + 2) * 1000);
         }
         
-        for (let i = 0; i < maxParticles; i++) {
-            setTimeout(() => createParticle(), i * 200);
+        // Optimized: Create fewer particles initially
+        for (let i = 0; i < Math.min(maxParticles, 5); i++) {
+            setTimeout(() => createParticle(), i * 400);
         }
         
-        setInterval(() => {
+        // Optimized: Reduced frequency of particle creation
+        const particleInterval = setInterval(() => {
             if (!document.hidden && particleContainer.children.length < maxParticles) {
                 createParticle();
             }
-        }, 2500);
+        }, isLowEndDevice ? 6000 : 4000);
+        
+        // Pause when page is hidden
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                clearInterval(particleInterval);
+            }
+        });
         
         function createShootingStar() {
             const s = document.createElement('div');
@@ -194,10 +236,17 @@
             setTimeout(() => s.remove(), 1400);
         }
         
-        // Reduced shooting stars frequency
-        setInterval(() => {
-            if (Math.random() > 0.75 && !document.hidden) createShootingStar();
-        }, 5000);
+        // Optimized: Reduced shooting stars frequency even more
+        const shootingStarInterval = setInterval(() => {
+            if (Math.random() > 0.85 && !document.hidden) createShootingStar();
+        }, isLowEndDevice ? 10000 : 8000);
+        
+        // Pause when page is hidden
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                clearInterval(shootingStarInterval);
+            }
+        });
         
         // Removed comet burst for performance
         

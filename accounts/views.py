@@ -108,6 +108,9 @@ def profile_view(request):
                 user.profile_photo = photo
                 user.save()
                 
+                # Important: Update session auth hash to prevent logout
+                update_session_auth_hash(request, user)
+                
                 return JsonResponse({
                     'success': True,
                     'photo_url': user.profile_photo.url,
@@ -122,7 +125,9 @@ def profile_view(request):
         # Regular form submission
         form = UserProfileForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
-            form.save()
+            user = form.save()
+            # Important: Update session auth hash to prevent logout when user is updated
+            update_session_auth_hash(request, user)
             messages.success(request, _('Profile updated successfully!'))
             return redirect('accounts:profile')
     else:
