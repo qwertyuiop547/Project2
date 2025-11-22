@@ -28,9 +28,19 @@
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
-    <link rel="stylesheet" href="{% static 'css/aurora.css' %}">
-    <link rel="stylesheet" href="{% static 'css/card-flip.css' %}">
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}?v=20251122">
+    <link rel="stylesheet" href="{% static 'css/aurora.css' %}?v=20251122">
+    <link rel="stylesheet" href="{% static 'css/card-flip.css' %}?v=20251122">
+    
+    <!-- FORCE BLACK BACKGROUND - Critical Override -->
+    <style>
+        body, html {
+            background: #000000 !important;
+        }
+        #aurora-background, .aurora-background {
+            background: #000000 !important;
+        }
+    </style>
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -150,13 +160,13 @@
     </footer>
 
     <!-- Loading Optimizer - Load first to prevent infinite loading -->
-    <script src="{% static 'js/loading-optimizer.js' %}"></script>
+    <script src="{% static 'js/loading-optimizer.js' %}?v=20251122"></script>
     
     <!-- Navigation Optimizer - Load first for faster navigation -->
-    <script src="{% static 'js/navigation-optimizer.js' %}" defer></script>
+    <script src="{% static 'js/navigation-optimizer.js' %}?v=20251122" defer></script>
     
     <!-- Performance Optimizer - Load first to optimize everything (non-blocking) -->
-    <script src="{% static 'js/performance-optimizer.js' %}" defer></script>
+    <script src="{% static 'js/performance-optimizer.js' %}?v=20251122" defer></script>
     
     <!-- Bootstrap JS - Defer for non-blocking load -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
@@ -183,14 +193,14 @@
                 // Wait a bit more for OGL to load
                 setTimeout(function() {
                     const script = document.createElement('script');
-                    script.src = '{% static "js/aurora-simple.js" %}';
+                    script.src = '{% static "js/aurora-simple.js" %}?v=20251122';
                     document.head.appendChild(script);
                 }, 100);
             });
         } else {
             setTimeout(function() {
                 const script = document.createElement('script');
-                script.src = '{% static "js/aurora-simple.js" %}';
+                script.src = '{% static "js/aurora-simple.js" %}?v=20251122';
                 document.head.appendChild(script);
             }, 100);
         }

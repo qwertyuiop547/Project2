@@ -39,8 +39,8 @@ html {
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    /* Match aurora background gradient for seamless scrolling */
-    background: radial-gradient(ellipse at center, #0f0f1a 0%, #030305 100%);
+    /* DARK background to match aurora - CRITICAL FIX */
+    background: #000000 !important;
     background-attachment: fixed;
     color: rgba(255, 255, 255, 0.9);
     position: relative;
@@ -77,9 +77,18 @@ body, html, main, .container {
     background: transparent; /* Ensure transparency doesn't cause black screen */
 }
 
-/* Ensure body and html are visible */
+/* FORCE BLACK BACKGROUND - Critical Fix */
+#aurora-background {
+    background: #000000 !important;
+}
+
+#aurora-background * {
+    mix-blend-mode: normal !important;
+}
+
+/* Ensure body and html have dark background */
 body, html {
-    background: transparent !important;
+    background: #000000 !important;
     min-height: 100vh;
 }
 

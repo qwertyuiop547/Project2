@@ -24,8 +24,8 @@
         // Optimized canvas - reduce DPR for better performance
         const dpr = Math.min(window.devicePixelRatio, isLowEndDevice ? 1.0 : 1.2);
         const canvas = document.createElement('canvas');
-        // Optimized: Add will-change and GPU acceleration
-        canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2;mix-blend-mode:screen;will-change:contents;transform:translateZ(0)';
+        // FIXED: Use normal blending instead of screen to prevent brightening
+        canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2;mix-blend-mode:normal;will-change:contents;transform:translateZ(0);opacity:0.6';
         container.appendChild(canvas);
         
         const ctx = canvas.getContext('2d', { 
@@ -61,13 +61,13 @@
                 resizeCanvas();
             }, 200);
         });
-        // Optimized: Reduced from 8 to 5 waves for better performance
+        // FIXED: Much darker aurora colors for proper dark background
         const waves = [
-            { amp: 115, freq: 0.0011, speed: 0.026, y: 0.25, c1: 'rgba(74,222,128,0.35)', c2: 'rgba(74,222,128,0.05)' },
-            { amp: 92, freq: 0.0015, speed: 0.021, y: 0.40, c1: 'rgba(139,92,246,0.35)', c2: 'rgba(139,92,246,0.05)' },
-            { amp: 135, freq: 0.0009, speed: 0.029, y: 0.55, c1: 'rgba(99,102,241,0.32)', c2: 'rgba(99,102,241,0.05)' },
-            { amp: 105, freq: 0.0013, speed: 0.024, y: 0.70, c1: 'rgba(236,72,153,0.28)', c2: 'rgba(236,72,153,0.05)' },
-            { amp: 98, freq: 0.0014, speed: 0.027, y: 0.85, c1: 'rgba(139,92,246,0.32)', c2: 'rgba(139,92,246,0.05)' }
+            { amp: 115, freq: 0.0011, speed: 0.026, y: 0.25, c1: 'rgba(74,222,128,0.15)', c2: 'rgba(74,222,128,0.02)' },
+            { amp: 92, freq: 0.0015, speed: 0.021, y: 0.40, c1: 'rgba(139,92,246,0.15)', c2: 'rgba(139,92,246,0.02)' },
+            { amp: 135, freq: 0.0009, speed: 0.029, y: 0.55, c1: 'rgba(99,102,241,0.12)', c2: 'rgba(99,102,241,0.02)' },
+            { amp: 105, freq: 0.0013, speed: 0.024, y: 0.70, c1: 'rgba(236,72,153,0.12)', c2: 'rgba(236,72,153,0.02)' },
+            { amp: 98, freq: 0.0014, speed: 0.027, y: 0.85, c1: 'rgba(139,92,246,0.12)', c2: 'rgba(139,92,246,0.02)' }
         ];
         
         let time = 0;
@@ -372,12 +372,12 @@ void main(){
                     uniforms: {
                         uResolution: { value: [window.innerWidth, window.innerHeight] },
                         uTime: { value: 0 },
-                        uIntensity: { value: 1.0 },
+                        uIntensity: { value: 0.3 },
                         uColors: { value: [
-                            [0.29,0.87,0.50], // green
-                            [0.55,0.36,0.96], // purple
-                            [0.39,0.40,0.95], // indigo
-                            [0.62,0.84,0.98]  // icy blue
+                            [0.15,0.45,0.25], // darker green
+                            [0.25,0.18,0.48], // darker purple
+                            [0.20,0.20,0.48], // darker indigo
+                            [0.30,0.42,0.49]  // darker icy blue
                         ] }
                     }
                 });
