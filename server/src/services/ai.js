@@ -869,6 +869,19 @@ async function chatWithAssistant({ message, history, context, user, contextData 
     }
 }
 
+async function warmUpOllama() {
+    try {
+        const available = await isOllamaAvailable();
+        if (available) {
+            console.log('🤖 Ollama AI service connected.');
+        } else {
+            console.log('ℹ️ Ollama AI offline. Using rule-based civic assistant.');
+        }
+    } catch (e) {
+        // Safe ignore
+    }
+}
+
 module.exports = {
     assistComplaint,
     chatWithAssistant,
