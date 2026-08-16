@@ -247,8 +247,6 @@ async function main() {
         ]
     });
 
-    console.log('✅ Created sample announcements');
-
     console.log('');
     console.log('🎉 Database seeding completed!');
     console.log('');
@@ -258,11 +256,16 @@ async function main() {
     console.log('   Resident: resident@example.com / password123');
 }
 
-main()
-    .catch((e) => {
-        console.error('❌ Seed error:', e);
-        process.exit(1);
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-    });
+if (require.main === module) {
+    main()
+        .catch((e) => {
+            console.error('❌ Seed error:', e);
+            process.exit(1);
+        })
+        .finally(async () => {
+            await prisma.$disconnect();
+        });
+}
+
+module.exports = { seed: main };
+

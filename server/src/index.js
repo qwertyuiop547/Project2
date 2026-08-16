@@ -69,9 +69,27 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+    
+    // Connect to database and seed initial data if needed
+    try {
+        await prisma.$connect();
+        console.log('✅ Database connected.');
+        const catCount = await prisma.complaintCategory.count();
+        if (catCount === 0) {
+            console.log('🌱 Database is empty. Running initial seed...');
+            const { seed } = require('../prisma/seed');
+            if (typeof seed === 'function') {
+                await seed();
+                console.log('✅ Database seeded.');
+            }
+        }
+    } catch (dbErr) {
+        console.warn('⚠️ Database initialization notice:', dbErr.message);
+    }
+
     if (typeof warmUpOllama === 'function') {
         warmUpOllama().catch(() => {});
     }

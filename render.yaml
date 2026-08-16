@@ -12,7 +12,7 @@ services:
     plan: free
     region: singapore
     buildCommand: "npm install --include=dev && npm run build && cd server && npx prisma generate"
-    startCommand: "cd server && npx prisma db push --accept-data-loss && node prisma/seed.js && cd .. && npm start"
+    startCommand: "npm start"
     envVars:
       - key: NODE_ENV
         value: production
