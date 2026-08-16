@@ -2,9 +2,9 @@ import docx
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
-from docx.oxml import OxmlElement, parse_xml
-from docx.oxml.ns import nsdecls, qn
+from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.oxml import parse_xml
+from docx.oxml.ns import nsdecls
 
 def set_cell_background(cell, fill_hex):
     tcPr = cell._tc.get_or_add_tcPr()
@@ -62,8 +62,8 @@ def create_document():
     p_title.paragraph_format.space_after = Pt(4)
 
     p_subtitle = doc.add_paragraph()
-    r_sub = p_subtitle.add_run("Official Technical & System Features Documentation")
-    r_sub.font.size = Pt(14)
+    r_sub = p_subtitle.add_run("Comprehensive System Architecture, Modules & AI Features Documentation")
+    r_sub.font.size = Pt(13)
     r_sub.font.color.rgb = DARK_BLUE
     p_subtitle.paragraph_format.space_after = Pt(14)
 
@@ -78,7 +78,7 @@ def create_document():
     cells[1].text = "https://barangay-portal-jqxc.onrender.com/"
     
     cells2 = meta_table.rows[1].cells
-    cells2[0].text = "Repository:"
+    cells2[0].text = "Source Code Repository:"
     cells2[0].paragraphs[0].runs[0].font.bold = True
     cells2[1].text = "https://github.com/qwertyuiop547/Project2.git"
 
@@ -92,7 +92,7 @@ def create_document():
 
     doc.add_paragraph().paragraph_format.space_after = Pt(12)
 
-    # Helper function for Section Headings
+    # Heading Helpers
     def add_heading_1(text):
         p = doc.add_paragraph()
         p.paragraph_format.space_before = Pt(18)
@@ -113,16 +113,6 @@ def create_document():
         r.font.color.rgb = EMERALD
         return p
 
-    def add_heading_3(text):
-        p = doc.add_paragraph()
-        p.paragraph_format.space_before = Pt(8)
-        p.paragraph_format.space_after = Pt(2)
-        r = p.add_run(text)
-        r.font.size = Pt(11)
-        r.font.bold = True
-        r.font.color.rgb = DARK_BLUE
-        return p
-
     def add_bullet(p, bold_prefix, text):
         p.style = 'List Bullet'
         p.paragraph_format.space_after = Pt(3)
@@ -132,28 +122,29 @@ def create_document():
         r2 = p.add_run(text)
         r2.font.color.rgb = TEXT_COLOR
 
-    # --- SECTION 1: SYSTEM OVERVIEW ---
+    # --- SECTION 1: EXECUTIVE SUMMARY ---
     add_heading_1("1. Executive Summary & Architecture Overview")
     doc.add_paragraph(
-        "Ang Barangay Burgos Digital Portal ay isang full-stack web application na idinisenyo upang gawing mabilis, tapat, "
-        "at transparent ang paghahatid ng mga serbisyong pambarangay. Pinapalitan nito ang tradisyonal na mahabang pila ng "
-        "isang 24/7 self-service digital governance system na may kasamang Artificial Intelligence (AI)."
+        "The Barangay Burgos Digital Governance Portal is an enterprise full-stack web application designed to digitize, "
+        "streamline, and modernize local government services in the Philippines. It replaces physical counter queues and paper-heavy workflows "
+        "with an automated, 24/7 digital self-service platform integrated with artificial intelligence (AI)."
     )
 
-    p_arch = doc.add_paragraph()
-    p_arch.add_run("Teknolohiyang Ginamit (Full-Stack Stack):").font.bold = True
-    add_bullet(doc.add_paragraph(), "Frontend Client: ", "React 18, Vite 5, Zustand para sa state management, TanStack React Query, Lucide Icons, at Custom Vanilla CSS Design System.")
-    add_bullet(doc.add_paragraph(), "Backend API Server: ", "Node.js, Express.js 4, JSON Web Token (JWT) Authentication, Bcrypt Password Encryption, at Server-Sent Events (SSE).")
-    add_bullet(doc.add_paragraph(), "Database Layer: ", "PostgreSQL Database pinamamahalaan gamit ang Prisma 5 ORM na may strict schema modeling at automated seeding.")
-    add_bullet(doc.add_paragraph(), "AI Intelligence Engine: ", "Multi-Provider Architecture na sumusuporta sa Ollama (Local LLM), Google Gemini, Groq, OpenAI, at built-in Smart Assist NLP Rule Engine.")
+    doc.add_paragraph("Full-Stack Technology Stack Architecture:").paragraph_format.space_after = Pt(2)
+    doc.paragraphs[-1].runs[0].font.bold = True
+
+    add_bullet(doc.add_paragraph(), "Frontend Client Application: ", "React 18 Single-Page Application (SPA) powered by Vite 5, Zustand for client-side state management, TanStack React Query for data synchronization, Lucide React icons, and a custom Clean Civic Light CSS design system.")
+    add_bullet(doc.add_paragraph(), "Backend API Server: ", "Node.js with Express 4 REST API, JSON Web Token (JWT) stateless authentication, Bcrypt password encryption, Express Validator, and Server-Sent Events (SSE) for real-time AI token streaming.")
+    add_bullet(doc.add_paragraph(), "Database & Persistence Layer: ", "Managed PostgreSQL database orchestrated via Prisma 5 ORM with strict relational schema modeling, connection pooling, and automated database seeding.")
+    add_bullet(doc.add_paragraph(), "AI Intelligence Layer: ", "Multi-provider AI pipeline supporting Ollama (Local Open-Source LLM), Google Gemini API, Groq, OpenAI, and a built-in zero-dependency Natural Language Processing (NLP) rule engine.")
 
     # --- SECTION 2: USER ROLES ---
-    add_heading_1("2. Mga Antas ng Gumagamit (Role-Based Access Control)")
-    doc.add_paragraph("May tatlong pangunahing antas ng gumagamit sa system na may kani-kaniyang access at pahintulot:")
+    add_heading_1("2. Role-Based Access Control (RBAC)")
+    doc.add_paragraph("The application enforces strict Role-Based Access Control across three core operational personas:")
 
     role_table = doc.add_table(rows=4, cols=3)
     role_table.alignment = WD_TABLE_ALIGNMENT.CENTER
-    role_headers = ["Role", "Pangunahing Gumagamit", "Mga Kakayahan at Pahintulot (Permissions)"]
+    role_headers = ["Role", "Target Persona", "System Capabilities & Permissions"]
     for i, title in enumerate(role_headers):
         cell = role_table.rows[0].cells[i]
         cell.text = title
@@ -165,9 +156,9 @@ def create_document():
         p.runs[0].font.size = Pt(10)
 
     roles_data = [
-        ("RESIDENT (Residente)", "Mamamayan / Residente ng Barangay", "Magsumite ng reklamo gamit ang AI Assistant, mag-request ng barangay clearance/certificates, magbigay ng suhestiyon, makipag-chat sa Barangay AI Assistant, at mag-track ng live progress ng mga kahilingan."),
-        ("SECRETARY (Kalihim)", "Barangay Secretary at Admin Staff", "Suriin ang mga naihaing reklamo, mag-update ng status at magbigay ng official remarks, mag-apruba ng mga sertipiko at permits, at maglabas ng mga opisyal na anunsyo."),
-        ("CHAIRMAN (Punong Barangay)", "Kapitan / Barangay Captain", "Komprehensibong overview ng buong barangay, pagsusuri ng mga analytics at resolution rates, pag-apruba ng mga sensitibong dispute (Lupon Tagapamayapa), at kabuuang pamamahala.")
+        ("RESIDENT", "Barangay Citizens & Constituents", "File complaints using the AI Complaint Assistant, apply for official certificates and clearances, submit community suggestions, interact with the Barangay AI Chatbot, and track real-time filing progress on their dashboard."),
+        ("SECRETARY", "Barangay Secretary & Administrative Staff", "Review incoming citizen complaints, update dispute statuses and issue official remarks, process and approve document applications, and publish official public announcements."),
+        ("CHAIRMAN", "Punong Barangay / Barangay Captain", "Access high-level municipal governance analytics, review case resolution rates, manage escalated disputes (Lupon Tagapamayapa mediation), and oversee administrative operations.")
     ]
 
     for row_idx, (role_name, users_target, perms) in enumerate(roles_data, start=1):
@@ -183,31 +174,39 @@ def create_document():
             if col_idx == 0:
                 p.runs[0].font.bold = True
 
+    # Pre-seeded Accounts
+    p_acc = doc.add_paragraph()
+    p_acc.paragraph_format.space_before = Pt(8)
+    p_acc.add_run("Pre-Seeded Demo Accounts for Testing:").font.bold = True
+    add_bullet(doc.add_paragraph(), "Resident: ", "resident@example.com | password: password123")
+    add_bullet(doc.add_paragraph(), "Secretary: ", "secretary@barangay.gov.ph | password: password123")
+    add_bullet(doc.add_paragraph(), "Chairman: ", "chairman@barangay.gov.ph | password: password123")
+
     # --- SECTION 3: AI FEATURES ---
-    add_heading_1("3. 🤖 Malalimang Pagsusuri sa mga AI Features (Deep Dive)")
+    add_heading_1("3. 🤖 Deep Dive: AI-Powered Governance Features")
     doc.add_paragraph(
-        "Isa sa pinakamahalagang lakas ng portal ay ang komprehensibong AI subsystem na binuo upang mapadali ang pakikipag-ugnayan "
-        "ng mamamayan sa pamahalaan. Ang AI layer ay dinisenyo upang maging 100% maaasahan kahit offline o walang binabayarang API key."
+        "A cornerstone of the platform is its multi-tiered Artificial Intelligence subsystem, engineered specifically for "
+        "Philippine local governance workflows. It ensures high reliability, privacy, and zero downtime regardless of cloud API availability."
     )
 
-    add_heading_2("3.1 Multi-Provider AI Engine na may Resilient Fallback")
+    add_heading_2("3.1 Multi-Provider AI Architecture with Resilient Fallback")
     doc.add_paragraph(
-        "Gumagamit ang system ng isang dynamic provider pipeline sa 'server/src/services/ai.js'. Sinusuri nito kung anong AI engine ang available sa sumusunod na priority order:"
+        "The AI service layer ('server/src/services/ai.js') evaluates active AI providers in dynamic priority order:"
     )
-    add_bullet(doc.add_paragraph(), "1. Ollama (Local AI): ", "Kung may tumatakbong Ollama instance sa server (e.g. Llama 3.2 1B/3B o Mistral), ito ang gagamitin. Libre, walang token cost, at 100% nananatili ang data sa loob ng server.")
-    add_bullet(doc.add_paragraph(), "2. Google Gemini API: ", "Kung naka-configure ang GEMINI_API_KEY, ginagamit nito ang high-speed cloud intelligence ng Google.")
-    add_bullet(doc.add_paragraph(), "3. Groq / OpenAI API: ", "Alternatibong ultra-fast cloud LLM inference.")
-    add_bullet(doc.add_paragraph(), "4. Smart Assist Engine (Zero-Dependency Fallback): ", "Kung walang LLM o walang internet, awtomatikong sumasalo ang built-in NLP algorithm. Hindi kailanman mag-e-error o magiging blangko ang screen ng residente.")
+    add_bullet(doc.add_paragraph(), "1. Ollama (Local Private LLM): ", "Connects to local open-source models (e.g., Llama 3.2 1B/3B, Mistral). Free, zero token cost, and ensures complete citizen data privacy within the server perimeter.")
+    add_bullet(doc.add_paragraph(), "2. Google Gemini API: ", "High-speed cloud generative intelligence enabled when GEMINI_API_KEY is supplied.")
+    add_bullet(doc.add_paragraph(), "3. Groq & OpenAI APIs: ", "Ultra-low-latency alternative cloud inference engines.")
+    add_bullet(doc.add_paragraph(), "4. Smart Assist Engine (Zero-Dependency Fallback): ", "When no LLM or internet connection is active, the built-in rule engine autonomously processes Tagalog text, keyword stemming, and report structuring without failing.")
 
     add_heading_2("3.2 AI Complaint Assistant & Auto-Refinement")
     doc.add_paragraph(
-        "Kadalasan, ang mga residente ay nagrereklamo sa pamamagitan ng impormal, magulo, o emosyonal na pananalita. "
-        "Ang AI Complaint Assistant ay may kakayahang i-transform ang raw input sa isang pormal na official barangay document bago i-submit:"
+        "Citizens often describe incidents in emotional, informal, or fragmented Tagalog/Taglish. "
+        "The AI Complaint Assistant automatically refines raw descriptions into structured, formal municipal reports:"
     )
-    add_bullet(doc.add_paragraph(), "Awtomatikong Pag-uuri (Auto-Categorization): ", "Natutukoy kung ang reklamo ay Infrastructure, Sanitation, Public Safety, Noise & Disturbance, o Others.")
-    add_bullet(doc.add_paragraph(), "Priority Level Detection: ", "Nagtatalaga ng antas (URGENT, HIGH, MEDIUM, LOW) batay sa mga banta sa kaligtasan (hal. baha, sunog, holdap, sirang kalsada).")
-    add_bullet(doc.add_paragraph(), "Pormal na Tagalog Rewrite: ", "Isinasaayos ang mga pangungusap sa pormal at magalang na Tagalog na akma para sa mga pagdinig ng Lupon o opisyal na rekord.")
-    add_bullet(doc.add_paragraph(), "Fact Preservation Guarantee: ", "Mahigpit na pinapanatili ang eksaktong lokasyon, petsa, at pangalan nang walang idinadagdag na maling impormasyon.")
+    add_bullet(doc.add_paragraph(), "Automatic Categorization: ", "Accurately classifies reports into Infrastructure, Sanitation, Public Safety, Noise & Disturbance, or Others.")
+    add_bullet(doc.add_paragraph(), "Hazard-Based Priority Scoring: ", "Assigns urgency levels (URGENT, HIGH, MEDIUM, LOW) based on safety hazards (e.g., floods, fire, open electrical wires, robbery).")
+    add_bullet(doc.add_paragraph(), "Formal Tagalog Synthesis: ", "Polishes colloquial sentences into courteous, professional Tagalog suitable for barangay hearings and permanent official records.")
+    add_bullet(doc.add_paragraph(), "Fact Preservation Guarantee: ", "Preserves all landmarks, dates, and locations without hallucinating false details.")
 
     # Callout Box Example
     callout = doc.add_table(rows=1, cols=1)
@@ -215,61 +214,61 @@ def create_document():
     set_cell_background(c_cell, "ECFDF5")
     set_cell_margins(c_cell, top=120, bottom=120, left=180, right=180)
     cp = c_cell.paragraphs[0]
-    cr1 = cp.add_run("💡 Halimbawa ng AI Complaint Transformation:\n")
+    cr1 = cp.add_run("💡 Example of AI Complaint Refinement:\n")
     cr1.font.bold = True
     cr1.font.color.rgb = EMERALD
     cr2 = cp.add_run(
-        "• Raw Input ng Residente: \"may butas kalsada tapat ng tindahan ni aling nena delikado sa motor baha pa\"\n"
+        "• Raw Resident Input: \"may butas kalsada tapat ng tindahan ni aling nena delikado sa motor baha pa\"\n"
         "• AI Polished Title: \"Lubak at Pagbaha sa Kalsada sa Purok 3\"\n"
         "• AI Formal Description: \"Nais kong i-report ang malaking butas sa kalsada sa tapat ng Nena Store na nagdudulot ng panganib sa mga nagmomotor at nagiging sanhi ng pagbaha. Humihiling po kami ng agarang aksyon mula sa barangay.\"\n"
-        "• Kategorya: Infrastructure | Priority: HIGH"
+        "• Category: Infrastructure | Priority: HIGH"
     )
     cr2.font.size = Pt(9.5)
 
-    add_heading_2("3.3 AI Barangay Chatbot (Real-time SSE Streaming)")
+    add_heading_2("3.3 AI Barangay Chatbot (Real-Time SSE Streaming)")
     doc.add_paragraph(
-        "Nasa ibabang sulok ng portal ang AI Assistant na laging handang tumulong sa mga mamamayan sa pamamagitan ng natural na usapan:"
+        "Accessible on every page, the Barangay AI Assistant assists citizens in real-time:"
     )
-    add_bullet(doc.add_paragraph(), "Server-Sent Events (SSE) Streaming: ", "Real-time na lumalabas ang mga salita habang nag-iisip ang AI para sa napakabilis at modernong karanasan.")
-    add_bullet(doc.add_paragraph(), "Context-Aware System: ", "Awtomatikong binabasa ng AI ang buong katalogo ng mga serbisyo ng barangay, kaukulang bayad (fees), requirements, processing days, at ang live status ng mga reklamo ng naka-login na residente.")
-    add_bullet(doc.add_paragraph(), "Natural Tagalog / Taglish Flow: ", "Magalang at madaling kausap gamit ang 'Po/Opo' at wastong terminolohiyang pambarangay.")
-    add_bullet(doc.add_paragraph(), "Instant FAQ Matcher: ", "Kapag karaniwang tanong ang itinatanong (hal. office hours, contact number), sinasagot ito agad sa loob lamang ng 15 milliseconds.")
+    add_bullet(doc.add_paragraph(), "Real-Time Token Streaming: ", "Outputs tokens incrementally via Server-Sent Events (SSE) for a smooth typewriter effect.")
+    add_bullet(doc.add_paragraph(), "Context-Aware Knowledge Injection: ", "Injects up-to-date barangay service fees, processing days, document requirements, and the resident's active filed complaints.")
+    add_bullet(doc.add_paragraph(), "Bilingual Communication: ", "Fluent in Tagalog, English, and Taglish with respectful Filipino honorifics ('Po/Opo').")
+    add_bullet(doc.add_paragraph(), "Instant FAQ Matcher: ", "Instantly responds to standard inquiries (office hours, hotline numbers, fees) in under 20 milliseconds.")
 
     # --- SECTION 4: CIVIC MODULES ---
-    add_heading_1("4. Mga Pangunahing Modyul ng Portal (Core Civic Modules)")
+    add_heading_1("4. Core Civic Modules & Features")
     
-    add_heading_2("4.1 Modernong Civic Homepage")
-    add_bullet(doc.add_paragraph(), "Live Philippine Standard Time: ", "Real-time synchronizing clock sa itaas ng portal.")
-    add_bullet(doc.add_paragraph(), "Live Greeting & Status Pill: ", "Dynamic time greeting kasama ang live online pulse badge.")
-    add_bullet(doc.add_paragraph(), "Interactive Stats Ribbon: ", "4-metric transparency bar (24/7 Digital Filing, 24-48h Processing, 98.5% Resolution Rate, 3,500+ Residents).")
-    add_bullet(doc.add_paragraph(), "Services Category Explorer: ", "Search input at filter tabs (Lahat, Clearance, Tulong, Negosyo, Lupon).")
-    add_bullet(doc.add_paragraph(), "Emergency Hotlines Quick Bar: ", "One-click call buttons para sa Desk, Tanod, Clinic, at BFP.")
-    add_bullet(doc.add_paragraph(), "FAQ Accordion: ", "Naka-expand na mga kasagutan sa mga madalas itanong ng residente.")
+    add_heading_2("4.1 Modern Civic Homepage")
+    add_bullet(doc.add_paragraph(), "Live Philippine Standard Time: ", "Real-time PST clock synchronized at the top of the portal.")
+    add_bullet(doc.add_paragraph(), "Live Greeting & Status Pill: ", "Time-based greeting (Good Morning/Afternoon/Evening) with a live active pulse indicator.")
+    add_bullet(doc.add_paragraph(), "Transparency Stats Ribbon: ", "Displays 4 key metrics: 24/7 Digital Filing, 24-48h Processing, 98.5% Resolution Rate, and 3,500+ Registered Residents.")
+    add_bullet(doc.add_paragraph(), "Services Category Explorer: ", "Searchable directory with filter tabs (All, Clearance & Docs, Assistance, Business, Lupon Tagapamayapa).")
+    add_bullet(doc.add_paragraph(), "Emergency Hotlines Bar: ", "One-click dialing for Barangay Desk, Tanod Patrol, Health Center, and Fire/PNP.")
+    add_bullet(doc.add_paragraph(), "Interactive FAQ Accordion: ", "Expandable answers for frequently asked citizen inquiries.")
 
-    add_heading_2("4.2 Authentication at Seguridad")
-    add_bullet(doc.add_paragraph(), "Quick Demo Login: ", "1-click autofill para sa Residente, Chairman, at Secretary upang mabilisang masubukan ang system.")
-    add_bullet(doc.add_paragraph(), "Password Strength Meter: ", "Color-coded animated bar na nagpapakita ng lakas ng password.")
-    add_bullet(doc.add_paragraph(), "Data Privacy Act (R.A. 10173): ", "Legal consent checkbox para sa proteksyon ng personal na impormasyon ng mamamayan.")
+    add_heading_2("4.2 Authentication & Security")
+    add_bullet(doc.add_paragraph(), "Quick Demo Login: ", "1-click autofill for testing Resident, Chairman, and Secretary roles.")
+    add_bullet(doc.add_paragraph(), "Live Password Strength Meter: ", "Color-coded visual indicator assessing password entropy.")
+    add_bullet(doc.add_paragraph(), "Data Privacy Act (R.A. 10173): ", "Explicit consent checkbox ensuring regulatory compliance.")
 
-    add_heading_2("4.3 Resident at Official Dashboards")
-    add_bullet(doc.add_paragraph(), "Resident Dashboard: ", "Summary cards (Pending, In Progress, Resolved, Ideas) at recent requests tracking table.")
-    add_bullet(doc.add_paragraph(), "Official Dashboard: ", "5-column KPI ribbon, quick management action cards, activity table na may search at status filter, at category analytics breakdown.")
+    add_heading_2("4.3 Resident & Official Dashboards")
+    add_bullet(doc.add_paragraph(), "Resident Dashboard: ", "Summary stat cards (Pending, In Progress, Resolved, Ideas) and personal request tracking table.")
+    add_bullet(doc.add_paragraph(), "Official Dashboard: ", "5-column KPI ribbon, quick management cards, filterable incident table, and category distribution charts.")
 
     # --- SECTION 5: ACCESSIBILITY ---
-    add_heading_1("5. Accessibility at Inclusive Design (WCAG AAA)")
+    add_heading_1("5. Accessibility & Inclusive Design (WCAG AAA)")
     doc.add_paragraph(
-        "Isinaalang-alang ang mga nakatatanda at may kapansanan sa paningin alinsunod sa pandaigdigang pamantayan ng WCAG 2.1:"
+        "Engineered to accommodate senior citizens and visually impaired users following WCAG 2.1 AAA guidelines:"
     )
-    add_bullet(doc.add_paragraph(), "High Contrast OLED Mode: ", "Pinapalitan ang background ng solid black (#000000) na may puting teksto at matingkad na dilaw (#ffff00) at neon green (#00ff88) accents.")
-    add_bullet(doc.add_paragraph(), "Text Sizing Control: ", "Pumili sa pagitan ng Normal (100%), Malaki / Large (112%), at Sobrang Laki / XL (124%).")
-    add_bullet(doc.add_paragraph(), "Keyboard Navigation: ", "Buong accessibility gamit ang Tab at screen readers na may maayos na ARIA attributes.")
+    add_bullet(doc.add_paragraph(), "High Contrast OLED Mode: ", "Replaces gradients with pure black (#000000) background, bold white (#ffffff) text, and high-visibility yellow (#ffff00) and neon green (#00ff88) accents.")
+    add_bullet(doc.add_paragraph(), "Dynamic Text Sizing: ", "Switchable between Normal (100%), Large (112%), and Extra Large (124%).")
+    add_bullet(doc.add_paragraph(), "Keyboard Navigation: ", "Full tab navigation support with semantic landmarks and high-visibility focus indicators.")
 
-    # --- SECTION 6: API ENDPOINTS ---
-    add_heading_1("6. Talaan ng mga API Endpoints (API Specification)")
+    # --- SECTION 6: API SPECIFICATION ---
+    add_heading_1("6. API Specification & Endpoints")
     
     api_table = doc.add_table(rows=10, cols=4)
     api_table.alignment = WD_TABLE_ALIGNMENT.CENTER
-    api_headers = ["Method", "Endpoint", "Paglalarawan", "Auth Required"]
+    api_headers = ["HTTP Method", "Endpoint", "Function Description", "Authentication Required"]
     for i, title in enumerate(api_headers):
         cell = api_table.rows[0].cells[i]
         cell.text = title
@@ -281,15 +280,15 @@ def create_document():
         p.runs[0].font.size = Pt(9.5)
 
     endpoints = [
-        ("POST", "/api/auth/register", "Pagpaparehistro ng bagong residente", "Hindi"),
-        ("POST", "/api/auth/login", "Pag-login at pag-isyu ng JWT token", "Hindi"),
-        ("GET", "/api/ai/status", "Suriin ang aktibong AI provider (Ollama, Gemini, Smart)", "Oo"),
-        ("POST", "/api/ai/complaint-assist", "AI formal rewrite, kategorya, at priority detection", "Oo (Resident)"),
-        ("POST", "/api/ai/chat", "Makipag-usap sa Barangay AI Assistant", "Oo"),
-        ("POST", "/api/ai/chat/stream", "Real-time token streaming chat (Server-Sent Events)", "Oo"),
-        ("GET / POST", "/api/complaints", "Tingnan at magsumite ng mga reklamo", "Oo"),
-        ("GET", "/api/services", "Listahan ng mga opisyal na sertipiko at clearances", "Hindi"),
-        ("GET", "/api/dashboard/stats", "Kuhanin ang mga bilang at KPI analytics para sa dashboard", "Oo")
+        ("POST", "/api/auth/register", "Register a new resident account", "No"),
+        ("POST", "/api/auth/login", "Authenticate user and issue JWT session token", "No"),
+        ("GET", "/api/ai/status", "Query active AI engine status (Ollama, Gemini, Smart)", "Yes"),
+        ("POST", "/api/ai/complaint-assist", "AI complaint auto-categorization and formal rewrite", "Yes (Resident)"),
+        ("POST", "/api/ai/chat", "Send user query to Barangay AI Assistant", "Yes"),
+        ("POST", "/api/ai/chat/stream", "Stream real-time AI responses via Server-Sent Events (SSE)", "Yes"),
+        ("GET / POST", "/api/complaints", "Retrieve or submit citizen incident reports", "Yes"),
+        ("GET", "/api/services", "List official barangay certificates, fees, and requirements", "No"),
+        ("GET", "/api/dashboard/stats", "Retrieve dashboard KPI analytics and summary metrics", "Yes")
     ]
 
     for row_idx, (method, ep, desc, auth_req) in enumerate(endpoints, start=1):
@@ -310,14 +309,14 @@ def create_document():
     # --- FOOTER ---
     doc.add_paragraph().paragraph_format.space_before = Pt(24)
     p_foot = doc.add_paragraph()
-    r_foot = p_foot.add_run("Barangay Burgos Digital Governance System • Comprehensive Documentation • 2026")
+    r_foot = p_foot.add_run("Barangay Burgos Digital Governance System • Technical Documentation • 2026")
     r_foot.font.size = Pt(9)
     r_foot.font.color.rgb = GRAY
     p_foot.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     output_path = "c:\\Users\\alice\\OneDrive\\Documents\\Project2-main\\BARANGAY_PORTAL_DOCUMENTATION.docx"
     doc.save(output_path)
-    print(f"[SUCCESS] Generated Word document at: {output_path}")
+    print(f"[SUCCESS] Generated English Word document at: {output_path}")
 
 if __name__ == "__main__":
     create_document()
