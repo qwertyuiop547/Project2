@@ -1,0 +1,217 @@
+.complaint-status-card {
+    border: 1px solid rgba(21, 128, 61, 0.15);
+    background: linear-gradient(135deg, rgba(21, 128, 61, 0.04) 0%, rgba(255, 255, 255, 1) 100%);
+}
+
+.complaint-status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.complaint-status-header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: #14532d;
+}
+
+.complaint-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.complaint-status-badge.badge-pending {
+    background: rgba(245, 158, 11, 0.12);
+    color: #b45309;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.complaint-status-badge.badge-in-progress {
+    background: rgba(37, 99, 235, 0.1);
+    color: #1d4ed8;
+    border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.complaint-status-badge.badge-resolved {
+    background: rgba(21, 128, 61, 0.1);
+    color: #15803d;
+    border: 1px solid rgba(21, 128, 61, 0.2);
+}
+
+.complaint-status-badge.badge-closed {
+    background: rgba(100, 116, 139, 0.1);
+    color: #475569;
+    border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.status-tracker {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin-bottom: 8px;
+}
+
+.status-tracker::before {
+    content: '';
+    position: absolute;
+    top: 18px;
+    left: 10%;
+    right: 10%;
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    z-index: 0;
+}
+
+.status-tracker-progress {
+    position: absolute;
+    top: 18px;
+    left: 10%;
+    height: 4px;
+    background: linear-gradient(90deg, #15803d, #22c55e);
+    border-radius: 4px;
+    z-index: 1;
+    transition: width 0.3s ease;
+}
+
+.status-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex: 1;
+    position: relative;
+    z-index: 2;
+    gap: 10px;
+}
+
+.status-step-dot {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 3px solid #e2e8f0;
+    color: #94a3b8;
+    font-weight: 700;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.status-step.completed .status-step-dot {
+    background: #15803d;
+    border-color: #15803d;
+    color: #fff;
+}
+
+.status-step.active .status-step-dot {
+    background: #fff;
+    border-color: #15803d;
+    color: #15803d;
+    box-shadow: 0 0 0 4px rgba(21, 128, 61, 0.15);
+}
+
+.status-step-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #94a3b8;
+    max-width: 90px;
+}
+
+.status-step.completed .status-step-label,
+.status-step.active .status-step-label {
+    color: #14532d;
+}
+
+.status-step-desc {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    max-width: 110px;
+    line-height: 1.4;
+}
+
+.status-step.active .status-step-desc {
+    color: #64748b;
+}
+
+.resolution-notes-box {
+    margin-top: 20px;
+    padding: 16px 20px;
+    background: rgba(21, 128, 61, 0.06);
+    border-left: 4px solid #15803d;
+    border-radius: 0 12px 12px 0;
+}
+
+.resolution-notes-box h4 {
+    margin: 0 0 8px;
+    font-size: 0.9rem;
+    color: #14532d;
+}
+
+.resolution-notes-box p {
+    margin: 0;
+    color: #334155;
+    line-height: 1.6;
+}
+
+.status-history-list {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.status-history-list h4 {
+    margin: 0 0 12px;
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+.status-history-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+.status-history-item .history-date {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    min-width: 140px;
+}
+
+@media (max-width: 640px) {
+    .status-tracker {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .status-tracker::before,
+    .status-tracker-progress {
+        display: none;
+    }
+
+    .status-step {
+        flex-direction: row;
+        text-align: left;
+        gap: 14px;
+    }
+
+    .status-step-label,
+    .status-step-desc {
+        max-width: none;
+    }
+}

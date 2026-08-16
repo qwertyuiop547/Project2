@@ -1,0 +1,518 @@
+/* ============================================
+   SERVICES - Modern Premium Style
+   ============================================ */
+
+.services-page-header {
+    background: linear-gradient(135deg, rgba(21, 128, 61, 0.08) 0%, rgba(34, 197, 94, 0.03) 100%), white;
+    border: 1px solid rgba(21, 128, 61, 0.15);
+    border-radius: 24px;
+    padding: 32px 40px;
+    margin-bottom: 36px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    box-shadow: 0 10px 30px rgba(21, 128, 61, 0.04);
+    position: relative;
+    overflow: hidden;
+}
+
+.services-page-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #15803d 0%, #22c55e 100%);
+}
+
+.services-page-header h1 {
+    font-size: 2rem;
+    font-weight: 850;
+    color: #111827;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+}
+
+.services-page-header p {
+    color: #4b5563;
+    font-size: 1.05rem;
+    font-weight: 500;
+}
+
+/* Category Section */
+.service-category-section {
+    margin-bottom: 48px;
+}
+
+.service-category-title {
+    font-size: 1.5rem;
+    font-weight: 850;
+    color: #111827;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    letter-spacing: -0.3px;
+}
+
+.service-category-title svg {
+    color: #15803d;
+}
+
+/* Service Card Overwrite */
+.service-item-card {
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.015);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.service-item-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px rgba(21, 128, 61, 0.06);
+    border-color: rgba(21, 128, 61, 0.15);
+}
+
+.service-icon-container {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-bottom: 20px;
+    box-shadow: 0 6px 16px rgba(21, 128, 61, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.service-item-card:hover .service-icon-container {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.service-item-card h3 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 10px;
+    line-height: 1.3;
+}
+
+.service-description {
+    color: #4b5563;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    margin-bottom: 24px;
+    flex-grow: 1;
+}
+
+/* Info Row */
+.service-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-top: 1px solid #f3f4f6;
+    margin-bottom: 20px;
+}
+
+.info-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.info-value {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #374151;
+}
+
+.info-value.fee-free {
+    color: #10b981;
+}
+
+.info-value.fee-paid {
+    color: #15803d;
+}
+
+/* Request Button */
+.service-request-btn {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(21, 128, 61, 0.15);
+}
+
+.service-request-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(21, 128, 61, 0.25);
+}
+
+.service-request-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.service-request-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* My Requests */
+.my-requests-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.my-request-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: white;
+    border: 1px solid rgba(21, 128, 61, 0.1);
+    border-radius: 16px;
+    padding: 16px 20px;
+    box-shadow: 0 4px 12px rgba(21, 128, 61, 0.03);
+    transition: all 0.25s ease;
+}
+
+.my-request-item:hover {
+    transform: translateX(4px);
+    border-color: rgba(21, 128, 61, 0.2);
+    box-shadow: 0 8px 20px rgba(21, 128, 61, 0.06);
+}
+
+.my-request-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.my-request-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.my-request-info h4 {
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 4px;
+}
+
+.my-request-info p {
+    font-size: 0.85rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.my-request-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 6px;
+    font-size: 0.82rem;
+    color: #4b5563;
+}
+
+.my-request-details strong {
+    color: #15803d;
+    font-weight: 700;
+}
+
+/* Request Modal */
+.service-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 61, 34, 0.55);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1100;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.service-modal {
+    background: white;
+    border-radius: 22px;
+    width: 100%;
+    max-width: 540px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+    animation: modalPop 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalPop {
+    from { opacity: 0; transform: translateY(20px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.service-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 24px 28px;
+    background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+    color: white;
+    border-radius: 22px 22px 0 0;
+}
+
+.service-modal-header h3 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.service-modal-header p {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+}
+
+.service-modal-close {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: white;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+}
+
+.service-modal-close:hover {
+    background: rgba(255, 255, 255, 0.28);
+}
+
+.service-modal-requestor {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 16px 28px;
+    background: rgba(21, 128, 61, 0.05);
+    border-bottom: 1px solid rgba(21, 128, 61, 0.1);
+}
+
+.service-modal-requestor .requestor-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.service-modal-requestor .requestor-email {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.service-modal-body {
+    padding: 24px 28px;
+}
+
+.service-modal-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 480px) {
+    .service-modal-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.service-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .services-page-header {
+        padding: 28px;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .service-category-title {
+        font-size: 1.3rem;
+        justify-content: center;
+    }
+}
+
+/* Final civic overrides */
+.services-page-header {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-top: 4px solid var(--gov-gold);
+    border-radius: var(--radius-lg);
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-md);
+}
+
+.services-page-header::before {
+    display: none;
+}
+
+.services-page-header h1 {
+    font-size: 1.55rem;
+    color: var(--text-primary);
+    letter-spacing: 0;
+}
+
+.services-page-header p {
+    color: var(--text-secondary);
+    font-size: 0.96rem;
+}
+
+.service-category-section {
+    margin-bottom: 36px;
+}
+
+.service-category-title {
+    font-size: 1.18rem;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+    letter-spacing: 0;
+}
+
+.service-category-title svg {
+    color: var(--primary-green);
+}
+
+.service-item-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+}
+
+.service-item-card:hover {
+    transform: none;
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-light);
+}
+
+.service-icon-container,
+.my-request-icon {
+    border-radius: var(--radius-md);
+    background: var(--primary-green);
+    box-shadow: none;
+}
+
+.service-item-card:hover .service-icon-container {
+    transform: none;
+}
+
+.service-item-card h3 {
+    font-size: 1.05rem;
+    color: var(--text-primary);
+}
+
+.service-description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.service-info-row {
+    border-top: 1px solid var(--border-color);
+}
+
+.info-label {
+    color: var(--text-muted);
+}
+
+.info-value {
+    color: var(--text-primary);
+}
+
+.service-request-btn {
+    border-radius: var(--radius-md);
+    background: var(--primary-green);
+    box-shadow: none;
+}
+
+.service-request-btn:hover:not(:disabled) {
+    transform: none;
+    background: var(--secondary-green);
+    box-shadow: none;
+}
+
+.my-request-item {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.my-request-item:hover {
+    transform: none;
+    border-color: var(--border-light);
+    box-shadow: var(--shadow-md);
+}
+
+.service-modal-overlay {
+    background: rgba(23, 32, 51, 0.45);
+    backdrop-filter: none;
+}
+
+.service-modal {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+
+.service-modal-header {
+    background: var(--gradient-header);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: inset 0 -3px 0 var(--gov-gold);
+}
+
+.service-modal-close {
+    border-radius: var(--radius-md);
+}
