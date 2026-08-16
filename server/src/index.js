@@ -68,26 +68,49 @@ app.use((err, req, res, next) => {
     });
 });
 
+const { execSync } = require('child_process');
+
 // Start server
 app.listen(PORT, async () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
     
-    // Connect to database and seed initial data if needed
+    // Auto-sync schema and seed initial data if needed
     try {
+        console.log('🔄 Ensuring database schema is synced...');
+        try {
+            execSync('npx prisma db push --accept-data-loss', {
+                cwd: path.join(__dirname, '..'),
+                stdio: 'inherit'
+            });
+            console.log('✅ Database schema synced successfully.');
+        } catch (pushErr) {
+            console.warn('Notice on db push:', pushErr.message);
+        }
+
         await prisma.$connect();
         console.log('✅ Database connected.');
-        const catCount = await prisma.complaintCategory.count();
-        if (catCount === 0) {
-            console.log('🌱 Database is empty. Running initial seed...');
+
+        // Check if users exist, seed if not
+        let userCount = 0;
+        try {
+            userCount = await prisma.user.count();
+        } catch (e) {
+            userCount = 0;
+        }
+
+        if (userCount === 0) {
+            console.log('🌱 No users found. Seeding initial accounts and categories...');
             const { seed } = require('../prisma/seed');
             if (typeof seed === 'function') {
                 await seed();
-                console.log('✅ Database seeded.');
+                console.log('✅ Default accounts and categories successfully seeded!');
             }
+        } else {
+            console.log(`ℹ️ Database already has ${userCount} registered user(s).`);
         }
     } catch (dbErr) {
-        console.warn('⚠️ Database initialization notice:', dbErr.message);
+        console.error('⚠️ Database setup notice:', dbErr.message);
     }
 
     if (typeof warmUpOllama === 'function') {

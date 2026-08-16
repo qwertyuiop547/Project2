@@ -8,6 +8,17 @@ const { auth } = require('../middleware/auth');
 const router = express.Router();
 const prisma = new PrismaClient();
 
+// Init seed endpoint for deployment verification
+router.get('/init-seed', async (req, res) => {
+    try {
+        const { seed } = require('../../prisma/seed');
+        await seed();
+        res.json({ message: 'Seed executed successfully.' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Register
 router.post('/register', [
     body('email').isEmail().normalizeEmail(),
