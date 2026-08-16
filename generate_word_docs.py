@@ -1,7 +1,6 @@
 """
-Word (.docx) documentation generator for the Barangay Burgos Django Web Portal.
+Features-only documentation for the Barangay Burgos Django Portal.
 """
-import os
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -10,431 +9,460 @@ from docx.oxml import parse_xml
 from docx.oxml.ns import nsdecls
 
 
-def set_cell_bg(cell, hex_color):
+def bg(cell, hex_color):
     tcPr = cell._tc.get_or_add_tcPr()
-    shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{hex_color}"/>')
-    tcPr.append(shd)
+    tcPr.append(parse_xml(f'<w:shd {nsdecls("w")} w:fill="{hex_color}"/>'))
 
 
-def set_cell_pad(cell, top=80, bottom=80, left=120, right=120):
+def pad(cell, t=80, b=80, l=120, r=120):
     tcPr = cell._tc.get_or_add_tcPr()
-    tcMar = parse_xml(f'''
-        <w:tcMar {nsdecls("w")}>
-            <w:top w:w="{top}" w:type="dxa"/>
-            <w:bottom w:w="{bottom}" w:type="dxa"/>
-            <w:left w:w="{left}" w:type="dxa"/>
-            <w:right w:w="{right}" w:type="dxa"/>
-        </w:tcMar>''')
-    tcPr.append(tcMar)
+    tcPr.append(parse_xml(f'''<w:tcMar {nsdecls("w")}>
+        <w:top w:w="{t}" w:type="dxa"/>
+        <w:bottom w:w="{b}" w:type="dxa"/>
+        <w:left w:w="{l}" w:type="dxa"/>
+        <w:right w:w="{r}" w:type="dxa"/>
+    </w:tcMar>'''))
 
 
-def build_doc():
+NAVY    = RGBColor(15,  23,  42)
+EMERALD = RGBColor(5,  150, 105)
+BLUE    = RGBColor(30,  58, 138)
+GRAY    = RGBColor(100,116, 139)
+TEXT    = RGBColor(30,  41,  59)
+WHITE   = RGBColor(255,255, 255)
+AMBER   = RGBColor(180, 100,  10)
+
+
+def build():
     doc = Document()
-
-    # Page margins
     for sec in doc.sections:
-        sec.top_margin = Inches(1.0)
+        sec.top_margin    = Inches(1.0)
         sec.bottom_margin = Inches(1.0)
-        sec.left_margin = Inches(1.0)
-        sec.right_margin = Inches(1.0)
-
-    # Color palette
-    NAVY    = RGBColor(15,  23,  42)
-    EMERALD = RGBColor(5,  150, 105)
-    BLUE    = RGBColor(30,  58, 138)
-    GRAY    = RGBColor(100,116, 139)
-    TEXT    = RGBColor(30,  41,  59)
-    WHITE   = RGBColor(255,255, 255)
+        sec.left_margin   = Inches(1.1)
+        sec.right_margin  = Inches(1.1)
 
     doc.styles['Normal'].font.name = 'Segoe UI'
-    doc.styles['Normal'].font.size = Pt(10)
+    doc.styles['Normal'].font.size = Pt(10.5)
     doc.styles['Normal'].font.color.rgb = TEXT
 
-    # ── Helper utilities ────────────────────────────────────────────────────
-    def h1(text):
+    # ── helpers ────────────────────────────────────────────────────────────
+    def h1(txt):
         p = doc.add_paragraph()
-        p.paragraph_format.space_before = Pt(16)
+        p.paragraph_format.space_before = Pt(18)
         p.paragraph_format.space_after  = Pt(5)
-        r = p.add_run(text)
-        r.font.size = Pt(15); r.font.bold = True; r.font.color.rgb = NAVY
+        r = p.add_run(txt)
+        r.font.size = Pt(16); r.font.bold = True; r.font.color.rgb = NAVY
 
-    def h2(text):
+    def h2(txt):
         p = doc.add_paragraph()
-        p.paragraph_format.space_before = Pt(10)
+        p.paragraph_format.space_before = Pt(11)
         p.paragraph_format.space_after  = Pt(3)
-        r = p.add_run(text)
-        r.font.size = Pt(12); r.font.bold = True; r.font.color.rgb = EMERALD
+        r = p.add_run(txt)
+        r.font.size = Pt(12.5); r.font.bold = True; r.font.color.rgb = EMERALD
 
-    def h3(text):
-        p = doc.add_paragraph()
-        p.paragraph_format.space_before = Pt(7)
-        p.paragraph_format.space_after  = Pt(2)
-        r = p.add_run(text)
-        r.font.size = Pt(10.5); r.font.bold = True; r.font.color.rgb = BLUE
-
-    def body(text):
-        p = doc.add_paragraph(text)
+    def body(txt):
+        p = doc.add_paragraph(txt)
         p.paragraph_format.space_after = Pt(4)
 
-    def bullet(bold_part, rest):
+    def bullet(bold_part, rest=""):
         p = doc.add_paragraph()
         p.style = 'List Bullet'
-        p.paragraph_format.space_after = Pt(2)
-        r1 = p.add_run(bold_part)
-        r1.font.bold = True; r1.font.color.rgb = NAVY
-        r2 = p.add_run(rest)
-        r2.font.color.rgb = TEXT
+        p.paragraph_format.space_after = Pt(3)
+        r1 = p.add_run(bold_part); r1.font.bold = True; r1.font.color.rgb = NAVY
+        r2 = p.add_run(rest);      r2.font.color.rgb = TEXT
 
-    def table_header(tbl, headers, bg="1E3A8A"):
-        row = tbl.rows[0]
-        for i, h in enumerate(headers):
-            c = row.cells[i]
-            c.text = h
-            set_cell_bg(c, bg)
-            set_cell_pad(c)
-            run = c.paragraphs[0].runs[0]
-            run.font.bold = True; run.font.color.rgb = WHITE; run.font.size = Pt(9)
-
-    def table_row(tbl, row_idx, values, alt=False):
-        row = tbl.rows[row_idx]
-        for col_idx, val in enumerate(values):
-            c = row.cells[col_idx]
-            c.text = val
-            set_cell_bg(c, "F8FAFC" if alt else "FFFFFF")
-            set_cell_pad(c, top=60, bottom=60, left=100, right=100)
-            c.paragraphs[0].runs[0].font.size = Pt(8.5)
-
-    def callout(heading, text, bg="ECFDF5", color=None):
-        tbl = doc.add_table(rows=1, cols=1)
-        c = tbl.rows[0].cells[0]
-        set_cell_bg(c, bg)
-        set_cell_pad(c, top=100, bottom=100, left=140, right=140)
+    def feature_box(title, items, box_bg="EFF6FF", title_color=None):
+        """A highlighted card for a feature group."""
+        t = doc.add_table(rows=1, cols=1)
+        c = t.rows[0].cells[0]
+        bg(c, box_bg); pad(c, t=110, b=110, l=150, r=150)
         p = c.paragraphs[0]
-        r1 = p.add_run(heading + "\n")
-        r1.font.bold = True; r1.font.size = Pt(9.5)
-        r1.font.color.rgb = color or EMERALD
-        r2 = p.add_run(text)
-        r2.font.size = Pt(9)
+        r1 = p.add_run(title + "\n")
+        r1.font.bold = True; r1.font.size = Pt(10.5)
+        r1.font.color.rgb = title_color or BLUE
+        for item in items:
+            r2 = p.add_run("   •  " + item + "\n")
+            r2.font.size = Pt(9.5)
+        doc.add_paragraph().paragraph_format.space_after = Pt(6)
 
-    # ── COVER ───────────────────────────────────────────────────────────────
+    def divider():
+        doc.add_paragraph("─" * 78).paragraph_format.space_after = Pt(2)
+
+    # ══════════════════════════════════════════════════════════════════════
+    # COVER
+    # ══════════════════════════════════════════════════════════════════════
     p = doc.add_paragraph()
     r = p.add_run("REPUBLIC OF THE PHILIPPINES  •  BARANGAY BURGOS  •  OFFICIAL DIGITAL PORTAL")
-    r.font.size = Pt(9); r.font.bold = True; r.font.color.rgb = EMERALD
+    r.font.color.rgb = EMERALD
+    r.font.size = Pt(9)
+    r.font.bold = True
     p.paragraph_format.space_after = Pt(2)
 
-    p = doc.add_paragraph()
-    r = p.add_run("Barangay Burgos e-Governance & AI-Powered Community Portal")
-    r.font.size = Pt(22); r.font.bold = True; r.font.color.rgb = NAVY
-    p.paragraph_format.space_after = Pt(3)
+    p2 = doc.add_paragraph()
+    r = p2.add_run("Barangay Burgos e-Governance Portal")
+    r.font.size = Pt(24); r.font.bold = True; r.font.color.rgb = NAVY
+    p2.paragraph_format.space_after = Pt(3)
 
-    p = doc.add_paragraph()
-    r = p.add_run("Comprehensive Full-System Technical Documentation — Version 1.0")
-    r.font.size = Pt(12); r.font.color.rgb = BLUE
-    p.paragraph_format.space_after = Pt(14)
+    p3 = doc.add_paragraph()
+    r3 = p3.add_run("System Features Documentation")
+    r3.font.size = Pt(14); r3.font.color.rgb = BLUE
+    p3.paragraph_format.space_after = Pt(4)
 
-    # Metadata table
-    mt = doc.add_table(rows=4, cols=2); mt.autofit = False
-    meta = [
-        ("System Type:",   "Django 4.x Full-Stack Web Application (MVC Architecture)"),
-        ("Live URL:",       "https://project2-g69i.onrender.com/"),
-        ("Repository:",    "https://github.com/qwertyuiop547/Project2.git"),
-        ("Documentation:", "Version 1.0 — Full System Specification (2026)"),
-    ]
-    for i, (lbl, val) in enumerate(meta):
-        mt.rows[i].cells[0].text = lbl
-        mt.rows[i].cells[0].paragraphs[0].runs[0].font.bold = True
-        mt.rows[i].cells[1].text = val
-        for c in mt.rows[i].cells:
-            set_cell_bg(c, "F1F5F9"); set_cell_pad(c, 60, 60, 100, 100)
-            c.paragraphs[0].runs[0].font.size = Pt(9)
-
-    doc.add_paragraph().paragraph_format.space_after = Pt(12)
-
-    # ════════════════════════════════════════════════════════════════════════
-    # 1. SYSTEM OVERVIEW
-    # ════════════════════════════════════════════════════════════════════════
-    h1("1. System Overview & Purpose")
-    body(
-        "The Barangay Burgos e-Governance Portal is a full-stack web application built with the "
-        "Django framework (Python). It digitizes the end-to-end administrative operations of a Philippine "
-        "barangay unit, replacing paper logbooks and walk-in queues with secure, 24/7 online services. "
-        "Citizens can file complaints, request official documents, submit community suggestions, and interact "
-        "with an AI Virtual Captain — all from any device."
+    p4 = doc.add_paragraph()
+    r4 = p4.add_run(
+        "This document describes all features available to residents, secretary, and chairman "
+        "in the Barangay Burgos digital governance platform."
     )
+    r4.font.size = Pt(10); r4.font.color.rgb = GRAY
+    p4.paragraph_format.space_after = Pt(16)
+
+    divider()
+
+    # ══════════════════════════════════════════════════════════════════════
+    # USER ROLES OVERVIEW
+    # ══════════════════════════════════════════════════════════════════════
+    h1("User Roles Overview")
     body(
-        "Officials (Secretary, Chairman) manage cases, issue certificates, publish announcements, "
-        "send direct messages, and view real-time analytics through a dedicated governance dashboard."
+        "The portal has three types of users, each with their own set of features and "
+        "access permissions:"
     )
 
-    h2("1.1 Technology Stack")
-    bullet("Web Framework: ", "Django 4.2 (Python) — MVC architecture with class-based views and Django ORM.")
-    bullet("Database: ", "SQLite (development) and PostgreSQL (production via psycopg2 + dj-database-url).")
-    bullet("Frontend Rendering: ", "Django Templates (Jinja2-like) with Bootstrap 5, Crispy Forms, and custom CSS/JS.")
-    bullet("Static File Serving: ", "WhiteNoise middleware for compressed static asset delivery in production.")
-    bullet("AI Integration: ", "OpenAI API (GPT models) via the ai_captain app for the Virtual Barangay Captain chatbot.")
-    bullet("Internationalization: ", "Django i18n with locale support (English and Filipino/Tagalog).")
-    bullet("REST API Layer: ", "Django REST Framework (DRF) for API endpoints consumed by frontend JS and external integrations.")
-    bullet("Authentication: ", "Django's built-in session-based authentication with a custom AbstractUser model.")
-    bullet("Deployment: ", "Gunicorn WSGI server on Render cloud platform with PostgreSQL add-on.")
-
-    # ════════════════════════════════════════════════════════════════════════
-    # 2. PROJECT DIRECTORY STRUCTURE
-    # ════════════════════════════════════════════════════════════════════════
-    h1("2. Project Structure & Django Apps")
-    body("The project follows standard Django app-based architecture. Each domain has its own dedicated app:")
-
-    tbl = doc.add_table(rows=14, cols=3)
+    tbl = doc.add_table(rows=4, cols=2)
     tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
-    table_header(tbl, ["App / Directory", "Purpose & Responsibility", "Key Files"])
-    rows = [
-        ("accounts/", "Custom user model, login, registration, role management, residency validation.", "models.py, views.py, urls.py, forms.py"),
-        ("complaints/", "Citizen complaint submission, status workflow, attachments, officer assignment, anonymous filing.", "models.py, views.py, forms.py"),
-        ("ai_captain/", "AI Virtual Barangay Captain: conversations, messages, policies, situation templates, personality config.", "models.py, views.py, urls.py"),
-        ("analytics/", "Governance analytics dashboard: complaint stats, resolution rates, trend charts.", "views.py, urls.py"),
-        ("announcements/", "Official barangay broadcasts, public advisories, and emergency alerts.", "models.py, views.py"),
-        ("dashboard/", "Resident & official personalized dashboards with KPI summaries.", "views.py, urls.py"),
-        ("direct_messages/", "Internal messaging between residents and officials.", "models.py, views.py"),
-        ("feedback/", "Post-resolution resident feedback and satisfaction rating system.", "models.py, views.py"),
-        ("gallery/", "Barangay photo gallery and media content management.", "models.py, views.py"),
-        ("home/", "Public homepage: services overview, statistics, hotlines, news feed.", "views.py, urls.py"),
-        ("notifications/", "Real-time in-app notification system for users and officials.", "models.py, views.py"),
-        ("services/", "Barangay service catalog: clearances, certificates, permits, fees, requirements.", "models.py, views.py"),
-        ("suggestions/", "Community idea portal: citizen proposals and upvoting/endorsement.", "models.py, views.py"),
+    # header
+    for i, hdr in enumerate(["Role", "Who uses it"]):
+        c = tbl.rows[0].cells[i]
+        c.text = hdr; bg(c, "0F172A"); pad(c)
+        c.paragraphs[0].runs[0].font.bold = True
+        c.paragraphs[0].runs[0].font.color.rgb = WHITE
+        c.paragraphs[0].runs[0].font.size = Pt(10)
+    role_data = [
+        ("Resident",  "Regular barangay citizens who want to use government services online."),
+        ("Secretary", "Barangay administrative staff who process requests and manage records."),
+        ("Chairman",  "The Punong Barangay who oversees operations and has full system access."),
     ]
-    for i, r in enumerate(rows):
-        table_row(tbl, i + 1, r, alt=(i % 2 == 1))
+    for idx, (r_name, r_desc) in enumerate(role_data, start=1):
+        row = tbl.rows[idx]
+        row.cells[0].text = r_name; row.cells[1].text = r_desc
+        for col, cell in enumerate(row.cells):
+            bg(cell, "FFFFFF" if idx % 2 == 1 else "F8FAFC")
+            pad(cell, 80, 80, 100, 100)
+            cell.paragraphs[0].runs[0].font.size = Pt(9.5)
+            if col == 0:
+                cell.paragraphs[0].runs[0].font.bold = True
 
-    # ════════════════════════════════════════════════════════════════════════
-    # 3. USER ROLES & ACCESS CONTROL
-    # ════════════════════════════════════════════════════════════════════════
-    h1("3. User Roles & Access Control")
+    doc.add_paragraph().paragraph_format.space_after = Pt(8)
+    divider()
+
+    # ══════════════════════════════════════════════════════════════════════
+    # 1. HOMEPAGE
+    # ══════════════════════════════════════════════════════════════════════
+    h1("Feature 1: Public Homepage")
     body(
-        "The system uses Django's session authentication with a custom AbstractUser model "
-        "(accounts.CustomUser). Three operational roles are enforced across all views:"
+        "The homepage is publicly accessible — no login required. It serves as the main entry "
+        "point for citizens to learn about barangay services and find help."
     )
+    feature_box("What you can see on the homepage:", [
+        "Barangay name, mission statement, and welcome message.",
+        "Highlighted list of available barangay services (clearance, certificates, permits, etc.).",
+        "Latest official announcements and news from the barangay.",
+        "Emergency contact numbers and hotlines for quick reference.",
+        "Photo gallery preview showing barangay events and community activities.",
+        "Key statistics: number of residents served, complaints resolved, services available.",
+    ], box_bg="F0FDF4")
 
-    tbl2 = doc.add_table(rows=4, cols=3); tbl2.alignment = WD_TABLE_ALIGNMENT.CENTER
-    table_header(tbl2, ["Role", "Target Users", "System Capabilities"])
-    role_rows = [
-        ("RESIDENT", "Barangay citizens and constituents",
-         "Self-register, submit complaints (named or anonymous), request clearances, submit suggestions, chat with AI Captain, view personal notifications, track filings, rate resolved cases."),
-        ("SECRETARY", "Barangay Secretary & administrative staff",
-         "Review and update complaints, issue official certificates, manage announcements, handle service requests, send direct messages, moderate suggestions."),
-        ("CHAIRMAN", "Punong Barangay (Captain)",
-         "Full governance dashboard, analytics access, Lupon dispute oversight, approve/reject user accounts, view anonymous complaint identities, manage policies for the AI Captain."),
-    ]
-    for i, r in enumerate(role_rows):
-        table_row(tbl2, i + 1, r, alt=(i % 2 == 1))
-
-    body("")
-    bullet("Account Approval Workflow: ", "New resident registrations require manual approval by the Chairman or Secretary before the account is activated.")
-    bullet("Superuser Access: ", "Django superusers are treated as Chairman-level officials via the is_chairman() method and have full admin panel access.")
-    bullet("Anonymous Complaints: ", "Residents can file without revealing identity. Anonymous identity is visible only to Chairman-level officials (can_view_anonymous_identity()).")
-
-    # ════════════════════════════════════════════════════════════════════════
-    # 4. DATABASE SCHEMA & DATA DICTIONARY
-    # ════════════════════════════════════════════════════════════════════════
-    h1("4. Database Schema & Data Dictionary")
-    body("Key models across the Django apps and their significant fields:")
-
-    h2("4.1 accounts.CustomUser (extends AbstractUser)")
-    tbl3 = doc.add_table(rows=9, cols=3); tbl3.alignment = WD_TABLE_ALIGNMENT.CENTER
-    table_header(tbl3, ["Field", "Type", "Purpose"])
-    user_fields = [
-        ("role", "CharField (resident/secretary/chairman)", "Determines permissions and dashboard routing."),
-        ("phone_number", "CharField", "Contact number for official communications."),
-        ("profile_photo", "ImageField", "User avatar stored in /profile_photos/."),
-        ("is_approved", "BooleanField", "Account active only after official approval."),
-        ("latitude / longitude", "DecimalField", "GPS coordinates for residency geolocation validation."),
-        ("residency_validation_score", "IntegerField", "Score from automated address verification."),
-        ("is_deactivated", "BooleanField", "Soft-delete flag to disable accounts without data loss."),
-        ("verification_document", "FileField", "Uploaded ID or residence proof for account approval."),
-    ]
-    for i, r in enumerate(user_fields):
-        table_row(tbl3, i + 1, r, alt=(i % 2 == 1))
-
-    h2("4.2 complaints.Complaint")
-    tbl4 = doc.add_table(rows=10, cols=3); tbl4.alignment = WD_TABLE_ALIGNMENT.CENTER
-    table_header(tbl4, ["Field", "Type", "Purpose"])
-    comp_fields = [
-        ("title / description", "CharField / TextField", "Complaint subject and full narrative."),
-        ("category", "FK → ComplaintCategory", "Classification (Infrastructure, Sanitation, Noise, etc.)."),
-        ("status", "CharField (6 choices)", "pending → under_review → in_progress → resolved → closed / rejected."),
-        ("priority", "CharField (low/medium/high/urgent)", "Urgency level set by resident or escalated by officials."),
-        ("is_anonymous / anonymous_reference", "BooleanField / CharField", "Enables privacy-protected filing with unique tracking reference."),
-        ("assigned_to", "FK → CustomUser", "Official assigned to resolve the case."),
-        ("estimated_resolution_date", "DateField", "ETA committed by the barangay."),
-        ("rating / rating_feedback", "IntegerField (1–5) / TextField", "Post-resolution resident satisfaction score."),
-        ("chairman_notes / resolution_notes", "TextField", "Internal notes visible only to officials."),
-    ]
-    for i, r in enumerate(comp_fields):
-        table_row(tbl4, i + 1, r, alt=(i % 2 == 1))
-
-    h2("4.3 ai_captain Models")
-    tbl5 = doc.add_table(rows=6, cols=3); tbl5.alignment = WD_TABLE_ALIGNMENT.CENTER
-    table_header(tbl5, ["Model", "Key Fields", "Purpose"])
-    ai_models = [
-        ("Conversation", "session_id, user, is_active, satisfaction_rating, conversation_topic", "Each chat session between a user and the AI Captain."),
-        ("Message", "user_message, captain_response, intent_detected, confidence_score, was_helpful", "Individual message exchange with AI metadata."),
-        ("PolicyDocument", "title, category, content, summary, keywords, ordinance_number", "Barangay policy and ordinance knowledge base for AI context."),
-        ("SituationTemplate", "situation_type, recommended_steps, required_documents, estimated_timeline", "Step-by-step guidance templates for common citizen scenarios."),
-        ("CaptainPersonality", "name, system_prompt, tone, language_style, empathy_level", "Configurable AI persona settings (name, language, system prompt)."),
-    ]
-    for i, r in enumerate(ai_models):
-        table_row(tbl5, i + 1, r, alt=(i % 2 == 1))
-
-    # ════════════════════════════════════════════════════════════════════════
-    # 5. AI CAPTAIN — DEEP DIVE
-    # ════════════════════════════════════════════════════════════════════════
-    h1("5. AI Virtual Barangay Captain — Deep Dive")
+    # ══════════════════════════════════════════════════════════════════════
+    # 2. REGISTRATION & LOGIN
+    # ══════════════════════════════════════════════════════════════════════
+    h1("Feature 2: Account Registration & Login")
     body(
-        "The ai_captain app integrates OpenAI's GPT API to provide an intelligent, conversational virtual "
-        "assistant styled as 'Kapitan AI'. Citizens can interact in natural Tagalog, English, or Taglish. "
-        "The AI provides step-by-step guidance, fee information, document requirements, and links to barangay policies."
+        "Residents can create their own account on the portal. For security, accounts require "
+        "approval from barangay officials before they become active."
     )
+    h2("For Residents — Registration")
+    bullet("Fill out registration form: ", "Full name, username, email, password, address, and phone number.")
+    bullet("Upload verification document: ", "Optional — valid ID or proof of residence to support account approval.")
+    bullet("Await approval: ", "The account is reviewed by the Secretary or Chairman before it is activated.")
+    bullet("Rejection notice: ", "If rejected, the resident receives a written reason so they can correct and reapply.")
 
-    h2("5.1 AI Architecture")
-    bullet("OpenAI GPT API: ", "Processes citizen queries and generates contextually relevant responses.")
-    bullet("Knowledge Base (PolicyDocument): ", "Officials can load barangay ordinances, resolutions, and FAQs into the AI knowledge base. These are injected into the AI system prompt for accurate, policy-grounded answers.")
-    bullet("Situation Templates: ", "Pre-built guidance flows for common resident situations (complaint filing, document requests, business permits, neighbor disputes, emergency situations, social welfare).")
-    bullet("Configurable Personality (CaptainPersonality): ", "Admins can adjust the AI's name, tone (professional/friendly), language style (English/Tagalog/mixed), empathy level (1–5), and the full system prompt without code changes.")
-    bullet("Conversation Tracking: ", "All sessions (Conversation) and individual exchanges (Message) are stored for audit, quality review, and satisfaction analytics.")
+    h2("For Officials — Account Approval")
+    bullet("Pending registrations queue: ", "Officials see a list of all accounts waiting for review.")
+    bullet("Approve or Reject: ", "One-click approval activates the account; rejection sends a reason to the applicant.")
 
-    h2("5.2 AI Captain Communication Style")
-    callout(
-        "Default System Prompt Excerpt (from CaptainPersonality.system_prompt):",
-        "You are *Kapitan AI*, the Virtual Barangay Captain for a Philippine barangay community.\n"
-        "• Use natural Taglish (mix of Filipino and English) for authenticity.\n"
-        "• Sound warm, approachable, and trustworthy — like a real barangay captain.\n"
-        "• Give clear, numbered steps with timelines when explaining processes.\n"
-        "• Include practical details: fees, required documents, office hours, processing times.\n"
-        "• Mention who to approach and where to go (office name, window/desk, or online option).\n"
-        "• Goal: make barangay services simple and less intimidating for residents."
+    h2("Login & Session")
+    bullet("Secure login: ", "Username and password authentication with session management.")
+    bullet("Login history: ", "The system logs every login event (time, IP address, device) for security.")
+    bullet("Suspicious login flagging: ", "Unusual logins can be flagged for security review by officials.")
+
+    divider()
+
+    # ══════════════════════════════════════════════════════════════════════
+    # 3. DASHBOARD
+    # ══════════════════════════════════════════════════════════════════════
+    h1("Feature 3: Personalized Dashboard")
+    body(
+        "After logging in, each user sees a dashboard tailored to their role."
     )
+    h2("Resident Dashboard")
+    bullet("My Complaints summary: ", "Count of complaints by status — Pending, In Progress, Resolved, Closed.")
+    bullet("My Service Requests: ", "Status of any document or clearance applications filed.")
+    bullet("My Suggestions: ", "List of community ideas submitted and their current status.")
+    bullet("Recent Notifications: ", "Alerts for status changes, messages from officials, and new announcements.")
+    bullet("Quick-access shortcuts: ", "One-click buttons to file a complaint, request a document, or chat with the AI Captain.")
 
-    # ════════════════════════════════════════════════════════════════════════
-    # 6. CORE MODULES
-    # ════════════════════════════════════════════════════════════════════════
-    h1("6. Core Application Modules")
+    h2("Secretary / Chairman Dashboard")
+    bullet("Complaint overview: ", "Total complaints, new filings this week, cases in progress, and cases resolved.")
+    bullet("Pending approvals: ", "New resident accounts waiting for activation.")
+    bullet("Recent activity feed: ", "Latest complaints filed, status changes, and announcements posted.")
+    bullet("Analytics summary: ", "Quick graphs showing complaint categories and resolution trends.")
 
-    h2("6.1 Home ('/')")
-    bullet("Public landing page: ", "Displays the barangay name, mission, statistics, featured services, latest announcements, photo gallery preview, and emergency hotlines.")
-    bullet("No login required: ", "Fully accessible by any visitor to maximize public information reach.")
+    divider()
 
-    h2("6.2 Accounts ('/accounts/')")
-    bullet("Registration: ", "Residents self-register with name, address, phone, and upload an optional verification document (valid ID or proof of residence).")
-    bullet("Approval Workflow: ", "Officials review pending registrations and either approve (activating the account) or reject (with a stated reason).")
-    bullet("Residency Validation: ", "Optional GPS-based and document-based validation to confirm the resident actually lives within barangay boundaries.")
-    bullet("Login History Tracking: ", "Every login event (IP address, device info, session key, timestamps) is stored for security auditing and suspicious activity detection.")
+    # ══════════════════════════════════════════════════════════════════════
+    # 4. COMPLAINTS
+    # ══════════════════════════════════════════════════════════════════════
+    h1("Feature 4: Complaints Management")
+    body(
+        "Residents can formally file community complaints online. Officials manage and resolve "
+        "them through a structured workflow."
+    )
+    h2("Filing a Complaint (Resident)")
+    bullet("Choose a category: ", "Infrastructure, Sanitation, Noise & Disturbance, Public Safety, and others.")
+    bullet("Describe the issue: ", "Title and full description of the problem.")
+    bullet("Set priority: ", "Low, Medium, High, or Urgent.")
+    bullet("Attach photos or files: ", "Upload supporting evidence (photos, documents, videos).")
+    bullet("File anonymously: ", "Submit without revealing your identity — a unique tracking reference code is generated so you can still follow up.")
 
-    h2("6.3 Complaints ('/complaints/')")
-    bullet("Structured Filing: ", "Residents choose a category, describe the issue, set priority, optionally attach photos/files, and submit.")
-    bullet("Anonymous Mode: ", "The system generates a unique 10-character reference code enabling anonymous tracking without exposing the filer's identity.")
-    bullet("6-Stage Status Workflow: ", "pending → under_review → in_progress → resolved → closed / rejected.")
-    bullet("Officer Assignment: ", "Cases are assignable to specific officials for accountability tracking.")
-    bullet("Status History: ", "Every status change is logged (ComplaintStatusHistory) with the responsible official and notes — creating a complete audit trail.")
-    bullet("Post-Resolution Rating: ", "Once resolved, residents rate their satisfaction (1–5 stars) and leave feedback.")
+    h2("Complaint Status Tracking")
+    feature_box("6-Stage Complaint Workflow:", [
+        "Submitted — Complaint has been filed by the resident.",
+        "Under Review — Officials are verifying the complaint details.",
+        "In Progress — The case is actively being handled.",
+        "Resolved — The issue has been addressed.",
+        "Closed — The complaint is fully closed after resident acknowledgment.",
+        "Rejected — The complaint was not accepted, with a stated reason.",
+    ], box_bg="FFF7ED", title_color=AMBER)
 
-    h2("6.4 AI Captain ('/ai-captain/')")
-    body("Citizens can start a conversation with the AI Virtual Captain. The AI draws on the PolicyDocument knowledge base and SituationTemplates to provide accurate, step-by-step guidance on:")
-    bullet("Filing complaints and documents: ", "What category to choose, what documents to bring, estimated timelines.")
-    bullet("Understanding ordinances: ", "Plain-language explanations of barangay policies.")
-    bullet("Emergency guidance: ", "Step-by-step instructions for emergency situations.")
-    bullet("Permit and clearance procedures: ", "Complete requirements, fees, and processing timelines.")
+    h2("Managing Complaints (Officials)")
+    bullet("View all complaints: ", "Full list with filters by status, category, priority, and date.")
+    bullet("Assign to officer: ", "Delegate a complaint to a specific official for accountability.")
+    bullet("Set estimated resolution date: ", "Commit to a resolution timeline visible to the resident.")
+    bullet("Update status with notes: ", "Move the complaint through stages and add official remarks.")
+    bullet("Add internal chairman notes: ", "Private notes visible only to officials.")
+    bullet("Full audit trail: ", "Every status change is recorded — who changed it, when, and why.")
+    bullet("Resident feedback: ", "After resolution, residents rate their satisfaction (1–5 stars) and leave comments.")
 
-    h2("6.5 Services ('/services/')")
-    bullet("Service Catalog: ", "Lists all available barangay certificates and clearances (Barangay Clearance, Indigency Certificate, Business Permit, etc.).")
-    bullet("Transparent fees & requirements: ", "Each service displays exact processing fees, estimated release days, and required documents.")
+    divider()
 
-    h2("6.6 Suggestions ('/suggestions/')")
-    bullet("Community Proposals: ", "Residents submit ideas for barangay improvements with title, description, and category tags.")
-    bullet("Public Upvoting: ", "The community endorses popular ideas, surfacing high-priority initiatives to barangay leadership.")
+    # ══════════════════════════════════════════════════════════════════════
+    # 5. AI CAPTAIN
+    # ══════════════════════════════════════════════════════════════════════
+    h1("Feature 5: AI Virtual Barangay Captain (Kapitan AI)")
+    body(
+        "Kapitan AI is an intelligent chatbot that acts like a virtual barangay captain. "
+        "Residents can ask questions in Tagalog, English, or Taglish and receive clear, "
+        "helpful guidance immediately — 24 hours a day, 7 days a week."
+    )
+    h2("What Kapitan AI can help with:")
+    bullet("Document requests: ", "Step-by-step instructions on how to get a barangay clearance, indigency certificate, business permit, and more — including what documents to bring and the fees.")
+    bullet("Filing complaints: ", "Guidance on what category to choose, how to describe the issue, and what to expect.")
+    bullet("Understanding ordinances: ", "Plain-language explanations of barangay policies and rules.")
+    bullet("Emergency situations: ", "Step-by-step guidance for emergencies (fire, medical, security).")
+    bullet("Business permits and construction: ", "Requirements, timelines, and who to approach.")
+    bullet("Social welfare and assistance: ", "Information on available programs and how to apply.")
+    bullet("General barangay questions: ", "Office hours, contact numbers, office locations, and procedures.")
 
-    h2("6.7 Announcements ('/announcements/')")
-    bullet("Official Broadcasts: ", "Barangay Secretary or Chairman posts public advisories, event notices, and emergency alerts.")
-    bullet("Urgency Flagging: ", "Announcements can be marked as urgent for prominence in the homepage feed.")
+    h2("How the AI works:")
+    bullet("Powered by AI (GPT): ", "Uses advanced language AI to understand and respond to natural conversation.")
+    bullet("Policy knowledge base: ", "Officials can load barangay ordinances and FAQs into the AI so answers are accurate and barangay-specific.")
+    bullet("Situation templates: ", "Pre-built step-by-step guides for the most common citizen scenarios.")
+    bullet("Conversation memory: ", "The AI remembers the context of the current session for natural follow-up questions.")
+    bullet("Satisfaction rating: ", "At the end of a conversation, residents can rate how helpful the AI was.")
 
-    h2("6.8 Direct Messages ('/messages/')")
-    bullet("Resident-to-Official Messaging: ", "Secure, direct in-app messaging between residents and barangay officials for private case follow-ups.")
+    divider()
 
-    h2("6.9 Notifications ('/notifications/')")
-    bullet("In-App Alerts: ", "Real-time notifications delivered to users on status changes, new messages, announcements, and complaint updates.")
+    # ══════════════════════════════════════════════════════════════════════
+    # 6. SERVICES
+    # ══════════════════════════════════════════════════════════════════════
+    h1("Feature 6: Barangay Services & Certificates")
+    body(
+        "The services module displays all official barangay documents and certificates "
+        "available to residents, with complete information so they can prepare in advance."
+    )
+    feature_box("Available Barangay Services (examples):", [
+        "Barangay Clearance — for employment, business, or personal requirements.",
+        "Certificate of Indigency — for scholarship, medical assistance, and other aid programs.",
+        "Barangay Business Clearance — required for business permit applications.",
+        "Solo Parent Certificate — for solo parent benefits and privileges.",
+        "Certificate of Residency — proof of address within the barangay.",
+        "Barangay ID — official identification document for residents.",
+    ], box_bg="F0FDF4")
 
-    h2("6.10 Gallery ('/gallery/')")
-    bullet("Media Library: ", "Barangay photo gallery and event documentation for community transparency and engagement.")
+    bullet("Transparent fees: ", "Each service shows the exact processing fee so residents can prepare the right amount.")
+    bullet("Processing time: ", "Estimated number of days before the document is ready for pick-up.")
+    bullet("Requirements list: ", "Clear list of documents or IDs needed before going to the barangay hall.")
 
-    h2("6.11 Analytics ('/analytics/')")
-    bullet("Governance Dashboard: ", "Visual charts and KPI metrics for complaint resolution rates, category breakdowns, monthly trends, and officer performance — visible to officials only.")
+    divider()
 
-    # ════════════════════════════════════════════════════════════════════════
-    # 7. URL STRUCTURE
-    # ════════════════════════════════════════════════════════════════════════
-    h1("7. URL Structure & Routing")
-    body("All URLs are localized via Django's i18n_patterns (supports both English and Filipino language prefixes):")
+    # ══════════════════════════════════════════════════════════════════════
+    # 7. SUGGESTIONS
+    # ══════════════════════════════════════════════════════════════════════
+    h1("Feature 7: Community Suggestions & Ideas")
+    body(
+        "Residents can submit ideas and proposals for improving the barangay. "
+        "This gives citizens a direct voice in local governance."
+    )
+    bullet("Submit an idea: ", "Write a title, description, and choose a category for your suggestion.")
+    bullet("Community upvoting: ", "Other residents can upvote ideas they support — popular ideas rise to the top.")
+    bullet("Official review: ", "The Secretary or Chairman reviews top suggestions and updates their status.")
+    bullet("Status tracking: ", "Residents see whether their suggestion is Under Review, Planned, In Progress, or Completed.")
 
-    tbl6 = doc.add_table(rows=13, cols=2); tbl6.alignment = WD_TABLE_ALIGNMENT.CENTER
-    table_header(tbl6, ["URL Prefix", "App Module"])
-    url_rows = [
-        ("/",                    "home — Public homepage"),
-        ("/accounts/",           "accounts — Registration, login, profile, approval"),
-        ("/dashboard/",          "dashboard — Resident & official personalized dashboards"),
-        ("/complaints/",         "complaints — File, track, and manage incidents"),
-        ("/ai-captain/",         "ai_captain — AI Virtual Barangay Captain chatbot"),
-        ("/announcements/",      "announcements — Official bulletins and public advisories"),
-        ("/gallery/",            "gallery — Community photo gallery"),
-        ("/suggestions/",        "suggestions — Community idea portal"),
-        ("/services/",           "services — Service catalog and clearance applications"),
-        ("/notifications/",      "notifications — In-app notification center"),
-        ("/messages/",           "direct_messages — Resident-official secure messaging"),
-        ("/analytics/",          "analytics — Governance KPI and trend charts (officials only)"),
+    divider()
+
+    # ══════════════════════════════════════════════════════════════════════
+    # 8. ANNOUNCEMENTS
+    # ══════════════════════════════════════════════════════════════════════
+    h1("Feature 8: Official Announcements & Alerts")
+    body(
+        "The barangay publishes official news, advisories, and emergency alerts "
+        "that residents can read any time on the portal."
+    )
+    bullet("Official notices: ", "Public health advisories, schedule changes, community events, and government programs.")
+    bullet("Emergency alerts: ", "Time-sensitive announcements flagged as urgent appear prominently on the homepage.")
+    bullet("Posted by officials: ", "Only Secretary and Chairman can post and manage announcements.")
+
+    divider()
+
+    # ══════════════════════════════════════════════════════════════════════
+    # 9. NOTIFICATIONS
+    # ══════════════════════════════════════════════════════════════════════
+    h1("Feature 9: In-App Notification System")
+    body(
+        "Users receive real-time in-app alerts so they are always informed about "
+        "what is happening with their requests and account."
+    )
+    bullet("Complaint status updates: ", "Notified every time your complaint moves to a new stage.")
+    bullet("New messages: ", "Alerted when an official sends you a direct message.")
+    bullet("Account approval: ", "Residents are notified when their account is approved or rejected.")
+    bullet("New announcements: ", "Residents are alerted when the barangay posts important notices.")
+
+    divider()
+
+    # ══════════════════════════════════════════════════════════════════════
+    # 10. DIRECT MESSAGES
+    # ══════════════════════════════════════════════════════════════════════
+    h1("Feature 10: Direct Messaging")
+    body(
+        "Residents and officials can exchange private messages directly within the portal "
+        "for case follow-ups and private concerns."
+    )
+    bullet("Resident to official: ", "Send a private message to the barangay secretary or other officials.")
+    bullet("Official to resident: ", "Officials can message residents about their complaints or requests.")
+    bullet("Message history: ", "Complete thread of all messages in a conversation is kept for reference.")
+
+    divider()
+
+    # ══════════════════════════════════════════════════════════════════════
+    # 11. GALLERY
+    # ══════════════════════════════════════════════════════════════════════
+    h1("Feature 11: Barangay Photo Gallery")
+    body(
+        "A public photo gallery showcasing barangay events, programs, and community activities "
+        "to promote transparency and community engagement."
+    )
+    bullet("Public access: ", "Viewable by anyone, no login required.")
+    bullet("Managed by officials: ", "Secretary or Chairman can upload, organize, and remove photos.")
+
+    divider()
+
+    # ══════════════════════════════════════════════════════════════════════
+    # 12. ANALYTICS
+    # ══════════════════════════════════════════════════════════════════════
+    h1("Feature 12: Analytics & Governance Reports")
+    body(
+        "Officials have access to a data analytics dashboard that gives a clear picture "
+        "of barangay performance and community needs."
+    )
+    bullet("Complaint volume: ", "How many complaints were filed over time (daily, weekly, monthly).")
+    bullet("Category breakdown: ", "Which types of complaints are most common (e.g. noise, road, sanitation).")
+    bullet("Resolution rate: ", "Percentage of complaints that were resolved vs. pending or rejected.")
+    bullet("Officer performance: ", "Track how quickly each assigned officer resolves cases.")
+    bullet("Suggestion trends: ", "Most popular community ideas and their implementation status.")
+
+    divider()
+
+    # ══════════════════════════════════════════════════════════════════════
+    # 13. FEEDBACK
+    # ══════════════════════════════════════════════════════════════════════
+    h1("Feature 13: Resident Feedback & Satisfaction Rating")
+    body(
+        "After a complaint is resolved, residents can evaluate the quality of service "
+        "they received from the barangay."
+    )
+    bullet("Star rating (1–5): ", "Rate how satisfied you are with the resolution.")
+    bullet("Written feedback: ", "Optional comments about the experience.")
+    bullet("Officials see ratings: ", "Feedback is visible to officials for continuous service improvement.")
+
+    divider()
+
+    # ══════════════════════════════════════════════════════════════════════
+    # FEATURE SUMMARY TABLE
+    # ══════════════════════════════════════════════════════════════════════
+    h1("Feature Access Summary by Role")
+    body("Quick reference table showing which features are available to each user role:")
+
+    tbl2 = doc.add_table(rows=15, cols=4)
+    tbl2.alignment = WD_TABLE_ALIGNMENT.CENTER
+    headers2 = ["Feature", "Resident", "Secretary", "Chairman"]
+    for i, hdr in enumerate(headers2):
+        c = tbl2.rows[0].cells[i]
+        c.text = hdr; bg(c, "0F172A"); pad(c)
+        c.paragraphs[0].runs[0].font.bold = True
+        c.paragraphs[0].runs[0].font.color.rgb = WHITE
+        c.paragraphs[0].runs[0].font.size = Pt(9)
+
+    feature_access = [
+        ("Public Homepage",              "Yes",      "Yes",      "Yes"),
+        ("Account Registration",         "Yes",      "No",       "No"),
+        ("Account Approval / Rejection", "No",       "Yes",      "Yes"),
+        ("Complaint Filing",             "Yes",      "No",       "No"),
+        ("Complaint Management",         "View own", "Yes",      "Yes"),
+        ("AI Captain Chatbot",           "Yes",      "Yes",      "Yes"),
+        ("Barangay Services Info",       "Yes",      "Yes",      "Yes"),
+        ("Community Suggestions",        "Yes",      "View",     "Yes"),
+        ("Official Announcements",       "View",     "Post",     "Post"),
+        ("In-App Notifications",         "Yes",      "Yes",      "Yes"),
+        ("Direct Messages",              "Yes",      "Yes",      "Yes"),
+        ("Photo Gallery",                "View",     "Manage",   "Manage"),
+        ("Analytics Dashboard",          "No",       "Yes",      "Yes"),
+        ("Resident Satisfaction Feedback","Yes",     "View",     "View"),
     ]
-    for i, r in enumerate(url_rows):
-        table_row(tbl6, i + 1, r, alt=(i % 2 == 1))
 
-    # ════════════════════════════════════════════════════════════════════════
-    # 8. SETUP & DEPLOYMENT
-    # ════════════════════════════════════════════════════════════════════════
-    h1("8. Setup, Configuration & Deployment")
+    for idx, row_data in enumerate(feature_access, start=1):
+        row = tbl2.rows[idx]
+        for col_idx, val in enumerate(row_data):
+            c = row.cells[col_idx]
+            c.text = val
+            bg(c, "FFFFFF" if idx % 2 == 1 else "F8FAFC")
+            pad(c, 60, 60, 100, 100)
+            run = c.paragraphs[0].runs[0]
+            run.font.size = Pt(9)
+            if col_idx == 0:
+                run.font.bold = True
+            elif val == "Yes":
+                run.font.color.rgb = EMERALD
+                run.font.bold = True
+            elif val == "No":
+                run.font.color.rgb = RGBColor(180, 50, 50)
 
-    h2("8.1 Environment Variables (.env)")
-    bullet("SECRET_KEY: ", "Django cryptographic secret key.")
-    bullet("DEBUG: ", "True (development) or False (production).")
-    bullet("ALLOWED_HOSTS: ", "Comma-separated list of allowed host headers.")
-    bullet("DATABASE_URL: ", "PostgreSQL connection URI (auto-parsed by dj-database-url).")
-    bullet("OPENAI_API_KEY: ", "API key for the AI Captain GPT integration.")
-    bullet("RENDER_EXTERNAL_HOSTNAME: ", "Set automatically by Render for production CSRF and host configuration.")
-
-    h2("8.2 Local Development Commands")
-    bullet("Create virtual environment: ", "python -m venv .venv && .venv\\Scripts\\activate")
-    bullet("Install dependencies: ", "pip install -r requirements.txt")
-    bullet("Run database migrations: ", "python manage.py migrate")
-    bullet("Start development server: ", "python manage.py runserver")
-
-    h2("8.3 Production Deployment (Render)")
-    bullet("Web Service Type: ", "Python (Gunicorn WSGI server).")
-    bullet("Build Command: ", "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate")
-    bullet("Start Command: ", "gunicorn core.wsgi:application")
-    bullet("Static Files: ", "WhiteNoise serves compressed static files directly from Gunicorn.")
-    bullet("Database: ", "Render PostgreSQL add-on (psycopg2-binary + dj-database-url).")
-
-    # ════════════════════════════════════════════════════════════════════════
-    # 9. SECURITY FEATURES
-    # ════════════════════════════════════════════════════════════════════════
-    h1("9. Security Features & Data Protection")
-    bullet("CSRF Protection: ", "Django CSRF middleware active on all POST forms and configured for production domains.")
-    bullet("XFrameOptions: ", "Clickjacking protection via X-Frame-Options headers.")
-    bullet("Session Authentication: ", "Django session-based auth with hashed passwords (PBKDF2 + SHA256).")
-    bullet("Login History Auditing: ", "IP address, device fingerprint, and session key logged for every login event.")
-    bullet("Suspicious Login Flagging: ", "is_suspicious flag on LoginHistory for security review.")
-    bullet("Account Deactivation: ", "Soft-delete pattern (is_deactivated) avoids permanent data loss while blocking access.")
-    bullet("Anonymous Filing Protection: ", "Anonymous complaint identity visible only to Chairman-level officials via can_view_anonymous_identity().")
-
-    # ── FOOTER ───────────────────────────────────────────────────────────────
+    # ── FOOTER ────────────────────────────────────────────────────────────
     doc.add_paragraph().paragraph_format.space_before = Pt(24)
-    p = doc.add_paragraph()
-    r = p.add_run("Barangay Burgos Digital Governance System  •  Official System Documentation  •  2026")
-    r.font.size = Pt(9); r.font.color.rgb = GRAY
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_foot = doc.add_paragraph()
+    r_foot = p_foot.add_run(
+        "Barangay Burgos Digital Governance Portal  •  Features Documentation  •  2026"
+    )
+    r_foot.font.size = Pt(9); r_foot.font.color.rgb = GRAY
+    p_foot.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     return doc
 
@@ -444,6 +472,5 @@ if __name__ == "__main__":
         r"c:\Users\alice\OneDrive\Documents\Project2-main"
         r"\BARANGAY_PORTAL_DOCUMENTATION.docx"
     )
-    doc = build_doc()
-    doc.save(out)
-    print(f"[SUCCESS] Documentation saved: {out}")
+    build().save(out)
+    print(f"[SUCCESS] Features documentation saved: {out}")
