@@ -3,8 +3,12 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '../lib/auth'
 import { isResident } from '../lib/roles'
 import api from '../lib/api'
-import { Plus, Search, Filter, FileText, Clock, CheckCircle, AlertCircle, Map, List, MapPin } from 'lucide-react'
-import { useState } from 'react'
+import { 
+    Plus, Search, Filter, FileText, Clock, CheckCircle2, AlertCircle, 
+    Map, List, MapPin, Sparkles, ShieldAlert, AlertTriangle, ArrowRight,
+    Calendar, Tag, MessageSquare, ChevronRight, X
+} from 'lucide-react'
+import { useState, useMemo } from 'react'
 import ComplaintsMapViewer from '../components/ComplaintsMapViewer'
 import './Complaints.css'
 
@@ -14,6 +18,10 @@ export default function Complaints() {
     const [searchParams, setSearchParams] = useSearchParams()
     const [search, setSearch] = useState(searchParams.get('search') || '')
     const [viewMode, setViewMode] = useState('list') // 'list' | 'map'
+    const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'ALL')
+    const [selectedPriority, setSelectedPriority] = useState(searchParams.get('priority') || 'ALL')
+
+    const currentStatus = searchParams.get('status') || 'ALL'
 
     const { data, isLoading } = useQuery({
         queryKey: ['complaints', user?.id, searchParams.toString()],
@@ -23,14 +31,26 @@ export default function Complaints() {
         }
     })
 
+    const { data: categories = [] } = useQuery({
+        queryKey: ['complaint-categories'],
+        queryFn: async () => {
+            const { data } = await api.get('/complaints/categories')
+            return data.categories || []
+        }
+    })
+
     const handleSearch = (e) => {
         e.preventDefault()
-        searchParams.set('search', search)
+        if (search.trim()) {
+            searchParams.set('search', search.trim())
+        } else {
+            searchParams.delete('search')
+        }
         setSearchParams(searchParams)
     }
 
     const handleStatusFilter = (status) => {
-        if (status) {
+        if (status && status !== 'ALL') {
             searchParams.set('status', status)
         } else {
             searchParams.delete('status')
@@ -38,29 +58,79 @@ export default function Complaints() {
         setSearchParams(searchParams)
     }
 
+    const handleCategoryFilter = (catId) => {
+        setSelectedCategory(catId)
+        if (catId && catId !== 'ALL') {
+            searchParams.set('category', catId)
+        } else {
+            searchParams.delete('category')
+        }
+        setSearchParams(searchParams)
+    }
+
+    const handlePriorityFilter = (priority) => {
+        setSelectedPriority(priority)
+        if (priority && priority !== 'ALL') {
+            searchParams.set('priority', priority)
+        } else {
+            searchParams.delete('priority')
+        }
+        setSearchParams(searchParams)
+    }
+
+    const clearAllFilters = () => {
+        setSearch('')
+        setSelectedCategory('ALL')
+        setSelectedPriority('ALL')
+        setSearchParams({})
+    }
+
     const getStatusIcon = (status) => {
         switch (status) {
-            case 'PENDING': return <Clock size={16} />
-            case 'IN_PROGRESS': return <AlertCircle size={16} />
-            case 'RESOLVED': return <CheckCircle size={16} />
-            default: return <FileText size={16} />
+            case 'PENDING': return <Clock size={14} />
+            case 'IN_PROGRESS': return <AlertCircle size={14} />
+            case 'RESOLVED': return <CheckCircle2 size={14} />
+            default: return <FileText size={14} />
         }
     }
 
+    const getPriorityBadgeClass = (priority) => {
+        switch (priority) {
+            case 'URGENT': return 'priority-badge-urgent'
+            case 'HIGH': return 'priority-badge-high'
+            case 'MEDIUM': return 'priority-badge-medium'
+            default: return 'priority-badge-low'
+        }
+    }
+
+    const complaintsList = data?.complaints || []
+    const pendingCount = data?.stats?.pending || 0
+    const inProgressCount = data?.stats?.in_progress || 0
+    const resolvedCount = data?.stats?.resolved || 0
+    const totalCount = pendingCount + inProgressCount + resolvedCount
+
     return (
         <div className="page animate-fadeIn">
-            {/* Header */}
-            <div className="complaints-page-header">
-                <div>
-                    <h1>Complaints Management</h1>
-                    <p>{userIsResident ? 'Track the status and live location of your complaints' : 'Review and manage community complaints and dispatch barangay responders'}</p>
+            {/* Hero Command Center Header */}
+            <div className="complaints-hero-banner">
+                <div className="complaints-hero-left">
+                    <div className="complaints-hero-badge">
+                        <ShieldAlert size={15} /> Barangay Peace & Order Incident System
+                    </div>
+                    <h1>Complaints & Incident Management</h1>
+                    <p>
+                        {userIsResident
+                            ? 'Report community concerns with AI narrative rewriting and track responder dispatch on the live satellite map.'
+                            : 'Monitor resident complaints, review AI priority classifications, and dispatch Barangay Tanod and BPAT units in real time.'}
+                    </p>
                 </div>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                    {/* View Mode Toggle */}
-                    <div className="view-mode-toggle">
+
+                <div className="complaints-hero-actions">
+                    {/* View Mode Switcher */}
+                    <div className="complaints-view-switcher">
                         <button
                             type="button"
-                            className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+                            className={`switcher-btn ${viewMode === 'list' ? 'active' : ''}`}
                             onClick={() => setViewMode('list')}
                             title="List View"
                         >
@@ -69,9 +139,9 @@ export default function Complaints() {
                         </button>
                         <button
                             type="button"
-                            className={`toggle-btn ${viewMode === 'map' ? 'active' : ''}`}
+                            className={`switcher-btn ${viewMode === 'map' ? 'active' : ''}`}
                             onClick={() => setViewMode('map')}
-                            title="Satellite Map View"
+                            title="Incident Satellite Map"
                         >
                             <Map size={16} />
                             <span>🛰️ Incident Map</span>
@@ -79,133 +149,230 @@ export default function Complaints() {
                     </div>
 
                     {userIsResident && (
-                        <Link to="/complaints/new" className="btn btn-primary">
-                            <Plus size={20} />
-                            File Complaint
+                        <Link to="/complaints/new" className="file-complaint-btn">
+                            <Plus size={18} />
+                            <span>File a Complaint</span>
                         </Link>
                     )}
                 </div>
             </div>
 
-            {/* Stats */}
-            <div className="stats-grid complaints-stats mb-3">
-                <div className="card stat-card" style={{ '--stat-color': 'var(--gradient-yellow)' }}>
-                    <div className="stat-icon"><Clock size={24} /></div>
-                    <div className="stat-value">{data?.stats?.pending || 0}</div>
-                    <div className="stat-label">Pending</div>
+            {/* Interactive Stats Cards */}
+            <div className="complaints-stats-grid">
+                <div 
+                    className={`complaint-stat-box stat-pending ${currentStatus === 'PENDING' ? 'active-stat-filter' : ''}`}
+                    onClick={() => handleStatusFilter(currentStatus === 'PENDING' ? 'ALL' : 'PENDING')}
+                    title="Click to filter Pending"
+                >
+                    <div className="stat-box-top">
+                        <span className="stat-box-title">Pending Review</span>
+                        <div className="stat-icon-halo icon-pending">
+                            <Clock size={18} />
+                        </div>
+                    </div>
+                    <div className="stat-box-number">{pendingCount}</div>
+                    <span className="stat-box-footer">Awaiting Barangay Action</span>
                 </div>
-                <div className="card stat-card" style={{ '--stat-color': 'var(--gradient-blue)' }}>
-                    <div className="stat-icon"><AlertCircle size={24} /></div>
-                    <div className="stat-value">{data?.stats?.in_progress || 0}</div>
-                    <div className="stat-label">In Progress</div>
+
+                <div 
+                    className={`complaint-stat-box stat-in-progress ${currentStatus === 'IN_PROGRESS' ? 'active-stat-filter' : ''}`}
+                    onClick={() => handleStatusFilter(currentStatus === 'IN_PROGRESS' ? 'ALL' : 'IN_PROGRESS')}
+                    title="Click to filter In Progress"
+                >
+                    <div className="stat-box-top">
+                        <span className="stat-box-title">In Progress</span>
+                        <div className="stat-icon-halo icon-in-progress">
+                            <AlertCircle size={18} />
+                        </div>
+                    </div>
+                    <div className="stat-box-number">{inProgressCount}</div>
+                    <span className="stat-box-footer">Tanod / BPAT Dispatched</span>
                 </div>
-                <div className="card stat-card" style={{ '--stat-color': 'var(--gradient-primary)' }}>
-                    <div className="stat-icon"><CheckCircle size={24} /></div>
-                    <div className="stat-value">{data?.stats?.resolved || 0}</div>
-                    <div className="stat-label">Resolved</div>
+
+                <div 
+                    className={`complaint-stat-box stat-resolved ${currentStatus === 'RESOLVED' ? 'active-stat-filter' : ''}`}
+                    onClick={() => handleStatusFilter(currentStatus === 'RESOLVED' ? 'ALL' : 'RESOLVED')}
+                    title="Click to filter Resolved"
+                >
+                    <div className="stat-box-top">
+                        <span className="stat-box-title">Resolved</span>
+                        <div className="stat-icon-halo icon-resolved">
+                            <CheckCircle2 size={18} />
+                        </div>
+                    </div>
+                    <div className="stat-box-number">{resolvedCount}</div>
+                    <span className="stat-box-footer">Action Completed</span>
                 </div>
             </div>
 
-            {/* Incident Map View */}
+            {/* Incident Map Viewer Mode */}
             {viewMode === 'map' && (
-                <ComplaintsMapViewer complaints={data?.complaints || []} />
+                <div className="incident-map-wrapper animate-fadeIn">
+                    <ComplaintsMapViewer complaints={complaintsList} />
+                </div>
             )}
 
-            {/* Filters (Shown in List View) */}
+            {/* List View Mode */}
             {viewMode === 'list' && (
                 <>
-                    <div className="filter-card">
-                        <div className="filter-flex">
-                            <form onSubmit={handleSearch} className="search-form">
-                                <div className="form-group" style={{ marginBottom: 0 }}>
-                                    <label className="form-label">Search</label>
-                                    <div className="search-wrapper">
-                                        <Search className="search-icon-inside" size={18} />
-                                        <input
-                                            type="text"
-                                            className="search-input"
-                                            placeholder="Search complaints, location, title..."
-                                            value={search}
-                                            onChange={(e) => setSearch(e.target.value)}
-                                        />
-                                        <button type="submit" className="search-btn">
-                                            Search
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-
-                            <div className="filter-group">
-                                <label className="form-label">Status</label>
-                                <select
-                                    className="filter-select"
-                                    value={searchParams.get('status') || ''}
-                                    onChange={(e) => handleStatusFilter(e.target.value)}
-                                >
-                                    <option value="">All Status</option>
-                                    <option value="PENDING">Pending</option>
-                                    <option value="IN_PROGRESS">In Progress</option>
-                                    <option value="RESOLVED">Resolved</option>
-                                    <option value="CLOSED">Closed</option>
-                                </select>
+                    {/* Advanced Filter Toolbar */}
+                    <div className="complaints-filter-toolbar">
+                        <form onSubmit={handleSearch} className="complaints-search-form">
+                            <div className="search-input-wrap">
+                                <Search size={18} className="search-icon-fixed" />
+                                <input
+                                    type="text"
+                                    className="complaints-search-field"
+                                    placeholder="Search by complaint title, location, landmark, or description..."
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                />
+                                {search && (
+                                    <button 
+                                        type="button" 
+                                        className="clear-search-btn"
+                                        onClick={() => { setSearch(''); searchParams.delete('search'); setSearchParams(searchParams); }}
+                                    >
+                                        <X size={15} />
+                                    </button>
+                                )}
                             </div>
+                            <button type="submit" className="search-submit-btn">
+                                Search
+                            </button>
+                        </form>
+
+                        {/* Status Filter Pills */}
+                        <div className="complaints-status-pills">
+                            <button
+                                type="button"
+                                className={`status-pill ${currentStatus === 'ALL' ? 'active' : ''}`}
+                                onClick={() => handleStatusFilter('ALL')}
+                            >
+                                All Status ({totalCount})
+                            </button>
+                            <button
+                                type="button"
+                                className={`status-pill pill-pending ${currentStatus === 'PENDING' ? 'active' : ''}`}
+                                onClick={() => handleStatusFilter('PENDING')}
+                            >
+                                <Clock size={13} /> Pending ({pendingCount})
+                            </button>
+                            <button
+                                type="button"
+                                className={`status-pill pill-in-progress ${currentStatus === 'IN_PROGRESS' ? 'active' : ''}`}
+                                onClick={() => handleStatusFilter('IN_PROGRESS')}
+                            >
+                                <AlertCircle size={13} /> In Progress ({inProgressCount})
+                            </button>
+                            <button
+                                type="button"
+                                className={`status-pill pill-resolved ${currentStatus === 'RESOLVED' ? 'active' : ''}`}
+                                onClick={() => handleStatusFilter('RESOLVED')}
+                            >
+                                <CheckCircle2 size={13} /> Resolved ({resolvedCount})
+                            </button>
                         </div>
                     </div>
 
-                    {/* Complaints List */}
+                    {/* Complaints Cards Grid */}
                     {isLoading ? (
                         <div className="loading-container"><div className="spinner"></div></div>
-                    ) : data?.complaints?.length > 0 ? (
-                        <div className="complaints-grid">
-                            {data.complaints.map(complaint => {
-                                const statusLower = complaint.status.toLowerCase();
-                                const borderClass = `border-${statusLower.replace('_', '-')}`;
+                    ) : complaintsList.length > 0 ? (
+                        <div className="complaints-card-grid">
+                            {complaintsList.map(complaint => {
+                                const statusLower = (complaint.status || 'PENDING').toLowerCase().replace('_', '-')
+                                const priority = complaint.priority || 'MEDIUM'
+                                const cleanLocation = complaint.location ? complaint.location.split('[')[0].trim() : ''
+
                                 return (
                                     <Link
                                         key={complaint.id}
                                         to={`/complaints/${complaint.id}`}
-                                        className={`complaint-item-card ${borderClass}`}
+                                        className={`complaint-card-premium status-border-${statusLower}`}
                                     >
-                                        <div className="complaint-item-header">
-                                            <h3>{complaint.title}</h3>
-                                            <span className={`status-badge badge-${statusLower.replace('_', '-')}`}>
-                                                {getStatusIcon(complaint.status)}
-                                                {complaint.status.replace('_', ' ')}
+                                        {/* Card Top Row */}
+                                        <div className="complaint-card-top">
+                                            <div className="complaint-badges-group">
+                                                <span className={`complaint-status-badge status-${statusLower}`}>
+                                                    {getStatusIcon(complaint.status)}
+                                                    {complaint.status.replace('_', ' ')}
+                                                </span>
+                                                <span className={`complaint-priority-badge ${getPriorityBadgeClass(priority)}`}>
+                                                    {priority === 'URGENT' && <AlertTriangle size={12} />}
+                                                    {priority} PRIORITY
+                                                </span>
+                                            </div>
+
+                                            <span className="complaint-card-date">
+                                                <Calendar size={13} />
+                                                {new Date(complaint.createdAt).toLocaleDateString('en-US', {
+                                                    month: 'short', day: 'numeric', year: 'numeric'
+                                                })}
                                             </span>
                                         </div>
-                                        <p className="complaint-item-excerpt">
-                                            {complaint.description?.substring(0, 150)}...
+
+                                        {/* Title */}
+                                        <h3 className="complaint-card-title">{complaint.title}</h3>
+
+                                        {/* Description Excerpt */}
+                                        <p className="complaint-card-excerpt">
+                                            {complaint.description}
                                         </p>
-                                        <div className="complaint-item-meta">
-                                            <span className="meta-tag">{complaint.category?.name}</span>
-                                            {complaint.location && (
-                                                <>
-                                                    <span className="meta-divider">•</span>
-                                                    <span className="flex items-center gap-1" style={{ color: '#dc2626', fontWeight: 600 }}>
-                                                        <MapPin size={13} /> {complaint.location.split('[')[0]}
+
+                                        {/* Pinned Location Tag */}
+                                        {cleanLocation && (
+                                            <div className="complaint-card-location">
+                                                <MapPin size={14} className="location-pin-icon" />
+                                                <span>{cleanLocation}</span>
+                                            </div>
+                                        )}
+
+                                        {/* Card Footer */}
+                                        <div className="complaint-card-footer">
+                                            <div className="complaint-footer-meta">
+                                                {complaint.category?.name && (
+                                                    <span className="category-meta-tag">
+                                                        <Tag size={12} /> {complaint.category.name}
                                                     </span>
-                                                </>
-                                            )}
-                                            <span className="meta-divider">•</span>
-                                            <span>{new Date(complaint.createdAt).toLocaleDateString()}</span>
-                                            {complaint.commentsCount > 0 && (
-                                                <>
-                                                    <span className="meta-divider">•</span>
-                                                    <span className="comment-count-tag">{complaint.commentsCount} comments</span>
-                                                </>
-                                            )}
+                                                )}
+                                                {complaint._count?.comments > 0 && (
+                                                    <span className="comments-meta-tag">
+                                                        <MessageSquare size={12} /> {complaint._count.comments} updates
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <div className="view-details-arrow">
+                                                <span>View Report</span>
+                                                <ChevronRight size={16} />
+                                            </div>
                                         </div>
                                     </Link>
-                                );
+                                )
                             })}
                         </div>
                     ) : (
-                        <div className="card">
-                            <div className="empty-state">
-                                <FileText size={48} />
-                                <h4>{userIsResident ? 'No complaints yet' : 'No complaints found'}</h4>
-                                <p>{userIsResident ? 'File a complaint to track its status here' : 'No complaints match your search criteria'}</p>
-                            </div>
+                        <div className="complaints-empty-card animate-fadeIn">
+                            <ShieldAlert size={52} className="empty-icon-shield" />
+                            <h3>No Complaints Found</h3>
+                            <p>
+                                {search || currentStatus !== 'ALL'
+                                    ? 'No incident reports match your current filter criteria.'
+                                    : userIsResident
+                                        ? 'You have not filed any complaints yet. Use the button above to file a complaint with AI assistance.'
+                                        : 'No community complaints have been submitted yet.'}
+                            </p>
+                            {(search || currentStatus !== 'ALL') && (
+                                <button type="button" className="btn btn-secondary" onClick={clearAllFilters}>
+                                    Clear All Filters
+                                </button>
+                            )}
+                            {userIsResident && !search && currentStatus === 'ALL' && (
+                                <Link to="/complaints/new" className="file-complaint-btn" style={{ marginTop: 8 }}>
+                                    <Plus size={18} /> File a Complaint Now
+                                </Link>
+                            )}
                         </div>
                     )}
                 </>
