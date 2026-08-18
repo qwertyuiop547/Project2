@@ -4,16 +4,9 @@ import api from '../lib/api'
 import { useAuthStore } from '../lib/auth'
 import { getRoleLabel } from '../lib/roles'
 import {
-    User,
-    Mail,
-    Phone,
-    MapPin,
-    Shield,
-    Calendar,
-    Save,
-    Lock,
-    CheckCircle,
-    Clock
+    User, Mail, Phone, MapPin, Shield, Calendar, Save, 
+    Lock, CheckCircle2, Clock, Sparkles, KeyRound, Building2, 
+    AlertCircle, ShieldCheck
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import './Profile.css'
@@ -93,7 +86,7 @@ export default function Profile() {
         })
     }
 
-    const initials = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`
+    const initials = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase()
     const joinedDate = user?.createdAt
         ? new Date(user.createdAt).toLocaleDateString('en-US', {
             year: 'numeric',
@@ -104,68 +97,92 @@ export default function Profile() {
 
     return (
         <div className="page animate-fadeIn">
-            <div className="section-header">
-                <h2>My Profile</h2>
-            </div>
-
-            {/* Profile summary card */}
-            <div className="profile-hero">
-                <div className="profile-avatar">{initials}</div>
-                <div className="profile-hero-info">
-                    <h1>{user?.firstName} {user?.lastName}</h1>
-                    <div className="profile-meta">
-                        <span className="profile-role-badge">
-                            <Shield size={14} />
-                            {getRoleLabel(user?.role)}
-                        </span>
-                        <span className={`profile-status-badge ${user?.isApproved ? 'approved' : 'pending'}`}>
-                            {user?.isApproved ? <CheckCircle size={14} /> : <Clock size={14} />}
-                            {user?.isApproved ? 'Approved' : 'Pending Approval'}
-                        </span>
+            {/* Resident Digital Profile Banner */}
+            <div className="profile-hero-card">
+                <div className="profile-hero-content">
+                    <div className="profile-avatar-box">
+                        <span>{initials}</span>
                     </div>
-                    {joinedDate && (
-                        <p className="profile-joined">
-                            <Calendar size={14} /> Member since {joinedDate}
-                        </p>
-                    )}
+
+                    <div className="profile-details-column">
+                        <div className="profile-badge-row">
+                            <span className="profile-role-pill">
+                                <ShieldCheck size={13} /> {getRoleLabel(user?.role)}
+                            </span>
+                            <span className={`profile-status-pill ${user?.isApproved ? 'pill-approved' : 'pill-pending'}`}>
+                                {user?.isApproved ? <CheckCircle2 size={13} /> : <Clock size={13} />}
+                                {user?.isApproved ? 'Verified Citizen' : 'Pending Verification'}
+                            </span>
+                            <span className="profile-brgy-pill">
+                                <Building2 size={13} /> Barangay Burgos, Basey
+                            </span>
+                        </div>
+
+                        <h1>{user?.firstName} {user?.lastName}</h1>
+
+                        <div className="profile-contact-chips">
+                            <span className="contact-chip">
+                                <Mail size={13} /> {user?.email}
+                            </span>
+                            {user?.phone && (
+                                <span className="contact-chip">
+                                    <Phone size={13} /> {user.phone}
+                                </span>
+                            )}
+                            {joinedDate && (
+                                <span className="contact-chip">
+                                    <Calendar size={13} /> Member since {joinedDate}
+                                </span>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div className="profile-grid">
-                {/* Edit profile */}
-                <div className="profile-card">
-                    <div className="profile-card-header">
-                        <User size={20} />
-                        <h3>Personal Information</h3>
+            {/* Two-Column Grid: Profile Edit + Security */}
+            <div className="profile-columns-grid">
+                {/* Personal Information Form Card */}
+                <div className="profile-section-card">
+                    <div className="card-header-block">
+                        <div className="card-header-icon icon-emerald">
+                            <User size={20} />
+                        </div>
+                        <div>
+                            <h3>Personal Information</h3>
+                            <p>Update your resident contact and residential address details</p>
+                        </div>
                     </div>
 
-                    <form onSubmit={handleProfileSubmit}>
-                        <div className="profile-field-readonly">
-                            <Mail size={16} />
-                            <div>
-                                <span className="field-label">Email</span>
-                                <span className="field-value">{user?.email}</span>
+                    <form onSubmit={handleProfileSubmit} className="profile-form">
+                        {/* Read-only Registered Email */}
+                        <div className="readonly-field-box">
+                            <Mail size={18} className="field-icon-gold" />
+                            <div className="readonly-text">
+                                <span className="readonly-label">Registered Account Email</span>
+                                <strong className="readonly-val">{user?.email}</strong>
                             </div>
                         </div>
 
-                        <div className="profile-form-row">
+                        <div className="form-two-col">
                             <div className="form-group">
-                                <label className="form-label">First Name</label>
+                                <label className="form-label">First Name *</label>
                                 <input
                                     type="text"
                                     name="firstName"
                                     className="input"
+                                    placeholder="First Name"
                                     value={profileForm.firstName}
                                     onChange={handleProfileChange}
                                     required
                                 />
                             </div>
                             <div className="form-group">
-                                <label className="form-label">Last Name</label>
+                                <label className="form-label">Last Name *</label>
                                 <input
                                     type="text"
                                     name="lastName"
                                     className="input"
+                                    placeholder="Last Name"
                                     value={profileForm.lastName}
                                     onChange={handleProfileChange}
                                     required
@@ -174,106 +191,127 @@ export default function Profile() {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">
-                                <Phone size={14} /> Phone
-                            </label>
-                            <input
-                                type="tel"
-                                name="phone"
-                                className="input"
-                                placeholder="e.g. 0917 123 4567"
-                                value={profileForm.phone}
-                                onChange={handleProfileChange}
-                            />
+                            <label className="form-label">Mobile Contact Number</label>
+                            <div className="input-icon-wrap">
+                                <Phone size={16} className="input-inside-icon" />
+                                <input
+                                    type="tel"
+                                    name="phone"
+                                    className="input input-with-icon"
+                                    placeholder="e.g. 0917 123 4567"
+                                    value={profileForm.phone}
+                                    onChange={handleProfileChange}
+                                />
+                            </div>
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">
-                                <MapPin size={14} /> Address
-                            </label>
-                            <input
-                                type="text"
-                                name="address"
-                                className="input"
-                                placeholder="Your complete address"
-                                value={profileForm.address}
-                                onChange={handleProfileChange}
-                            />
+                            <label className="form-label">Residential Address in Barangay Burgos</label>
+                            <div className="input-icon-wrap">
+                                <MapPin size={16} className="input-inside-icon" />
+                                <input
+                                    type="text"
+                                    name="address"
+                                    className="input input-with-icon"
+                                    placeholder="e.g. Block 4 Lot 12, Barangay Burgos, Basey, Samar"
+                                    value={profileForm.address}
+                                    onChange={handleProfileChange}
+                                />
+                            </div>
                         </div>
 
                         <button
                             type="submit"
-                            className="btn btn-primary profile-submit"
+                            className="btn btn-primary profile-submit-btn"
                             disabled={profileMutation.isPending}
                         >
                             {profileMutation.isPending ? (
                                 <span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }}></span>
                             ) : (
                                 <>
-                                    <Save size={18} /> Save Changes
+                                    <Save size={16} /> Save Profile Changes
                                 </>
                             )}
                         </button>
                     </form>
                 </div>
 
-                {/* Change password */}
-                <div className="profile-card">
-                    <div className="profile-card-header">
-                        <Lock size={20} />
-                        <h3>Change Password</h3>
+                {/* Account Security & Password Card */}
+                <div className="profile-section-card">
+                    <div className="card-header-block">
+                        <div className="card-header-icon icon-indigo">
+                            <KeyRound size={20} />
+                        </div>
+                        <div>
+                            <h3>Security & Password</h3>
+                            <p>Manage account authentication and credential protection</p>
+                        </div>
                     </div>
 
-                    <form onSubmit={handlePasswordSubmit}>
+                    <form onSubmit={handlePasswordSubmit} className="profile-form">
                         <div className="form-group">
                             <label className="form-label">Current Password</label>
-                            <input
-                                type="password"
-                                name="currentPassword"
-                                className="input"
-                                placeholder="Enter current password"
-                                value={passwordForm.currentPassword}
-                                onChange={handlePasswordChange}
-                                required
-                            />
+                            <div className="input-icon-wrap">
+                                <Lock size={16} className="input-inside-icon" />
+                                <input
+                                    type="password"
+                                    name="currentPassword"
+                                    className="input input-with-icon"
+                                    placeholder="Enter your current password"
+                                    value={passwordForm.currentPassword}
+                                    onChange={handlePasswordChange}
+                                    required
+                                />
+                            </div>
                         </div>
 
                         <div className="form-group">
                             <label className="form-label">New Password</label>
-                            <input
-                                type="password"
-                                name="newPassword"
-                                className="input"
-                                placeholder="At least 6 characters"
-                                value={passwordForm.newPassword}
-                                onChange={handlePasswordChange}
-                                required
-                            />
+                            <div className="input-icon-wrap">
+                                <Lock size={16} className="input-inside-icon" />
+                                <input
+                                    type="password"
+                                    name="newPassword"
+                                    className="input input-with-icon"
+                                    placeholder="At least 6 characters"
+                                    value={passwordForm.newPassword}
+                                    onChange={handlePasswordChange}
+                                    required
+                                />
+                            </div>
                         </div>
 
                         <div className="form-group">
                             <label className="form-label">Confirm New Password</label>
-                            <input
-                                type="password"
-                                name="confirmPassword"
-                                className="input"
-                                placeholder="Re-enter new password"
-                                value={passwordForm.confirmPassword}
-                                onChange={handlePasswordChange}
-                                required
-                            />
+                            <div className="input-icon-wrap">
+                                <Lock size={16} className="input-inside-icon" />
+                                <input
+                                    type="password"
+                                    name="confirmPassword"
+                                    className="input input-with-icon"
+                                    placeholder="Re-type your new password"
+                                    value={passwordForm.confirmPassword}
+                                    onChange={handlePasswordChange}
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="security-notice-box">
+                            <Shield size={16} className="text-blue-600" />
+                            <span>Never share your password with anyone. Barangay staff will never ask for your account credentials.</span>
                         </div>
 
                         <button
                             type="submit"
-                            className="btn btn-primary profile-submit"
+                            className="btn btn-secondary profile-password-btn"
                             disabled={passwordMutation.isPending}
                         >
                             {passwordMutation.isPending ? (
                                 <span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }}></span>
                             ) : (
                                 <>
-                                    <Lock size={18} /> Update Password
+                                    <Lock size={16} /> Update Account Password
                                 </>
                             )}
                         </button>
