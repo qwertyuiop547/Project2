@@ -4,23 +4,10 @@ import { useAuthStore } from '../lib/auth'
 import { isOfficial } from '../lib/roles'
 import api from '../lib/api'
 import {
-    FileText,
-    Lightbulb,
-    Bell,
-    CheckCircle,
-    Clock,
-    Plus,
-    ArrowRight,
-    AlertCircle,
-    FileCheck,
-    ClipboardList,
-    MessageCircle,
-    Megaphone,
-    Download,
-    CalendarDays,
-    Search,
-    TrendingUp,
-    ShieldCheck
+    FileText, Lightbulb, Bell, CheckCircle2, Clock, Plus, ArrowRight, 
+    AlertCircle, FileCheck, ClipboardList, MessageCircle, Megaphone, 
+    Download, CalendarDays, Search, TrendingUp, ShieldCheck, MapPin, 
+    Sparkles, ShieldAlert, Siren, Building2, ChevronRight, PhoneCall
 } from 'lucide-react'
 import './Dashboard.css'
 
@@ -88,293 +75,273 @@ export default function Dashboard() {
         ? (stats?.suggestions?.total ?? 0)
         : (typeof stats?.suggestions === 'number' ? stats.suggestions : 0)
 
-    const userFullName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim()
     const recentComplaints = recent?.complaints?.slice(0, 5) || []
-    const totalComplaints = (stats?.complaints?.pending || 0) + (stats?.complaints?.in_progress || 0) + (stats?.complaints?.resolved || 0)
+    const pendingComplaints = stats?.complaints?.pending || 0
+    const inProgressComplaints = stats?.complaints?.in_progress || 0
+    const resolvedComplaints = stats?.complaints?.resolved || 0
+    const totalComplaints = pendingComplaints + inProgressComplaints + resolvedComplaints
     const serviceRequests = stats?.services?.requested || stats?.serviceRequests?.total || stats?.services?.total || 0
-
-    if (!userIsOfficial) {
-        const residentCards = [
-            { label: 'Pending', value: stats?.complaints?.pending || 0, icon: Clock, tone: 'gold' },
-            { label: 'In Progress', value: stats?.complaints?.in_progress || 0, icon: AlertCircle, tone: 'blue' },
-            { label: 'Resolved', value: stats?.complaints?.resolved || 0, icon: CheckCircle, tone: 'green' },
-            { label: 'My Ideas', value: suggestionCount, icon: Lightbulb, tone: 'navy' }
-        ]
-
-        const residentActions = [
-            { to: '/complaints/new', icon: Plus, title: 'File Complaint', text: 'Report a barangay concern or issue.' },
-            { to: '/services', icon: FileCheck, title: 'Request Documents', text: 'Apply for certificates and clearances.' },
-            { to: '/suggestions/new', icon: Lightbulb, title: 'Submit Idea', text: 'Share a suggestion for the community.' },
-            { to: '/announcements', icon: Bell, title: 'View Announcements', text: 'Read official barangay updates.' }
-        ]
-
-        return (
-            <div className="page dashboard-page resident-dashboard animate-fadeIn">
-                <section className="resident-hero">
-                    <div>
-                        <span>{today}</span>
-                        <h1>Resident Service Dashboard</h1>
-                        <p>{greeting}, {user?.firstName}. Track your requests and access barangay services.</p>
-                    </div>
-                    <div className="resident-hero-actions">
-                        <Link to="/complaints/new" className="btn btn-primary">
-                            <Plus size={18} />
-                            File Complaint
-                        </Link>
-                        <Link to="/suggestions/new" className="btn btn-success">
-                            <Lightbulb size={18} />
-                            Submit Idea
-                        </Link>
-                    </div>
-                </section>
-
-                <section className="resident-summary-grid">
-                    {residentCards.map(card => (
-                        <div key={card.label} className="resident-stat-card">
-                            <div className={`kpi-icon ${card.tone}`}>
-                                <card.icon size={22} />
-                            </div>
-                            <strong>{card.value}</strong>
-                            <span>{card.label}</span>
-                        </div>
-                    ))}
-                </section>
-
-                <section className="resident-action-grid">
-                    {residentActions.map(action => (
-                        <Link key={action.title} to={action.to} className="resident-action-card">
-                            <action.icon size={24} />
-                            <div>
-                                <h3>{action.title}</h3>
-                                <p>{action.text}</p>
-                            </div>
-                            <ArrowRight size={18} />
-                        </Link>
-                    ))}
-                </section>
-
-                <section className="resident-record-panel">
-                    <div className="resident-panel-header">
-                        <div>
-                            <h2>My Recent Requests</h2>
-                            <p>Latest complaint records linked to your account.</p>
-                        </div>
-                        <Link to="/complaints" className="resident-view-all">
-                            View All <ArrowRight size={15} />
-                        </Link>
-                    </div>
-
-                    {recentComplaints.length > 0 ? (
-                        <div className="resident-request-list">
-                            {recentComplaints.map(complaint => {
-                                const statusClass = complaint.status?.toLowerCase().replace('_', '-')
-                                return (
-                                    <Link key={complaint.id} to={`/complaints/${complaint.id}`} className="resident-request-row">
-                                        <div className="request-icon">
-                                            <FileText size={18} />
-                                        </div>
-                                        <div>
-                                            <strong>{complaint.title}</strong>
-                                            <span>{complaint.category?.name} • {new Date(complaint.createdAt).toLocaleDateString()}</span>
-                                        </div>
-                                        <span className={`badge badge-${statusClass}`}>{complaint.status?.replace('_', ' ')}</span>
-                                    </Link>
-                                )
-                            })}
-                        </div>
-                    ) : (
-                        <div className="empty-state">
-                            <FileText size={48} />
-                            <h4>No recent requests</h4>
-                            <p>Start by filing a complaint or requesting a document.</p>
-                        </div>
-                    )}
-                </section>
-            </div>
-        )
-    }
-
-    const kpis = [
-        {
-            label: 'Total Complaints',
-            value: totalComplaints,
-            note: 'Active community records',
-            icon: MessageCircle,
-            tone: 'green'
-        },
-        {
-            label: 'For Action',
-            value: stats?.complaints?.pending || 0,
-            note: 'Kailangan ng atensyon',
-            icon: ClipboardList,
-            tone: 'blue'
-        },
-        {
-            label: 'Resolved',
-            value: stats?.complaints?.resolved || 0,
-            note: `${stats?.complaints?.resolutionRate || 0}% resolution rate`,
-            icon: CheckCircle,
-            tone: 'green'
-        },
-        {
-            label: 'Suggestions',
-            value: suggestionCount,
-            note: 'Ideas from residents',
-            icon: Lightbulb,
-            tone: 'gold'
-        },
-        {
-            label: 'Services Requested',
-            value: serviceRequests,
-            note: 'Certificates and clearances',
-            icon: FileText,
-            tone: 'navy'
-        }
-    ]
-
-    const quickServices = [
-        { to: '/complaints', icon: MessageCircle, title: 'Manage Complaints', text: 'I-update ang status ng reklamo', tone: 'blue-line' },
-        { to: '/suggestions', icon: Lightbulb, title: 'Review Suggestions', text: 'Tingnan ang mungkahi ng residente', tone: 'gold-line' },
-        { to: '/services', icon: FileCheck, title: 'Process Certificates', text: 'Barangay clearance at iba pa', tone: 'green-line' },
-        { to: '/announcements', icon: Megaphone, title: 'Post Announcement', text: 'Maglabas ng opisyal na abiso', tone: 'blue-line' },
-        { to: '/complaints', icon: ClipboardList, title: 'Track Cases', text: 'Subaybayan ang pending records', tone: 'navy-line' },
-        { to: '/services', icon: Download, title: 'Review Requests', text: 'Mga kailangang dokumento', tone: 'green-line' }
-    ]
 
     return (
         <div className="page dashboard-page animate-fadeIn">
-            <div className="dashboard-hero">
-                <div>
-                    <h1>{greeting === 'Good Morning' ? 'Magandang umaga' : greeting === 'Good Afternoon' ? 'Magandang araw' : 'Magandang gabi'}, {user?.firstName}!</h1>
-                    <p>Narito ang overview ng mga serbisyo at aktibidad sa ating barangay.</p>
-                </div>
-                <div className="dashboard-date-card">
-                    <CalendarDays size={22} />
-                    <div>
-                        <strong>{today}</strong>
-                        <span>{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>
+            {/* Command Center Hero Banner */}
+            <div className="dashboard-hero-banner">
+                <div className="dashboard-hero-content">
+                    <div className="dashboard-hero-badge">
+                        <ShieldAlert size={14} /> Barangay Burgos Public Service Portal
                     </div>
-                </div>
-            </div>
+                    <h1>{greeting}, {user?.firstName || 'Resident'}!</h1>
+                    <p>
+                        {userIsOfficial
+                            ? 'Overview of active community cases, citizen requests, and barangay emergency operations.'
+                            : 'Access official barangay services, report community concerns with AI, and track case progress in real time.'}
+                    </p>
 
-            <div className="dashboard-kpi-grid">
-                {kpis.map(item => (
-                    <div key={item.label} className="kpi-card">
-                        <div className={`kpi-icon ${item.tone}`}>
-                            <item.icon size={24} />
-                        </div>
-                        <div>
-                            <span className="kpi-label">{item.label}</span>
-                            <strong className="kpi-value">{item.value}</strong>
-                            <span className="kpi-note">▲ {item.note}</span>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            <div className="dashboard-main-grid">
-                <section className="dashboard-panel quick-panel">
-                    <h2>Mga Mabilis na Serbisyo</h2>
-                    <div className="quick-service-grid">
-                        {quickServices.map(item => (
-                            <Link key={item.title} to={item.to} className={`quick-service ${item.tone}`}>
-                                <item.icon size={28} />
-                                <div>
-                                    <strong>{item.title}</strong>
-                                    <span>{item.text}</span>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                    <div className="reminder-card">
-                        <ShieldCheck size={20} />
-                        <div>
-                            <strong>Paalala</strong>
-                            <p>Para sa agarang tulong, bumisita sa Barangay Hall o tumawag sa aming opisina. Lunes - Biyernes, 8:00 AM - 5:00 PM.</p>
-                        </div>
-                    </div>
-                </section>
-
-                <section className="dashboard-panel activity-panel">
-                    <div className="panel-title-row">
-                        <h2>Kamakailang Aktibidad</h2>
-                        <div className="activity-tools">
-                            <select aria-label="Filter type">
-                                <option>Lahat ng Uri</option>
-                            </select>
-                            <select aria-label="Filter status">
-                                <option>Lahat ng Status</option>
-                            </select>
-                            <label>
-                                <Search size={15} />
-                                <input placeholder="Maghanap..." />
-                            </label>
-                        </div>
-                    </div>
-                    <div className="activity-table">
-                        <div className="activity-table-head">
-                            <span>ID / Uri</span>
-                            <span>Uri / Paksa</span>
-                            <span>Nagpadala</span>
-                            <span>Petsa</span>
-                            <span>Status</span>
-                        </div>
-                        {recentComplaints.length > 0 ? recentComplaints.map((complaint, index) => {
-                            const statusClass = complaint.status?.toLowerCase().replace('_', '-')
-                            return (
-                                <Link key={complaint.id} to={`/complaints/${complaint.id}`} className="activity-table-row">
-                                    <span>CMP-2026-{128 - index}</span>
-                                    <strong>{complaint.title}</strong>
-                                    <span>{complaint.user?.firstName || user?.firstName || 'Resident'}</span>
-                                    <span>{new Date(complaint.createdAt).toLocaleDateString()}</span>
-                                    <span className={`badge badge-${statusClass}`}>{complaint.status?.replace('_', ' ')}</span>
-                                </Link>
-                            )
-                        }) : (
-                            <div className="activity-table-empty">Wala pang bagong aktibidad.</div>
-                        )}
-                        <Link to="/complaints" className="table-view-all">
-                            Tingnan ang lahat ng aktibidad <ArrowRight size={15} />
+                    <div className="dashboard-hero-quick-actions">
+                        <Link to="/complaints/new" className="hero-action-btn primary-hero-btn">
+                            <Plus size={16} />
+                            <span>File a Complaint</span>
+                        </Link>
+                        <Link to="/services" className="hero-action-btn secondary-hero-btn">
+                            <FileCheck size={16} />
+                            <span>Request Documents</span>
                         </Link>
                     </div>
-                </section>
+                </div>
+
+                <div className="dashboard-hero-date-card">
+                    <div className="date-card-icon">
+                        <CalendarDays size={22} />
+                    </div>
+                    <div>
+                        <span className="date-label">Today's Date</span>
+                        <strong className="date-val">{today}</strong>
+                        <span className="location-badge">📍 Barangay Burgos, Basey, Samar</span>
+                    </div>
+                </div>
             </div>
 
-            <div className="dashboard-lower-grid">
-                <section className="dashboard-panel mini-analytics">
-                    <h2>Complaints by Category</h2>
-                    <div className="donut-wrap">
-                        <div className="donut-chart" />
-                        <div className="legend-list">
-                            <span><i className="green" /> Infrastructure <strong>{stats?.complaints?.pending || 0}</strong></span>
-                            <span><i className="blue" /> Public Safety <strong>{stats?.complaints?.in_progress || 0}</strong></span>
-                            <span><i className="gold" /> Services <strong>{stats?.complaints?.resolved || 0}</strong></span>
+            {/* Live KPI Metric Cards */}
+            <div className="dashboard-kpi-grid">
+                <div className="kpi-card kpi-pending">
+                    <div className="kpi-top">
+                        <span className="kpi-label">Pending Action</span>
+                        <div className="kpi-icon-box icon-amber">
+                            <Clock size={18} />
                         </div>
                     </div>
-                </section>
-                <section className="dashboard-panel mini-analytics">
-                    <h2>Complaints Trend</h2>
-                    <div className="trend-card">
-                        <TrendingUp size={22} />
-                        <div className="trend-line" />
+                    <strong className="kpi-number">{pendingComplaints}</strong>
+                    <div className="kpi-footer">
+                        <span className="kpi-subtext">Awaiting resolution</span>
+                        <Link to="/complaints?status=PENDING" className="kpi-link">View ➔</Link>
                     </div>
-                </section>
-                <section className="dashboard-panel mini-analytics">
-                    <h2>Service Status Overview</h2>
-                    <div className="status-bars">
-                        <span>Completed <i style={{ '--w': `${stats?.complaints?.resolutionRate || 40}%` }} /></span>
-                        <span>Processing <i className="blue" style={{ '--w': '45%' }} /></span>
-                        <span>Pending <i className="gold" style={{ '--w': '20%' }} /></span>
+                </div>
+
+                <div className="kpi-card kpi-in-progress">
+                    <div className="kpi-top">
+                        <span className="kpi-label">In Progress</span>
+                        <div className="kpi-icon-box icon-blue">
+                            <AlertCircle size={18} />
+                        </div>
                     </div>
-                </section>
-                <section className="dashboard-panel mini-analytics announcements-mini">
-                    <h2>Announcements</h2>
-                    <div>
-                        <Megaphone size={34} />
-                        <strong>{stats?.announcements?.published || 0}</strong>
-                        <span>Bagong Anunsyo</span>
+                    <strong className="kpi-number">{inProgressComplaints}</strong>
+                    <div className="kpi-footer">
+                        <span className="kpi-subtext">Responders dispatched</span>
+                        <Link to="/complaints?status=IN_PROGRESS" className="kpi-link">View ➔</Link>
                     </div>
-                </section>
+                </div>
+
+                <div className="kpi-card kpi-resolved">
+                    <div className="kpi-top">
+                        <span className="kpi-label">Resolved Cases</span>
+                        <div className="kpi-icon-box icon-green">
+                            <CheckCircle2 size={18} />
+                        </div>
+                    </div>
+                    <strong className="kpi-number">{resolvedComplaints}</strong>
+                    <div className="kpi-footer">
+                        <span className="kpi-subtext">Actions completed</span>
+                        <Link to="/complaints?status=RESOLVED" className="kpi-link">View ➔</Link>
+                    </div>
+                </div>
+
+                <div className="kpi-card kpi-services">
+                    <div className="kpi-top">
+                        <span className="kpi-label">Document Services</span>
+                        <div className="kpi-icon-box icon-indigo">
+                            <FileText size={18} />
+                        </div>
+                    </div>
+                    <strong className="kpi-number">{serviceRequests}</strong>
+                    <div className="kpi-footer">
+                        <span className="kpi-subtext">Certificates & IDs</span>
+                        <Link to="/services" className="kpi-link">Explore ➔</Link>
+                    </div>
+                </div>
+
+                <div className="kpi-card kpi-ideas">
+                    <div className="kpi-top">
+                        <span className="kpi-label">Community Ideas</span>
+                        <div className="kpi-icon-box icon-gold">
+                            <Lightbulb size={18} />
+                        </div>
+                    </div>
+                    <strong className="kpi-number">{suggestionCount}</strong>
+                    <div className="kpi-footer">
+                        <span className="kpi-subtext">Citizen proposals</span>
+                        <Link to="/suggestions" className="kpi-link">Browse ➔</Link>
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Content Layout (2 Columns) */}
+            <div className="dashboard-content-layout">
+                {/* Left Column: Quick Services & Action Modules */}
+                <div className="dashboard-main-column">
+                    <div className="dashboard-section-card">
+                        <div className="section-card-header">
+                            <div>
+                                <h2>Quick Services & Portals</h2>
+                                <p>Direct shortcuts to essential barangay digital services</p>
+                            </div>
+                        </div>
+
+                        <div className="quick-services-grid">
+                            <Link to="/complaints/new" className="quick-portal-item item-emerald">
+                                <div className="portal-icon-wrap">
+                                    <ShieldAlert size={24} />
+                                </div>
+                                <div className="portal-text-wrap">
+                                    <h4>File a Complaint</h4>
+                                    <p>AI report generator with satellite GPS pinning</p>
+                                </div>
+                                <ArrowRight size={18} className="portal-arrow" />
+                            </Link>
+
+                            <Link to="/services" className="quick-portal-item item-blue">
+                                <div className="portal-icon-wrap">
+                                    <FileCheck size={24} />
+                                </div>
+                                <div className="portal-text-wrap">
+                                    <h4>Request Certificates</h4>
+                                    <p>Barangay Clearance, Indigency, ID, & Permits</p>
+                                </div>
+                                <ArrowRight size={18} className="portal-arrow" />
+                            </Link>
+
+                            <Link to="/complaints" className="quick-portal-item item-indigo">
+                                <div className="portal-icon-wrap">
+                                    <ClipboardList size={24} />
+                                </div>
+                                <div className="portal-text-wrap">
+                                    <h4>Incident Satellite Map</h4>
+                                    <p>Live map plotting and responder tracking</p>
+                                </div>
+                                <ArrowRight size={18} className="portal-arrow" />
+                            </Link>
+
+                            <Link to="/suggestions" className="quick-portal-item item-amber">
+                                <div className="portal-icon-wrap">
+                                    <Lightbulb size={24} />
+                                </div>
+                                <div className="portal-text-wrap">
+                                    <h4>Community Suggestions</h4>
+                                    <p>Propose and vote on community improvements</p>
+                                </div>
+                                <ArrowRight size={18} className="portal-arrow" />
+                            </Link>
+
+                            <Link to="/announcements" className="quick-portal-item item-teal">
+                                <div className="portal-icon-wrap">
+                                    <Megaphone size={24} />
+                                </div>
+                                <div className="portal-text-wrap">
+                                    <h4>Official Advisories</h4>
+                                    <p>Barangay announcements and event notices</p>
+                                </div>
+                                <ArrowRight size={18} className="portal-arrow" />
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right Column: Recent Reports & Barangay Desk */}
+                <div className="dashboard-side-column">
+                    {/* Recent Incident Reports */}
+                    <div className="dashboard-section-card">
+                        <div className="section-card-header">
+                            <div>
+                                <h2>Recent Incident Reports</h2>
+                                <p>Latest active cases linked to the community</p>
+                            </div>
+                            <Link to="/complaints" className="view-all-link">
+                                View All <ChevronRight size={15} />
+                            </Link>
+                        </div>
+
+                        {recentComplaints.length > 0 ? (
+                            <div className="dashboard-recent-list">
+                                {recentComplaints.map(complaint => {
+                                    const statusLower = (complaint.status || 'PENDING').toLowerCase().replace('_', '-')
+                                    const cleanLoc = complaint.location ? complaint.location.split('[')[0].trim() : ''
+
+                                    return (
+                                        <Link 
+                                            key={complaint.id} 
+                                            to={`/complaints/${complaint.id}`}
+                                            className="dashboard-recent-item"
+                                        >
+                                            <div className="recent-item-icon">
+                                                <FileText size={18} />
+                                            </div>
+                                            <div className="recent-item-details">
+                                                <div className="recent-item-title-row">
+                                                    <strong>{complaint.title}</strong>
+                                                    <span className={`status-pill-mini pill-${statusLower}`}>
+                                                        {complaint.status?.replace('_', ' ')}
+                                                    </span>
+                                                </div>
+                                                <div className="recent-item-meta">
+                                                    {complaint.category?.name && <span>🏷️ {complaint.category.name}</span>}
+                                                    {cleanLoc && <span>📍 {cleanLoc}</span>}
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    )
+                                })}
+                            </div>
+                        ) : (
+                            <div className="empty-recent-box">
+                                <FileText size={36} className="empty-icon-subtle" />
+                                <p>No recent complaints filed.</p>
+                                <Link to="/complaints/new" className="empty-action-link">
+                                    File a Complaint ➔
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Official Barangay Burgos Notice Desk */}
+                    <div className="dashboard-hall-notice-card">
+                        <div className="hall-notice-header">
+                            <Building2 size={20} className="text-green-700" />
+                            <h4>Barangay Burgos Action Center</h4>
+                        </div>
+                        <p className="hall-notice-text">
+                            For urgent in-person assistance, visit the Barangay Hall at Basey-Sohoton Road, Barangay Burgos, Basey, Samar.
+                        </p>
+                        <div className="hall-notice-meta">
+                            <div className="notice-chip">
+                                <Clock size={13} />
+                                <span>Mon - Fri: 8:00 AM - 5:00 PM</span>
+                            </div>
+                            <div className="notice-chip">
+                                <PhoneCall size={13} />
+                                <span>Desk: 0917-882-8746</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     )
