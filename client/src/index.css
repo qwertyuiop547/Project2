@@ -814,31 +814,179 @@ body {
 }
 
 /* ============================================
-   RESPONSIVE
+   UNIVERSAL RESPONSIVE SYSTEM
    ============================================ */
+
+@media (max-width: 1024px) {
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-content-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-columns-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
 @media (max-width: 768px) {
   .page {
-    padding: 20px 0;
+    padding: 14px 0;
   }
 
-  .page-header {
+  .page-header,
+  .services-hero-banner,
+  .complaints-hero-banner,
+  .dashboard-hero-banner,
+  .suggestions-hero-banner,
+  .announcements-hero-banner,
+  .profile-hero-card {
+    padding: 22px 20px;
+    border-radius: 16px;
     flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
   }
 
-  .page-header h1 {
-    font-size: 1.6rem;
+  .services-hero-banner h1,
+  .complaints-hero-banner h1,
+  .dashboard-hero-banner h1,
+  .suggestions-hero-banner h1,
+  .announcements-hero-banner h1,
+  .profile-hero-card h1 {
+    font-size: 1.5rem !important;
+  }
+
+  .services-hero-stats,
+  .complaints-hero-actions,
+  .dashboard-hero-quick-actions,
+  .suggestions-hero-actions,
+  .announcements-hero-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .services-hero-stats .hero-stat-card,
+  .file-complaint-btn,
+  .propose-idea-btn,
+  .post-announcement-btn,
+  .hero-action-btn {
+    flex: 1 1 auto;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .grid-4,
+  .grid-3,
+  .grid-2,
+  .services-cards-grid,
+  .complaints-card-grid,
+  .my-requests-timeline-grid,
+  .dashboard-kpi-grid,
+  .complaints-stats-grid,
+  .suggestions-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .form-two-col,
+  .modal-two-col {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
   }
 
   .card {
-    padding: 20px;
+    padding: 16px;
+    border-radius: 14px;
   }
 
   .stat-card {
-    padding: 20px;
+    padding: 16px;
   }
 
   .stat-value {
-    font-size: 2rem;
+    font-size: 1.8rem;
+  }
+
+  .announcement-card-layout {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .suggestion-card-premium {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .suggestion-vote-block {
+    width: 100%;
+  }
+
+  .vote-btn-pill {
+    flex-direction: row;
+    width: 100%;
+    gap: 10px;
+    padding: 10px;
+    min-height: 44px;
+  }
+
+  /* Chatbot panel responsive full-width bounds */
+  .chatbot-panel {
+    width: calc(100vw - 24px) !important;
+    right: 12px !important;
+    bottom: 84px !important;
+    max-height: calc(100vh - 100px) !important;
+  }
+
+  .chatbot-fab {
+    bottom: 18px !important;
+    right: 18px !important;
   }
 }
+
+@media (max-width: 480px) {
+  .page {
+    padding: 10px 0;
+  }
+
+  .services-search-input,
+  .complaints-search-field,
+  .suggestions-search-field,
+  .announcements-search-field {
+    font-size: 0.85rem;
+    padding-left: 38px;
+  }
+
+  .category-pill,
+  .status-pill,
+  .suggestion-pill,
+  .announcement-pill {
+    font-size: 0.74rem;
+    padding: 5px 10px;
+  }
+
+  .profile-hero-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .profile-avatar-box {
+    width: 68px;
+    height: 68px;
+    font-size: 1.6rem;
+  }
+
+  .location-map-container,
+  .complaints-map-container {
+    height: 320px !important;
+  }
+}
+
