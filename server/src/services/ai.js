@@ -1,15 +1,29 @@
 const CATEGORY_KEYWORDS = {
-    Infrastructure: ['pothole', 'road', 'bridge', 'building', 'kalsada', 'butas', 'street', 'sidewalk', 'drainage', 'poste', 'crack', 'baha', 'flood', 'tulay', 'bubong', 'pader'],
-    Sanitation: ['garbage', 'basura', 'trash', 'waste', 'dump', 'smell', 'mabaho', 'collection', 'kalat', 'dumi', 'langaw', 'amoy', 'madumi'],
-    'Public Safety': ['crime', 'theft', 'security', 'lighting', 'lamp', 'danger', 'unsafe', 'krimen', 'nakawan', 'delikado', 'ilaw', 'holdap', 'magnanakaw', 'patayan', 'away', 'bugbugan'],
-    'Noise & Disturbance': ['noise', 'loud', 'music', 'karaoke', 'ingay', 'iingay', 'maingay', 'maiingay', 'disturbance', 'party', 'videoke', 'tambay', 'gulo', 'sigawan', 'sound', 'bass', 'speaker'],
+    Infrastructure: ['pothole', 'road', 'bridge', 'building', 'kalsada', 'butas', 'lubak', 'street', 'sidewalk', 'drainage', 'poste', 'crack', 'baha', 'flood', 'tulay', 'bubong', 'pader', 'ilaw', 'lamp', 'madilim', 'pundido', 'tubo', 'pipe'],
+    Sanitation: ['garbage', 'basura', 'trash', 'waste', 'dump', 'smell', 'mabaho', 'collection', 'kalat', 'dumi', 'langaw', 'amoy', 'madumi', 'estero', 'kanal', 'barado', 'daga', 'peste'],
+    'Public Safety': ['crime', 'theft', 'security', 'danger', 'unsafe', 'krimen', 'nakawan', 'delikado', 'holdap', 'magnanakaw', 'patayan', 'away', 'bugbugan', 'droga', 'shabu', 'adik', 'nakaw', 'snatcher', 'gulo', 'sunog', 'fire', 'apoy', 'aksidente', 'accident', 'kuryente', 'live wire', 'saksakan', 'barilan'],
+    'Noise & Disturbance': ['noise', 'loud', 'music', 'karaoke', 'ingay', 'iingay', 'maingay', 'maiingay', 'disturbance', 'party', 'videoke', 'tambay', 'sigawan', 'sound', 'bass', 'speaker', 'patugtog', 'kantahan', 'tugtugan', 'nagiingay', 'kapitbahay'],
     Others: []
 };
 
 const PRIORITY_KEYWORDS = {
-    URGENT: ['urgent', 'emergency', 'danger', 'delikado', 'agad', 'critical', 'injury', 'fire', 'flood', 'baha', 'sunog', 'aksidente'],
-    HIGH: ['high', 'mataas', 'serious', 'immediate', 'matagal', 'linggo', 'week', 'araw', 'hindi', 'luma na'],
-    LOW: ['minor', 'maliit', 'cosmetic', 'kaunti', 'mababa']
+    URGENT: [
+        'urgent', 'emergency', 'danger', 'delikado', 'agad', 'critical', 'injury', 'fire', 'sunog',
+        'aksidente', 'accident', 'patayan', 'saksakan', 'kamatayan', 'baril', 'barilan', 'holdap',
+        'magnanakaw', 'robbery', 'theft', 'kuryente', 'live wire', 'putol na kable', 'nagwawala',
+        'sinasaktan', 'duguan', 'blood', 'life-threatening', 'flash flood', 'lumulubog'
+    ],
+    HIGH: [
+        'high', 'mataas', 'serious', 'immediate', 'matagal', 'linggo', 'week', 'araw-araw',
+        'gabi-gabi', 'madaling araw', 'hating gabi', 'midnight', 'sobrang', 'napakalakas',
+        'mabaho', 'foul odor', 'amoy', 'barado ang kanal', 'tambak', 'peste', 'daga',
+        'inuman sa kalsada', 'loitering', 'nanggugulo', 'droga', 'shabu', 'madilim',
+        'dark road', 'pothole', 'deep hole', 'lubak', 'overflowing', 'apaw'
+    ],
+    LOW: [
+        'minor', 'maliit', 'cosmetic', 'kaunti', 'mababa', 'simpleng', 'pintura',
+        'lumang sign', 'not urgent', 'non-urgent', 'aesthetic'
+    ]
 };
 
 const CATEGORY_LABELS_TL = {
@@ -106,8 +120,8 @@ async function callOllama(messages, { jsonMode = false } = {}) {
         stream: false,
         keep_alive: '30m',
         options: {
-            temperature: 0.4,
-            num_predict: jsonMode ? 200 : 220,
+            temperature: 0.3,
+            num_predict: jsonMode ? 600 : 350,
             num_ctx: 2048,
         },
     };
@@ -284,9 +298,6 @@ async function warmUpOllama() {
 async function callAI(messages, { jsonMode = false } = {}) {
     const providers = [];
 
-    if (await isOllamaAvailable()) {
-        providers.push({ name: 'ollama', fn: callOllama });
-    }
     if (process.env.GEMINI_API_KEY) {
         providers.push({ name: 'gemini', fn: callGemini });
     }
@@ -295,6 +306,9 @@ async function callAI(messages, { jsonMode = false } = {}) {
     }
     if (process.env.OPENAI_API_KEY) {
         providers.push({ name: 'openai', fn: callOpenAI });
+    }
+    if (await isOllamaAvailable()) {
+        providers.push({ name: 'ollama', fn: callOllama });
     }
 
     for (const provider of providers) {
@@ -311,17 +325,44 @@ async function callAI(messages, { jsonMode = false } = {}) {
     return { content: null, source: 'smart-assist' };
 }
 
+function extractJsonFromText(text) {
+    if (!text) return null;
+    let cleaned = text.trim();
+    if (cleaned.includes('```json')) {
+        const match = cleaned.match(/```json\s*([\s\S]*?)\s*```/i);
+        if (match) cleaned = match[1];
+    } else if (cleaned.includes('```')) {
+        const match = cleaned.match(/```\s*([\s\S]*?)\s*```/i);
+        if (match) cleaned = match[1];
+    }
+    return cleaned.trim();
+}
+
 function normalizeMatchText(text) {
     return text.toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
 function textMatchesKeyword(text, keyword) {
+    if (!text || !keyword) return false;
     const lower = normalizeMatchText(text);
-    const compact = lower.replace(/\s+/g, '');
-    const kw = keyword.toLowerCase();
-    const kwCompact = kw.replace(/\s+/g, '');
+    const kw = keyword.toLowerCase().trim();
 
-    return lower.includes(kw) || compact.includes(kwCompact);
+    if (kw === 'baha') {
+        return /\b(baha|binabaha|nagbabaha|pagbaha|bumabaha|bahang)\b/i.test(lower);
+    }
+
+    // Direct whole word check
+    const words = lower.split(/[^a-zA-Z0-9ñÑ-]+/).filter(Boolean);
+    if (words.includes(kw)) {
+        return true;
+    }
+
+    // Prefix / Suffix match for Tagalog affixes (e.g. nag-videoke, maingay, nagiingay)
+    if (kw.length >= 4) {
+        return words.some(w => w.startsWith(kw) || w.endsWith(kw) || w.includes(kw));
+    }
+
+    return false;
 }
 
 function getCategoryMatchScore(text, categoryName) {
@@ -367,192 +408,184 @@ function capitalizeFirst(text) {
 
 function extractPlacePhrase(text, location) {
     if (location?.trim()) {
-        const loc = location.trim();
-        return loc.toLowerCase().startsWith('sa ') ? loc : `sa ${loc}`;
+        const loc = location.trim().replace(/\[[0-9.-]+,\s*[0-9.-]+\]/g, '').trim();
+        if (loc) {
+            return `in the vicinity of ${loc}`;
+        }
     }
 
     const patterns = [
-        /\b(dun\s+sa\s+[\w\s]+)/i,
-        /\b(sa\s+kabilang\s+kanto)\b/i,
-        /\b(sa\s+[\w\s]*kanto)\b/i,
-        /\b(sa\s+block\s*\d+)\b/i,
-        /\b(sa\s+[\w\d\s-]{3,30})/i,
+        /\b(?:sa|dun sa|tapat ng|near|along|corner|kanto ng|block\s*\d+)\s+([a-zA-Z0-9\s.,#-]{3,40})/i,
+        /\b(block\s*\d+\s*(?:lot\s*\d+)?)/i,
+        /\b([a-zA-Z0-9\s]+(?:street|st\.|avenue|ave\.|road|rd\.))/i
     ];
 
     for (const pattern of patterns) {
         const match = text.match(pattern);
-        if (match) {
-            let phrase = match[1].trim();
-            if (phrase.toLowerCase().startsWith('dun sa ')) {
-                phrase = phrase.replace(/^dun\s+sa\s+/i, 'sa ');
-            }
-            return phrase;
+        if (match && match[0]) {
+            return `near ${match[0].trim()}`;
         }
     }
 
     return null;
 }
 
-function buildTitle(text, categoryName) {
-    const cleaned = text.trim().replace(/\s+/g, ' ');
-    if (!cleaned) {
-        return 'Barangay Complaint';
-    }
-
-    const place = extractPlacePhrase(cleaned, null);
-
-    if (categoryName === 'Noise & Disturbance'
-        && (textMatchesKeyword(cleaned, 'ingay') || textMatchesKeyword(cleaned, 'iingay') || textMatchesKeyword(cleaned, 'maingay'))) {
-        return place ? `Labis na Ingay ${place}` : 'Labis na Ingay sa Lugar';
-    }
-
-    if (categoryName === 'Sanitation'
-        && (textMatchesKeyword(cleaned, 'basura') || textMatchesKeyword(cleaned, 'kalat'))) {
-        return place ? `Problema sa Basura ${place}` : 'Problema sa Basura at Kalinisan';
-    }
-
-    if (categoryName === 'Infrastructure'
-        && (textMatchesKeyword(cleaned, 'kalsada') || textMatchesKeyword(cleaned, 'poste') || textMatchesKeyword(cleaned, 'ilaw'))) {
-        return place ? `Sira na Imprastraktura ${place}` : 'Problema sa Imprastraktura';
-    }
-
-    if (categoryName === 'Public Safety') {
-        return place ? `Isyu sa Kaligtasan ${place}` : 'Isyu sa Kaligtasan Pampubliko';
-    }
-
-    const sentence = cleaned.split(/[.!?\n]/)[0].trim();
-    const title = sentence.length > 80 ? `${sentence.slice(0, 77)}...` : sentence;
-    return capitalizeFirst(title);
-}
-
-function polishDescription(description, location, categoryName) {
-    const cleaned = description.trim().replace(/\s+/g, ' ');
-    if (!cleaned) {
-        return cleaned;
-    }
+function buildDynamicTitle(description, categoryName, location) {
+    const cleaned = (description || '').trim();
+    if (!cleaned) return 'Community Incident Report';
 
     const place = extractPlacePhrase(cleaned, location);
-    const placeIn = place ? ` ${place}` : '';
-    const locSuffix = location?.trim() && !place
-        ? ` Lokasyon: ${location.trim()}.`
-        : '';
+    const placeText = place ? ` (${place})` : '';
 
     if (categoryName === 'Noise & Disturbance') {
-        return `Nais kong i-report ang labis na ingay${placeIn || ' sa aming lugar'}. Nakakaabala ito sa kapayapaan ng aming komunidad at humihiling ako ng tulong mula sa barangay.${locSuffix}`;
+        if (/karaoke|videoke|patugtog|sound|speaker/i.test(cleaned)) {
+            return `Loud Videoke & Sound Disturbance${placeText}`;
+        }
+        if (/tambay|loitering|inuman|inom/i.test(cleaned)) {
+            return `Public Loitering & Disturbance Concern${placeText}`;
+        }
+        if (/kapitbahay|neighbor|sigawan|away/i.test(cleaned)) {
+            return `Neighborhood Noise & Commotion Disturbance${placeText}`;
+        }
+        return `Excessive Public Noise Disturbance${placeText}`;
     }
 
     if (categoryName === 'Sanitation') {
-        return `Nais kong i-report ang problema sa basura at kalinisan${placeIn || ''}. ${capitalizeFirst(cleaned.endsWith('.') ? cleaned : `${cleaned}.`)} Humihiling ako ng agarang aksyon mula sa barangay.${locSuffix}`;
+        if (/baha|drainage|kanal|clog|bara/i.test(cleaned)) {
+            return `Clogged Drainage and Flooding Hazard${placeText}`;
+        }
+        if (/mabaho|amoy|smell|odor/i.test(cleaned)) {
+            return `Foul Odor and Waste Accumulation Report${placeText}`;
+        }
+        if (/basura|garbage|trash|waste|dumi/i.test(cleaned)) {
+            return `Uncollected Garbage & Sanitation Concern${placeText}`;
+        }
+        return `Sanitation and Environmental Cleanliness Concern${placeText}`;
     }
 
     if (categoryName === 'Infrastructure') {
-        return `Nais kong i-report ang sira o problema sa imprastraktura${placeIn || ''}. ${capitalizeFirst(cleaned.endsWith('.') ? cleaned : `${cleaned}.`)} Humihiling ako ng pag-aayos mula sa barangay.${locSuffix}`;
+        if (/ilaw|poste|light|lamp|madilim|dark/i.test(cleaned)) {
+            return `Non-Functional Streetlight & Dark Road Hazard${placeText}`;
+        }
+        if (/butas|kalsada|pothole|road|crack|lubak/i.test(cleaned)) {
+            return `Damaged Road & Dangerous Pothole Hazard${placeText}`;
+        }
+        if (/tubig|leak|pipe|water/i.test(cleaned)) {
+            return `Water Pipeline Leak & Infrastructure Issue${placeText}`;
+        }
+        return `Damaged Public Infrastructure & Facility Hazard${placeText}`;
     }
 
     if (categoryName === 'Public Safety') {
-        return `Nais kong i-report ang isyu na may kinalaman sa kaligtasan${placeIn || ''}. ${capitalizeFirst(cleaned.endsWith('.') ? cleaned : `${cleaned}.`)} Humihiling ako ng tulong mula sa barangay officials.${locSuffix}`;
-    }
-
-    return `Nais kong i-report ang sumusunod na isyu${placeIn || ''}: ${capitalizeFirst(cleaned.endsWith('.') ? cleaned : `${cleaned}.`)} Humihiling ako ng tulong mula sa barangay.${locSuffix}`;
-}
-
-function improveDescriptionFallback(description, location, categoryName) {
-    return polishDescription(description, location, categoryName);
-}
-
-function fallbackComplaintAssist({ description, location, categories }) {
-    const combined = `${description} ${location || ''}`;
-    const category = matchCategory(combined, categories);
-    const priority = matchPriority(combined);
-    const categoryTl = CATEGORY_LABELS_TL[category.name] || category.name;
-
-    const priorityTl = {
-        URGENT: 'Apurahan (Urgent)',
-        HIGH: 'Mataas (High)',
-        MEDIUM: 'Katamtaman (Medium)',
-        LOW: 'Mababa (Low)',
-    }[priority];
-
-    return {
-        title: buildTitle(description, category.name),
-        description: polishDescription(description, location, category.name),
-        categoryId: category.id,
-        categoryName: category.name,
-        priority,
-        explanation: `Nakita kong tungkol ito sa **${categoryTl}** at inirerekomenda ang priority na **${priorityTl}**. Suriin ang mga detalye bago i-submit.`,
-        source: 'smart-assist',
-    };
-}
-
-function isPlausibleAiRewrite(original, aiText, categoryName) {
-    if (!aiText?.trim()) {
-        return false;
-    }
-
-    const categoryKeywords = CATEGORY_KEYWORDS[categoryName] || [];
-    const topicInOriginal = categoryKeywords.some((word) => textMatchesKeyword(original, word));
-
-    if (topicInOriginal) {
-        const topicInAi = categoryKeywords.some((word) => textMatchesKeyword(aiText, word));
-        if (!topicInAi) {
-            return false;
+        if (/nakawan|holdap|theft|robbery|magnanakaw/i.test(cleaned)) {
+            return `Security Report: Theft / Robbery Incident${placeText}`;
         }
+        if (/away|gulo|fight|threat|banta|saksakan/i.test(cleaned)) {
+            return `Urgent Public Safety: Disturbance & Physical Altercation${placeText}`;
+        }
+        if (/droga|shabu|illegal/i.test(cleaned)) {
+            return `Public Safety & Illegal Substance Activity Report${placeText}`;
+        }
+        return `Public Safety & Community Security Concern${placeText}`;
     }
 
-    const origWords = normalizeMatchText(original)
-        .split(/\s+/)
-        .filter((word) => word.length >= 4);
-
-    if (origWords.length === 0) {
-        return true;
-    }
-
-    const aiLower = normalizeMatchText(aiText);
-    const overlap = origWords.filter((word) => aiLower.includes(word) || textMatchesKeyword(aiLower, word)).length;
-
-    return overlap >= Math.min(2, origWords.length);
+    return `Official Community Incident Report${placeText}`;
 }
 
-function isPlausibleAiDescription(original, aiText, categoryName) {
-    if (!aiText?.trim() || aiText.length < 40) {
-        return false;
+function polishDynamicDescription(description, location, categoryName) {
+    const raw = (description || '').trim();
+    if (!raw) return '';
+
+    const placePhrase = extractPlacePhrase(raw, location);
+    const locSentence = placePhrase
+        ? ` The incident is situated specifically ${placePhrase}.`
+        : (location?.trim() ? ` The location identified for this report is at ${location.trim().replace(/\[[0-9.-]+,\s*[0-9.-]+\]/g, '').trim()}.` : '');
+
+    // Semantic Translation & Intelligent Report Construction
+    let incidentDetails = '';
+    let impactDetails = '';
+    let actionRequest = '';
+
+    if (categoryName === 'Noise & Disturbance') {
+        if (/karaoke|videoke/i.test(raw)) {
+            incidentDetails = 'This is a formal report regarding persistent and high-volume videoke/karaoke sound disturbance occurring within the residential area.';
+            impactDetails = 'The excessive noise levels cause significant distress and interrupt the necessary rest and quiet hours of neighboring residents and families.';
+            actionRequest = 'We respectfully request the Barangay Peace and Order Committee and Barangay Tanods to conduct an inspection, remind the responsible parties of local noise ordinances, and ensure compliance with quiet hour regulations.';
+        } else if (/tambay|inuman|loitering/i.test(raw)) {
+            incidentDetails = 'This is an official report concerning unauthorized public gatherings, late-night loitering, and rowdy behavior in the neighborhood.';
+            impactDetails = 'Such unmonitored street activities cause unease among local residents, compromise neighborhood tranquility, and present potential safety hazards.';
+            actionRequest = 'We urge the Barangay Public Safety officers to conduct regular evening patrols in the area and disperse any unlawful or disruptive street gatherings.';
+        } else if (/kapitbahay|neighbor/i.test(raw)) {
+            incidentDetails = 'This is a formal complaint regarding recurring and unreasonable noise disturbances generated by adjacent neighbors.';
+            impactDetails = 'The continuous disruption substantially impairs the peaceful enjoyment and sleep of nearby households during residential resting hours.';
+            actionRequest = 'We kindly request barangay officials to dispatch a peacekeeping officer to facilitate appropriate mediation and remind the concerned household to maintain acceptable noise levels.';
+        } else {
+            incidentDetails = 'This is an official complaint regarding unreasonable and disruptive noise levels generated within the community.';
+            impactDetails = 'The disturbance creates severe inconvenience and disrupts the peace and tranquility expected in a residential neighborhood.';
+            actionRequest = 'We respectfully request prompt assistance from the barangay peacekeeping team to inspect the area and restore order.';
+        }
+    } else if (categoryName === 'Sanitation') {
+        if (/baha|drainage|kanal|clog|bara/i.test(raw)) {
+            incidentDetails = 'This is an official report regarding severely obstructed drainage systems and clogged public canals.';
+            impactDetails = 'The blocked water passage results in dirty water overflow, localized street flooding, foul odors, and the breeding of disease-carrying mosquitoes.';
+            actionRequest = 'We earnestly request the Barangay Public Works and Sanitation team to dispatch a declogging crew to clear the drainage and restore proper water flow.';
+        } else if (/mabaho|amoy|smell/i.test(raw)) {
+            incidentDetails = 'This report highlights a severe environmental health issue involving noxious odors and improperly managed waste materials.';
+            impactDetails = 'The intense foul smell poses acute respiratory discomfort and sanitary hazards for residents and commuters traversing the area.';
+            actionRequest = 'We request immediate barangay inspection and the enforcement of sanitary regulations on the responsible site or establishment.';
+        } else {
+            incidentDetails = 'This is a formal report regarding uncollected garbage and improper waste accumulation in the community.';
+            impactDetails = 'The accumulated refuse creates an unsightly environment, generates foul odors, and attracts rodents, stray animals, and pests.';
+            actionRequest = 'We respectfully request the Barangay Sanitation Department to coordinate immediate garbage collection and place proper waste disposal signages in the vicinity.';
+        }
+    } else if (categoryName === 'Infrastructure') {
+        if (/ilaw|poste|light|lamp|madilim/i.test(raw)) {
+            incidentDetails = 'This is an official report regarding damaged, flickering, or non-functional public streetlights along the roadway.';
+            impactDetails = 'The lack of proper illumination creates dangerous dark spots that heighten the risk of vehicular accidents and compromise pedestrian security at night.';
+            actionRequest = 'We respectfully request the Barangay Engineering and Maintenance unit to inspect the electrical post and promptly replace the damaged lighting fixtures.';
+        } else if (/butas|kalsada|pothole|road|lubak/i.test(raw)) {
+            incidentDetails = 'This is a formal complaint regarding degraded pavement, dangerous road cracks, and deep potholes along the thoroughfare.';
+            impactDetails = 'These road defects present a critical safety hazard to motorists, cyclists, and pedestrians, and may cause severe vehicular damage or accidents.';
+            actionRequest = 'We urge the Barangay Infrastructure Committee to conduct a site assessment and execute necessary asphalt or cement patching repairs.';
+        } else {
+            incidentDetails = 'This is an official report regarding damaged or defective public infrastructure and communal facilities.';
+            impactDetails = 'The compromised structure poses potential safety hazards to residents and diminishes community accessibility.';
+            actionRequest = 'We respectfully request barangay authorities to conduct an immediate inspection and initiate the required rehabilitation works.';
+        }
+    } else if (categoryName === 'Public Safety') {
+        if (/nakawan|holdap|theft|robbery/i.test(raw)) {
+            incidentDetails = 'This is an urgent security report concerning an alleged theft or robbery incident that transpired in the community.';
+            impactDetails = 'This criminal incident poses a severe threat to community security, resident property, and personal safety.';
+            actionRequest = 'We urgently request the Barangay Peacekeeping Action Team (BPAT) and Tanods to review local CCTV footage, increase security presence, and coordinate with the local police precinct.';
+        } else if (/away|gulo|fight/i.test(raw)) {
+            incidentDetails = 'This is an urgent report concerning an escalating public disturbance, physical brawl, or verbal altercation in the area.';
+            impactDetails = 'The volatile situation endangers bystanders, creates panic among neighbors, and disrupts public peace and order.';
+            actionRequest = 'We urgently request immediate Tanod deployment to pacify the parties involved and maintain community order.';
+        } else {
+            incidentDetails = 'This is an official report concerning a potential public safety hazard and threat to peace and order.';
+            impactDetails = 'The reported situation compromises the general welfare and physical security of residents in the immediate vicinity.';
+            actionRequest = 'We respectfully request the barangay safety personnel to inspect the situation and implement preventive security measures.';
+        }
+    } else {
+        incidentDetails = `This is an official report regarding a ${categoryName} concern in the barangay community.`;
+        impactDetails = 'The reported issue causes ongoing inconvenience and necessitates timely intervention by local authorities.';
+        actionRequest = 'We respectfully request barangay officials to assess the situation and provide appropriate assistance.';
     }
 
-    const formalMarkers = ['nais', 'reklamo', 'report', 'humihiling', 'problema', 'isyu', 'nakakaabala', 'barangay'];
-    const aiLower = normalizeMatchText(aiText);
-    if (!formalMarkers.some((word) => aiLower.includes(word))) {
-        return false;
-    }
-
-    const categoryKeywords = CATEGORY_KEYWORDS[categoryName] || [];
-    const topicInOriginal = categoryKeywords.some((word) => textMatchesKeyword(original, word));
-
-    if (topicInOriginal) {
-        return categoryKeywords.some((word) => textMatchesKeyword(aiText, word));
-    }
-
-    const origWords = normalizeMatchText(original)
-        .split(/\s+/)
-        .filter((word) => word.length >= 4);
-
-    if (origWords.length === 0) {
-        return true;
-    }
-
-    return origWords.some((word) => aiLower.includes(word) || textMatchesKeyword(aiLower, word));
+    return `${incidentDetails}${locSentence} ${impactDetails} ${actionRequest}`;
 }
 
-function pickAiField(original, aiValue, fallbackValue, categoryName, { isDescription = false } = {}) {
-    const trimmed = aiValue?.trim();
-    if (!trimmed) {
-        return fallbackValue;
+function buildPriorityExplanation(priority, categoryName, rawText) {
+    if (priority === 'URGENT') {
+        return `AI classified this complaint as **URGENT** because the reported incident indicates an active safety hazard, threat to life or property, or critical emergency requiring rapid responder deployment.`;
     }
-
-    const isValid = isDescription
-        ? isPlausibleAiDescription(original, trimmed, categoryName)
-        : isPlausibleAiRewrite(original, trimmed, categoryName);
-
-    return isValid ? trimmed : fallbackValue;
+    if (priority === 'HIGH') {
+        return `AI classified this complaint as **HIGH Priority** due to persistent recurring disturbance, severe health/sanitation risk, or significant public inconvenience requiring prioritized barangay intervention within 24 hours.`;
+    }
+    if (priority === 'LOW') {
+        return `AI classified this complaint as **LOW Priority** as a minor or aesthetic request that does not pose an immediate disruption to community welfare.`;
+    }
+    return `AI classified this complaint as **MEDIUM Priority** as a standard community issue suitable for routine barangay peacekeeping or scheduled maintenance.`;
 }
 
 async function assistComplaint({ description, location, title, categories }) {
@@ -560,52 +593,50 @@ async function assistComplaint({ description, location, title, categories }) {
         throw new Error('Description is required for AI assistance.');
     }
 
-    const combined = `${description} ${location || ''}`.trim();
-    const ruleCategory = matchCategory(combined, categories);
-    const rulePriority = matchPriority(combined);
-    const ruleScore = getCategoryMatchScore(combined, ruleCategory.name);
-    const categoryTl = CATEGORY_LABELS_TL[ruleCategory.name] || ruleCategory.name;
+    const trimmedDesc = description.trim();
+    const meaningfulWords = trimmedDesc
+        .split(/\s+/)
+        .filter((w) => w.length > 1 && !/^[.,!?;:]+$/.test(w));
 
-    const priorityTl = {
-        URGENT: 'Apurahan (Urgent)',
-        HIGH: 'Mataas (High)',
-        MEDIUM: 'Katamtaman (Medium)',
-        LOW: 'Mababa (Low)',
-    }[rulePriority];
+    // Only block if extremely short (1 or 2 words, or fewer than 7 characters like "hi", "sir", "gulo", "help")
+    const isVeryShort = meaningfulWords.length < 2 || trimmedDesc.length < 7;
+    const availableCategories = categories.map((c) => c.name).join(', ');
 
-    const ruleBaseline = {
-        title: buildTitle(description, ruleCategory.name),
-        description: polishDescription(description, location, ruleCategory.name),
-        categoryId: ruleCategory.id,
-        categoryName: ruleCategory.name,
-        priority: rulePriority,
-        explanation: `Nakita kong tungkol ito sa **${categoryTl}** at inirerekomenda ang priority na **${priorityTl}**. Suriin ang mga detalye bago i-submit.`,
-    };
+    const systemPrompt = `You are the AI Specialist for a Philippine Barangay Community Portal.
+Your task is to analyze resident complaints and generate a formal, professional report in English for the barangay officials.
 
-    const systemPrompt = `You are a Barangay Portal assistant in the Philippines.
-Rewrite the resident's complaint into a clear, professional barangay report in Tagalog.
-Category and priority are FIXED — do not change the issue type.
-Respond ONLY with valid JSON:
+AVAILABLE BARANGAY CATEGORIES: [${availableCategories}]
+PRIORITY LEVELS & CRITERIA:
+- URGENT: Immediate danger to life or property, ongoing crime/theft, fire hazard, physical brawl, live wires, severe flooding.
+- HIGH: Significant disturbance, recurring midnight videoke, foul sewage/garbage accumulation, deep road potholes, public loitering.
+- MEDIUM: Standard community maintenance, neighbor noise complaints, non-emergency municipal issues.
+- LOW: Minor aesthetic or cosmetic suggestions without disruption.
+
+RULES:
+1. VALIDATION: Only set "isSufficient": false if the input is extremely short (1 or 2 words or fewer than 7 characters, such as "hi", "sir", "gulo", "help", "asdf", "test"), gibberish, or completely nonsensical.
+2. DYNAMIC TITLE: Generate a concise, professional title (max 70 characters) in English based on the specific incident.
+3. DYNAMIC CATEGORY: Choose the single best matching category from ONLY [${availableCategories}].
+4. DYNAMIC PRIORITY: Determine the urgency level [LOW, MEDIUM, HIGH, URGENT] based strictly on the risk criteria.
+5. FORMAL DESCRIPTION: Rewrite the complaint into 2-3 formal, polite, and well-structured sentences in English for barangay officials. RETAIN all specific details provided by the resident.
+6. EXPLANATION: Provide 1-2 sentences explaining why this category and priority were selected.
+
+Respond ONLY in JSON format:
 {
-  "title": "string, max 70 chars, concise and professional",
-  "description": "string, 2 formal Tagalog sentences for barangay officials",
-  "explanation": "string, 1 short Tagalog sentence about what you improved"
-}
-Example input: "may maingay dun sa kabilang kanto"
-Example output description: "Nais kong i-report ang labis na ingay na nanggagaling sa kabilang kanto. Nakakaabala ito sa kapayapaan ng aming lugar at humihiling ako ng tulong mula sa barangay."
-Rules:
-- Write formal, respectful Tagalog suitable for officials.
-- Preserve ALL facts (location, issue type). Do not invent details.
-- Never change the issue (e.g. do not turn noise into road problems).`;
+  "isSufficient": true or false,
+  "clarificationMessage": "string if isSufficient is false, null if true",
+  "title": "string if sufficient, null if not",
+  "categoryName": "string from available categories list",
+  "priority": "LOW" | "MEDIUM" | "HIGH" | "URGENT",
+  "description": "string (Formal and polite English report)",
+  "explanation": "string (Explanation of chosen category and priority in English)"
+}`;
 
-    const userPrompt = `Category (fixed): ${ruleCategory.name}
-Priority (fixed): ${rulePriority}
-Location: ${location || '(not provided)'}
-Current title: ${title || '(empty)'}
-Resident description:
-${description}
+    const userPrompt = `Provided Location: ${location || '(none provided)'}
+Current Title: ${title || '(none provided)'}
+Resident Description:
+"${trimmedDesc}"
 
-Rewrite into a professional barangay complaint.`;
+Analyze the resident complaint and provide the JSON output in English.`;
 
     try {
         const { content, source } = await callAI(
@@ -616,31 +647,66 @@ Rewrite into a professional barangay complaint.`;
             { jsonMode: true }
         );
 
-        if (!content) {
-            return { ...ruleBaseline, source: 'smart-assist' };
+        if (content) {
+            const cleanedJson = extractJsonFromText(content);
+            const parsed = JSON.parse(cleanedJson);
+
+            if (parsed.isSufficient === false || (isVeryShort && !parsed.title)) {
+                return {
+                    isSufficient: false,
+                    clarificationMessage: parsed.clarificationMessage
+                        || 'The input provided is too brief. Please provide a short sentence describing the problem (e.g. "Our neighbor is too loud at night" or "The streetlight on Block 4 is broken") so the AI can generate your report and map.',
+                    source,
+                };
+            }
+
+            const targetCatName = (parsed.categoryName || '').trim().toLowerCase();
+            const matchedCat = categories.find((c) => c.name.toLowerCase() === targetCatName)
+                || matchCategory(`${trimmedDesc} ${location || ''}`, categories);
+
+            const validPriorities = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
+            const priority = validPriorities.includes(parsed.priority?.toUpperCase())
+                ? parsed.priority.toUpperCase()
+                : matchPriority(trimmedDesc);
+
+            return {
+                isSufficient: true,
+                title: parsed.title?.trim() || buildDynamicTitle(trimmedDesc, matchedCat.name, location),
+                description: parsed.description?.trim() || polishDynamicDescription(trimmedDesc, location, matchedCat.name),
+                categoryId: matchedCat.id,
+                categoryName: matchedCat.name,
+                priority,
+                explanation: parsed.explanation?.trim()
+                    || buildPriorityExplanation(priority, matchedCat.name, trimmedDesc),
+                source,
+            };
         }
-
-        const parsed = JSON.parse(content);
-
-        return {
-            title: ruleScore > 0
-                ? ruleBaseline.title
-                : pickAiField(description, parsed.title, ruleBaseline.title, ruleCategory.name),
-            description: ruleScore > 0
-                ? ruleBaseline.description
-                : pickAiField(description, parsed.description, ruleBaseline.description, ruleCategory.name, { isDescription: true }),
-            categoryId: ruleBaseline.categoryId,
-            categoryName: ruleBaseline.categoryName,
-            priority: ruleBaseline.priority,
-            explanation: parsed.explanation?.trim() && isPlausibleAiDescription(description, parsed.explanation, ruleCategory.name)
-                ? parsed.explanation.trim()
-                : ruleBaseline.explanation,
-            source,
-        };
     } catch (error) {
         console.error('AI complaint assist error:', error.message);
-        return { ...ruleBaseline, source: 'smart-assist' };
     }
+
+    // Smart Assist Fallback (Local Rule & Heuristic Engine)
+    if (isVeryShort) {
+        return {
+            isSufficient: false,
+            clarificationMessage: 'The input provided is too brief. Please provide a short sentence describing the problem (e.g. "Our neighbor is playing loud music" or "The streetlight on Block 4 is broken") so the AI can generate your report and map.',
+            source: 'smart-assist',
+        };
+    }
+
+    const matchedCat = matchCategory(`${trimmedDesc} ${location || ''}`, categories);
+    const priority = matchPriority(trimmedDesc);
+
+    return {
+        isSufficient: true,
+        title: buildDynamicTitle(trimmedDesc, matchedCat.name, location),
+        description: polishDynamicDescription(trimmedDesc, location, matchedCat.name),
+        categoryId: matchedCat.id,
+        categoryName: matchedCat.name,
+        priority,
+        explanation: buildPriorityExplanation(priority, matchedCat.name, trimmedDesc),
+        source: 'smart-assist',
+    };
 }
 
 function buildPortalContext({ services, categories, user, complaintStats }) {

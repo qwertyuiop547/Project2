@@ -42,6 +42,41 @@
     font-weight: 500;
 }
 
+/* View Mode Toggle */
+.view-mode-toggle {
+    display: inline-flex;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    gap: 4px;
+}
+
+.view-mode-toggle .toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 0.84rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.view-mode-toggle .toggle-btn:hover {
+    color: #0f172a;
+}
+
+.view-mode-toggle .toggle-btn.active {
+    background: white;
+    color: #15803d;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
 /* Stats Overwrite */
 .complaints-stats {
     margin-bottom: 36px;

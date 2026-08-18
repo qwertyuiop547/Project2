@@ -14,8 +14,10 @@ import {
     RefreshCw,
     CheckCircle,
     AlertCircle,
-    FileText
+    FileText,
+    Navigation
 } from 'lucide-react'
+import LocationPickerMap from '../components/LocationPickerMap'
 import toast from 'react-hot-toast'
 import './ComplaintDetail.css'
 
@@ -132,7 +134,7 @@ export default function ComplaintDetail() {
             {isComplainant && (
             <div className="card mb-3 complaint-status-card">
                 <div className="complaint-status-header">
-                    <h3>Status ng Reklamo</h3>
+                    <h3>Complaint Status Tracker</h3>
                     <span className={`complaint-status-badge badge-${statusClass}`}>
                         {complaint.status === 'PENDING' && <Clock size={16} />}
                         {complaint.status === 'IN_PROGRESS' && <AlertCircle size={16} />}
@@ -216,9 +218,22 @@ export default function ComplaintDetail() {
                     )}
                 </div>
 
-                <p style={{ lineHeight: 1.8, color: 'var(--text-secondary)' }}>
+                <p style={{ lineHeight: 1.8, color: 'var(--text-secondary)', marginBottom: 20 }}>
                     {complaint.description}
                 </p>
+
+                {complaint.location && (
+                    <div style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid var(--border-color)' }}>
+                        <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <MapPin size={18} style={{ color: '#dc2626' }} />
+                            Real-Time Incident Location & Satellite GPS Pin
+                        </h4>
+                        <LocationPickerMap
+                            value={complaint.location}
+                            readOnly={true}
+                        />
+                    </div>
+                )}
             </div>
 
             {userIsOfficial && (

@@ -143,11 +143,11 @@ router.get('/:id', auth, async (req, res) => {
     }
 });
 
+const { assistComplaint } = require('../services/ai');
+
 // Create complaint
 router.post('/', auth, requireApproved, [
-    body('title').trim().notEmpty().isLength({ max: 200 }),
-    body('description').trim().notEmpty(),
-    body('categoryId').notEmpty(),
+    body('description').trim().notEmpty().withMessage('Description is required.'),
 ], async (req, res) => {
     try {
         if (req.user.role !== 'RESIDENT') {
@@ -159,7 +159,32 @@ router.post('/', auth, requireApproved, [
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { title, description, location, categoryId, priority, isAnonymous } = req.body;
+        let { title, description, location, categoryId, priority, isAnonymous } = req.body;
+
+        // If categoryId or title are missing, use AI assist to automatically categorize, title, and structure the complaint
+        if (!categoryId || !title) {
+            const categories = await prisma.complaintCategory.findMany({
+                orderBy: { name: 'asc' }
+            });
+
+            const aiResult = await assistComplaint({
+                description,
+                location,
+                title,
+                categories
+            });
+
+            if (aiResult.isSufficient === false) {
+                return res.status(400).json({
+                    error: aiResult.clarificationMessage || 'Kulang sa detalye ang inyong inilagay. Pakilahad nang mas malinaw ang partikular na problema.'
+                });
+            }
+
+            title = title || aiResult.title;
+            categoryId = categoryId || aiResult.categoryId;
+            priority = priority || aiResult.priority;
+            description = aiResult.description || description;
+        }
 
         const complaint = await prisma.complaint.create({
             data: {
