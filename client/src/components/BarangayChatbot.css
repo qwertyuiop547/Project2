@@ -510,11 +510,84 @@
 
 .track-widget {
     border-color: rgba(217, 119, 6, 0.3);
-    background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+    background: linear-gradient(135deg, #fffdf7 0%, #ffffff 100%);
 }
 
 .track-btn {
     background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+}
+
+.inchat-complaints-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 4px 0;
+}
+
+.inchat-complaint-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: white;
+    border: 1px solid #fed7aa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.inchat-complaint-item:hover {
+    border-color: #f97316;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(249, 115, 22, 0.1);
+}
+
+.inchat-complaint-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.inchat-complaint-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #1f2937;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.inchat-status-badge {
+    font-size: 0.64rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.inchat-status-badge.badge-pending {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.inchat-status-badge.badge-in-progress {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.inchat-status-badge.badge-resolved {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.inchat-complaint-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.68rem;
+    color: #6b7280;
 }
 
 .services-widget {

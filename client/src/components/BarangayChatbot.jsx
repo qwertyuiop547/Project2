@@ -1,10 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { 
     MessageCircle, X, Send, Bot, User, Sparkles, PhoneCall, ShieldAlert, 
     FileText, CheckCircle2, Clock, DollarSign, ArrowRight, ExternalLink,
-    Flame, Siren, Ambulance, Building2, Mic, MicOff, AlertTriangle
+    Flame, Siren, Ambulance, Building2, Mic, MicOff, AlertTriangle,
+    MapPin, Tag, AlertCircle
 } from 'lucide-react'
+import api from '../lib/api'
 import { streamChatMessage } from '../lib/chatStream'
 import { useAuthStore } from '../lib/auth'
 import './BarangayChatbot.css'
@@ -116,8 +119,8 @@ const DOCUMENT_CARDS = {
 
 const QUICK_PROMPTS = [
     'How to file a complaint?',
+    'Check my complaint status',
     'Barangay Clearance requirements?',
-    'How to check my complaint status?',
     'Emergency hotlines list',
 ]
 
@@ -139,7 +142,7 @@ function createWelcomeMessages(firstName) {
     return [
         {
             role: 'assistant',
-            content: `Hello, ${firstName || 'Resident'}! I am your **Barangay AI Assistant**. I can help you with filing complaints, checking certificate requirements, or connecting to emergency hotlines. What can I assist you with today?`,
+            content: `Hello, ${firstName || 'Resident'}! I am your **Barangay AI Assistant**. I can help you with filing complaints, checking certificate requirements, tracking your reports, or connecting to emergency hotlines. What can I assist you with today?`,
             source: 'portal-guide',
         },
     ]
@@ -157,6 +160,16 @@ export default function BarangayChatbot() {
     const messagesEndRef = useRef(null)
     const abortRef = useRef(null)
     const recognitionRef = useRef(null)
+
+    // Feature 2: Fetch user's active complaints for live in-chat tracking
+    const { data: userComplaints = [] } = useQuery({
+        queryKey: ['my-chatbot-complaints', user?.id],
+        queryFn: async () => {
+            const { data } = await api.get('/complaints?limit=3')
+            return data.complaints || []
+        },
+        enabled: !!user && isOpen
+    })
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -234,7 +247,7 @@ export default function BarangayChatbot() {
         if (lower.includes('complaint') || lower.includes('reklamo') || lower.includes('file a complaint') || lower.includes('incident')) {
             return { type: 'complaint_action' }
         }
-        if (lower.includes('status') || lower.includes('track') || lower.includes('subaybay')) {
+        if (lower.includes('status') || lower.includes('track') || lower.includes('subaybay') || lower.includes('kumusta')) {
             return { type: 'track_action' }
         }
         if (lower.includes('service') || lower.includes('serbisyo') || lower.includes('certificate')) {
@@ -571,24 +584,60 @@ export default function BarangayChatbot() {
                                         </div>
                                     )}
 
-                                    {/* Feature 2: Track Complaints Action Card */}
+                                    {/* Feature 2: Live Resident Complaint Status Tracker Card */}
                                     {msg.cardContext?.type === 'track_action' && !msg.isStreaming && (
                                         <div className="chatbot-action-widget track-widget animate-fadeIn">
                                             <div className="track-widget-header">
                                                 <Clock size={16} className="text-amber-600" />
                                                 <div>
-                                                    <h4>Complaints Status & Incident Map</h4>
-                                                    <span className="widget-subtitle">View real-time status and Tanod dispatch</span>
+                                                    <h4>Live Complaint Status Tracker</h4>
+                                                    <span className="widget-subtitle">Real-time status of your active reports</span>
                                                 </div>
                                             </div>
-                                            <button
-                                                type="button"
-                                                className="widget-action-btn track-btn"
-                                                onClick={() => handleNavigate('/complaints')}
-                                            >
-                                                <span>📋 View My Complaints</span>
-                                                <ArrowRight size={14} />
-                                            </button>
+
+                                            {userComplaints.length > 0 ? (
+                                                <div className="inchat-complaints-list">
+                                                    {userComplaints.slice(0, 2).map((c) => (
+                                                        <div key={c.id} className="inchat-complaint-item" onClick={() => handleNavigate(`/complaints/${c.id}`)}>
+                                                            <div className="inchat-complaint-row">
+                                                                <span className="inchat-complaint-title">{c.title}</span>
+                                                                <span className={`inchat-status-badge badge-${c.status?.toLowerCase().replace('_', '-')}`}>
+                                                                    {c.status}
+                                                                </span>
+                                                            </div>
+                                                            <div className="inchat-complaint-meta">
+                                                                {c.category?.name && <span>🏷️ {c.category.name}</span>}
+                                                                {c.location && <span>📍 {c.location.split('[')[0]}</span>}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <p style={{ margin: '4px 0', fontSize: '0.78rem', color: '#6b7280' }}>
+                                                    You currently have no complaints filed under your account.
+                                                </p>
+                                            )}
+
+                                            <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+                                                <button
+                                                    type="button"
+                                                    className="widget-action-btn track-btn"
+                                                    style={{ flex: 1 }}
+                                                    onClick={() => handleNavigate('/complaints')}
+                                                >
+                                                    <span>📋 View All Complaints</span>
+                                                    <ArrowRight size={14} />
+                                                </button>
+                                                {userComplaints.length === 0 && (
+                                                    <button
+                                                        type="button"
+                                                        className="widget-action-btn complaint-btn"
+                                                        onClick={() => handleNavigate('/complaints/new')}
+                                                    >
+                                                        <span>🚀 File New</span>
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
 
