@@ -21,6 +21,7 @@ import './Layout.css'
 import BarangayChatbot from './BarangayChatbot'
 import BarangaySeal from './BarangaySeal'
 import PwaInstallBanner from './PwaInstallBanner'
+import NotificationDropdown from './NotificationDropdown'
 
 export default function Layout() {
     const { user, logout } = useAuthStore()
@@ -124,10 +125,7 @@ export default function Layout() {
                             <Globe2 size={18} />
                             Public Site
                         </Link>
-                        <button className="topbar-icon-btn" type="button" aria-label="Notifications">
-                            <Bell size={18} />
-                            <span className="topbar-badge">3</span>
-                        </button>
+                        <NotificationDropdown />
                         <Link to="/profile" className="topbar-user">
                             <div className="topbar-avatar">
                                 {user?.firstName?.[0]}{user?.lastName?.[0]}
@@ -155,9 +153,12 @@ export default function Layout() {
                         <BarangaySeal className="mobile-logo-seal" compact />
                         <span className="mobile-title">Barangay Burgos</span>
                     </Link>
-                    <Link to="/profile" className="mobile-avatar" aria-label="My profile">
-                        {user?.firstName?.[0]}{user?.lastName?.[0]}
-                    </Link>
+                    <div className="mobile-header-right">
+                        <NotificationDropdown />
+                        <Link to="/profile" className="mobile-avatar" aria-label="My profile">
+                            {user?.firstName?.[0]}{user?.lastName?.[0]}
+                        </Link>
+                    </div>
                 </header>
 
                 <div className="page-content">

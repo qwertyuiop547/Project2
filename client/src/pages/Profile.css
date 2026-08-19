@@ -1,8 +1,3 @@
-/* ============================================
-   USER PROFILE - Citizen Account Styling
-   ============================================ */
-
-/* Profile Hero Card */
 .profile-hero-card {
     background: linear-gradient(135deg, #064e3b 0%, #15803d 50%, #14532d 100%);
     border-radius: 20px;
@@ -182,8 +177,15 @@
     flex-shrink: 0;
 }
 
-.icon-emerald { background: #dcfce7; color: #15803d; }
-.icon-indigo { background: #e0e7ff; color: #4338ca; }
+.icon-emerald {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.icon-indigo {
+    background: #e0e7ff;
+    color: #4338ca;
+}
 
 .card-header-block h3 {
     margin: 0;

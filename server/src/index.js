@@ -10,6 +10,7 @@ const announcementsRoutes = require('./routes/announcements');
 const servicesRoutes = require('./routes/services');
 const dashboardRoutes = require('./routes/dashboard');
 const aiRoutes = require('./routes/ai');
+const notificationsRoutes = require('./routes/notifications');
 const { warmUpOllama } = require('./services/ai');
 
 const app = express();
@@ -38,6 +39,7 @@ app.use('/api/announcements', announcementsRoutes);
 app.use('/api/services', servicesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
