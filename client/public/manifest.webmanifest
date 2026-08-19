@@ -1,0 +1,58 @@
+{
+  "name": "Barangay Burgos Official Portal",
+  "short_name": "Brgy Burgos",
+  "description": "Official Barangay Burgos e-Services, Complaints Management, and Community Portal",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#1e3a8a",
+  "lang": "en-PH",
+  "dir": "ltr",
+  "categories": ["government", "utilities", "productivity"],
+  "icons": [
+    {
+      "src": "/pwa-icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/vite.svg",
+      "sizes": "32x32 48x48",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Emergency Hotlines",
+      "short_name": "Hotlines",
+      "description": "View 24/7 Police, Fire, and Ambulance hotlines",
+      "url": "/#emergency",
+      "icons": [{ "src": "/pwa-icon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "File a Complaint",
+      "short_name": "Reklamo",
+      "description": "Submit a new incident or community complaint",
+      "url": "/complaints/new",
+      "icons": [{ "src": "/pwa-icon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Barangay Services",
+      "short_name": "Services",
+      "description": "Request Clearance, Indigency, and Barangay ID",
+      "url": "/services",
+      "icons": [{ "src": "/pwa-icon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Announcements",
+      "short_name": "News",
+      "description": "Read latest community advisories and bulletins",
+      "url": "/announcements",
+      "icons": [{ "src": "/pwa-icon.svg", "sizes": "96x96" }]
+    }
+  ]
+}

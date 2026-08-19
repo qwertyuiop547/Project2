@@ -14,6 +14,8 @@ venv/
 dist/
 client/dist/
 build/
+.vite/
+client/.vite/
 
 # Logs
 *.log

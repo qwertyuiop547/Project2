@@ -73,6 +73,7 @@ router.post('/complaint-assist', auth, requireApproved, [
 router.post('/chat', auth, requireApproved, [
     body('message').trim().notEmpty().isLength({ max: 2000 }),
     body('history').optional().isArray({ max: 20 }),
+    body('dialect').optional().isString().trim(),
 ], async (req, res) => {
     try {
         const errors = validationResult(req);
@@ -80,12 +81,13 @@ router.post('/chat', auth, requireApproved, [
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { message, history = [] } = req.body;
+        const { message, history = [], dialect = 'tagalog' } = req.body;
         const { services, complaintStats, context } = await buildChatContext(req);
 
         const result = await chatWithAssistant({
             message,
             history,
+            dialect,
             context,
             user: req.user,
             contextData: { services, complaintStats },
@@ -145,6 +147,7 @@ async function buildChatContext(req) {
 router.post('/chat/stream', auth, requireApproved, [
     body('message').trim().notEmpty().isLength({ max: 2000 }),
     body('history').optional().isArray({ max: 20 }),
+    body('dialect').optional().isString().trim(),
 ], async (req, res) => {
     try {
         const errors = validationResult(req);
@@ -152,7 +155,7 @@ router.post('/chat/stream', auth, requireApproved, [
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { message, history = [] } = req.body;
+        const { message, history = [], dialect = 'tagalog' } = req.body;
         const { services, complaintStats, context } = await buildChatContext(req);
 
         res.setHeader('Content-Type', 'text/event-stream');
@@ -173,6 +176,7 @@ router.post('/chat/stream', auth, requireApproved, [
         for await (const chunk of streamChatWithAssistant({
             message,
             history,
+            dialect,
             context,
             user: req.user,
             contextData: { services, complaintStats },

@@ -5,7 +5,7 @@ import {
     MessageCircle, X, Send, Bot, User, Sparkles, PhoneCall, ShieldAlert, 
     FileText, CheckCircle2, Clock, DollarSign, ArrowRight, ExternalLink,
     Flame, Siren, Ambulance, Building2, Mic, MicOff, AlertTriangle,
-    MapPin, Tag, AlertCircle
+    MapPin, Tag, AlertCircle, Volume2, VolumeX, Languages, Radio
 } from 'lucide-react'
 import api from '../lib/api'
 import { streamChatMessage } from '../lib/chatStream'
@@ -117,15 +117,52 @@ const DOCUMENT_CARDS = {
     }
 }
 
-const QUICK_PROMPTS = [
-    'How to file a complaint?',
-    'Check my complaint status',
-    'Barangay Clearance requirements?',
-    'Emergency hotlines list',
+// Dialect Configurations & Speech Locales
+const DIALECT_OPTIONS = [
+    { id: 'tagalog', label: 'Tagalog', speechLang: 'fil-PH' },
+    { id: 'english', label: 'English', speechLang: 'en-PH' },
+    { id: 'bisaya', label: 'Bisaya', speechLang: 'ceb-PH' },
+    { id: 'waray', label: 'Waray', speechLang: 'fil-PH' },
 ]
 
+const QUICK_PROMPTS = {
+    tagalog: [
+        'Paano mag-file ng reklamo?',
+        'Saan na ang reklamo ko?',
+        'Barangay Clearance requirements?',
+        'Emergency hotlines list',
+    ],
+    english: [
+        'How to file a complaint?',
+        'Check my complaint status',
+        'Barangay Clearance requirements?',
+        'Emergency hotlines list',
+    ],
+    bisaya: [
+        'Unsaon pag-file ug reklamo?',
+        'Status sa akong reklamo?',
+        'Requirements sa Barangay Clearance?',
+        'Listahan sa Emergency hotlines',
+    ],
+    waray: [
+        'Pano mag-file hin reklamo?',
+        'Status han akon reklamo?',
+        'Requirements han Barangay Clearance?',
+        'Emergency hotlines list',
+    ],
+}
+
 function formatReply(text) {
-    return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br />')
+    return (text || '').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br />')
+}
+
+function stripMarkdown(text) {
+    return (text || '')
+        .replace(/\*\*(.*?)\*\*/g, '$1')
+        .replace(/•/g, '')
+        .replace(/#/g, '')
+        .replace(/\n+/g, '. ')
+        .trim()
 }
 
 function TypingIndicator() {
@@ -138,11 +175,21 @@ function TypingIndicator() {
     )
 }
 
-function createWelcomeMessages(firstName) {
+function createWelcomeMessages(firstName, dialect = 'tagalog') {
+    let content = `Kumusta, ${firstName || 'Resident'}! Ako ang iyong **Barangay AI Assistant**. Matutulungan kita sa pag-file ng reklamo, requirements ng clearances/IDs, at emergency hotlines. Ano ang maitutulong ko sa iyo?`
+    
+    if (dialect === 'english') {
+        content = `Hello, ${firstName || 'Resident'}! I am your **Barangay AI Assistant**. I can assist you with filing complaints, checking certificate requirements, tracking reports, or connecting to emergency hotlines. What can I assist you with today?`
+    } else if (dialect === 'bisaya') {
+        content = `Maayong adlaw, ${firstName || 'residente'}! Ako ang imong **Barangay AI Assistant**. Andam ko motabang nimo sa pag-file ug reklamo, requirements sa mga dokumento, ug emergency hotlines. Unsay akong ika-alagad nimo karon?`
+    } else if (dialect === 'waray') {
+        content = `Maupay nga adlaw, ${firstName || 'residente'}! Ako an imo **Barangay AI Assistant**. Andam ako bumulig ha pag-file hin reklamo, mga sertipiko/IDs, ngan emergency hotlines. Ano an akon maibubulig ha imo yana?`
+    }
+
     return [
         {
             role: 'assistant',
-            content: `Hello, ${firstName || 'Resident'}! I am your **Barangay AI Assistant**. I can help you with filing complaints, checking certificate requirements, tracking your reports, or connecting to emergency hotlines. What can I assist you with today?`,
+            content,
             source: 'portal-guide',
         },
     ]
@@ -153,15 +200,17 @@ export default function BarangayChatbot() {
     const { user } = useAuthStore()
     const [isOpen, setIsOpen] = useState(false)
     const [showHotlines, setShowHotlines] = useState(false)
+    const [dialect, setDialect] = useState('tagalog')
     const [input, setInput] = useState('')
     const [isStreaming, setIsStreaming] = useState(false)
     const [isListening, setIsListening] = useState(false)
-    const [messages, setMessages] = useState(() => createWelcomeMessages(user?.firstName))
+    const [speakingIndex, setSpeakingIndex] = useState(null)
+    const [messages, setMessages] = useState(() => createWelcomeMessages(user?.firstName, 'tagalog'))
     const messagesEndRef = useRef(null)
     const abortRef = useRef(null)
     const recognitionRef = useRef(null)
 
-    // Feature 2: Fetch user's active complaints for live in-chat tracking
+    // Fetch user's active complaints for live in-chat tracking
     const { data: userComplaints = [] } = useQuery({
         queryKey: ['my-chatbot-complaints', user?.id],
         queryFn: async () => {
@@ -175,14 +224,16 @@ export default function BarangayChatbot() {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [messages, isStreaming, showHotlines])
 
+    // Speech Recognition setup with dynamic dialect language
     useEffect(() => {
-        // Initialize Speech Recognition if supported
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
         if (SpeechRecognition) {
             const recognition = new SpeechRecognition()
             recognition.continuous = false
             recognition.interimResults = false
-            recognition.lang = 'en-PH'
+
+            const currentOption = DIALECT_OPTIONS.find(d => d.id === dialect)
+            recognition.lang = currentOption?.speechLang || 'fil-PH'
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript
@@ -190,15 +241,55 @@ export default function BarangayChatbot() {
                 setIsListening(false)
             }
 
-            recognition.onerror = () => setIsListening(false)
+            recognition.onerror = (e) => {
+                console.warn('Speech recognition error:', e)
+                setIsListening(false)
+            }
             recognition.onend = () => setIsListening(false)
             recognitionRef.current = recognition
         }
 
         return () => {
             abortRef.current?.abort()
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel()
+            }
         }
-    }, [])
+    }, [dialect])
+
+    // Text-to-Speech (TTS Audio Playback)
+    const toggleSpeech = (text, index) => {
+        if (!('speechSynthesis' in window)) return
+
+        if (speakingIndex === index) {
+            window.speechSynthesis.cancel()
+            setSpeakingIndex(null)
+            return
+        }
+
+        window.speechSynthesis.cancel()
+        const cleanText = stripMarkdown(text)
+        if (!cleanText) return
+
+        const utterance = new SpeechSynthesisUtterance(cleanText)
+        utterance.lang = dialect === 'english' ? 'en-PH' : 'fil-PH'
+        utterance.rate = 1.0
+        utterance.pitch = 1.0
+
+        utterance.onend = () => setSpeakingIndex(null)
+        utterance.onerror = () => setSpeakingIndex(null)
+
+        setSpeakingIndex(index)
+        window.speechSynthesis.speak(utterance)
+    }
+
+    const handleDialectChange = (newDialect) => {
+        setDialect(newDialect)
+        if (window.speechSynthesis) {
+            window.speechSynthesis.cancel()
+        }
+        setSpeakingIndex(null)
+    }
 
     const toggleVoiceInput = () => {
         if (!recognitionRef.current) return
@@ -208,6 +299,8 @@ export default function BarangayChatbot() {
             setIsListening(false)
         } else {
             try {
+                const currentOption = DIALECT_OPTIONS.find(d => d.id === dialect)
+                recognitionRef.current.lang = currentOption?.speechLang || 'fil-PH'
                 recognitionRef.current.start()
                 setIsListening(true)
             } catch (e) {
@@ -229,28 +322,28 @@ export default function BarangayChatbot() {
         })
     }
 
-    // Detect matched action cards or document requirements (Features 2 & 5)
+    // Detect matched action cards or document requirements
     const detectCardContext = (text) => {
         const lower = (text || '').toLowerCase()
-        if (lower.includes('indigency') || lower.includes('indigent')) {
+        if (lower.includes('indigency') || lower.includes('indigent') || lower.includes('kalisod') || lower.includes('kapobre')) {
             return { type: 'doc', data: DOCUMENT_CARDS.indigency }
         }
         if (lower.includes('clearance') && !lower.includes('business')) {
             return { type: 'doc', data: DOCUMENT_CARDS.clearance }
         }
-        if (lower.includes('barangay id') || lower.includes('resident id')) {
+        if (lower.includes('barangay id') || lower.includes('resident id') || lower.includes('brgy id')) {
             return { type: 'doc', data: DOCUMENT_CARDS.id }
         }
         if (lower.includes('business') || lower.includes('permit') || lower.includes('commercial')) {
             return { type: 'doc', data: DOCUMENT_CARDS.business }
         }
-        if (lower.includes('complaint') || lower.includes('reklamo') || lower.includes('file a complaint') || lower.includes('incident')) {
+        if (lower.includes('complaint') || lower.includes('reklamo') || lower.includes('file a complaint') || lower.includes('incident') || lower.includes('sumbong')) {
             return { type: 'complaint_action' }
         }
-        if (lower.includes('status') || lower.includes('track') || lower.includes('subaybay') || lower.includes('kumusta')) {
+        if (lower.includes('status') || lower.includes('track') || lower.includes('subaybay') || lower.includes('kumusta') || lower.includes('hain na')) {
             return { type: 'track_action' }
         }
-        if (lower.includes('service') || lower.includes('serbisyo') || lower.includes('certificate')) {
+        if (lower.includes('service') || lower.includes('serbisyo') || lower.includes('certificate') || lower.includes('sertipiko')) {
             return { type: 'services_action' }
         }
         return null
@@ -271,6 +364,11 @@ export default function BarangayChatbot() {
         setMessages(nextMessages)
         setInput('')
         setIsStreaming(true)
+
+        if (window.speechSynthesis) {
+            window.speechSynthesis.cancel()
+        }
+        setSpeakingIndex(null)
 
         abortRef.current?.abort()
         const controller = new AbortController()
@@ -296,6 +394,7 @@ export default function BarangayChatbot() {
             await streamChatMessage({
                 message: trimmed,
                 history,
+                dialect,
                 signal: controller.signal,
                 onMeta: ({ source }) => {
                     updateStreamingMessage((msg) => ({
@@ -352,10 +451,18 @@ export default function BarangayChatbot() {
             setMessages((prev) => {
                 const next = [...prev]
                 const lastIndex = next.length - 1
+                const fallbackErr = dialect === 'waray'
+                    ? 'Pasayloa, may problema ha koneksyon. Alayon pag-utro pag-submit.'
+                    : dialect === 'bisaya'
+                    ? 'Pasayloa, naay problema sa koneksyon. Palihog sulayi pag-usab.'
+                    : dialect === 'english'
+                    ? 'I apologize, but a connection error occurred. Please try again.'
+                    : 'Paumanhin, nagkaroon ng problema sa koneksyon. Pakisubukan muli.'
+
                 if (lastIndex >= 0 && next[lastIndex].isStreaming) {
                     next[lastIndex] = {
                         role: 'assistant',
-                        content: 'I apologize, but a connection error occurred. Please try again.',
+                        content: fallbackErr,
                         source: 'smart-assist',
                         isStreaming: false,
                         cardContext: detectCardContext(trimmed)
@@ -363,7 +470,7 @@ export default function BarangayChatbot() {
                 } else {
                     next.push({
                         role: 'assistant',
-                        content: 'I apologize, but a connection error occurred. Please try again.',
+                        content: fallbackErr,
                         source: 'smart-assist',
                         cardContext: detectCardContext(trimmed)
                     })
@@ -382,10 +489,14 @@ export default function BarangayChatbot() {
     const resetSession = () => {
         abortRef.current?.abort()
         abortRef.current = null
+        if (window.speechSynthesis) {
+            window.speechSynthesis.cancel()
+        }
+        setSpeakingIndex(null)
         setIsStreaming(false)
         setInput('')
         setShowHotlines(false)
-        setMessages(createWelcomeMessages(user?.firstName))
+        setMessages(createWelcomeMessages(user?.firstName, dialect))
     }
 
     const closeChatbot = () => {
@@ -401,6 +512,8 @@ export default function BarangayChatbot() {
         setIsOpen(false)
         navigate(path)
     }
+
+    const activeQuickPrompts = QUICK_PROMPTS[dialect] || QUICK_PROMPTS.tagalog
 
     return (
         <>
@@ -425,7 +538,7 @@ export default function BarangayChatbot() {
                             <div>
                                 <h3>Barangay AI Assistant</h3>
                                 <p className="chatbot-provider-tag">
-                                    <Sparkles size={12} /> 24/7 Community Support
+                                    <Sparkles size={12} /> 24/7 Voice & Multi-Dialect
                                 </p>
                             </div>
                         </div>
@@ -451,19 +564,44 @@ export default function BarangayChatbot() {
                         </div>
                     </div>
 
-                    {/* Feature 3: Philippine Emergency Hotlines Floating Panel */}
+                    {/* Dialect Selector Bar */}
+                    <div className="chatbot-dialect-bar">
+                        <div className="chatbot-dialect-label">
+                            <Languages size={13} />
+                            <span>Wika / Dialect:</span>
+                        </div>
+                        <div className="chatbot-dialect-pills">
+                            {DIALECT_OPTIONS.map((opt) => (
+                                <button
+                                    key={opt.id}
+                                    type="button"
+                                    className={`chatbot-dialect-pill ${dialect === opt.id ? 'active' : ''}`}
+                                    onClick={() => handleDialectChange(opt.id)}
+                                >
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Emergency Hotlines Accordion View */}
                     {showHotlines && (
-                        <div className="chatbot-hotlines-panel animate-fadeIn">
-                            <div className="hotlines-header">
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div className="chatbot-hotlines-drawer animate-fadeIn">
+                            <div className="hotlines-drawer-header">
+                                <div className="hotlines-drawer-title">
                                     <AlertTriangle size={16} className="text-red-500" />
-                                    <strong>Emergency Hotlines (Philippines / Basey, Samar)</strong>
+                                    <span>Basey & National Emergency Hotlines (24/7)</span>
                                 </div>
-                                <button type="button" className="hotlines-close-btn" onClick={() => setShowHotlines(false)}>
+                                <button
+                                    type="button"
+                                    className="hotlines-close-btn"
+                                    onClick={() => setShowHotlines(false)}
+                                >
                                     <X size={14} />
                                 </button>
                             </div>
-                            <div className="hotlines-list">
+
+                            <div className="hotlines-grid">
                                 {EMERGENCY_HOTLINES.map((h, i) => {
                                     const IconComponent = h.icon
                                     return (
@@ -517,6 +655,31 @@ export default function BarangayChatbot() {
                                             <TypingIndicator />
                                         ) : null}
                                     </div>
+
+                                    {/* Text-to-Speech (Audio Voice Readout) Button for Assistant Messages */}
+                                    {msg.role === 'assistant' && msg.content && !msg.isStreaming && 'speechSynthesis' in window && (
+                                        <div className="chatbot-tts-row">
+                                            <button
+                                                type="button"
+                                                className={`chatbot-tts-btn ${speakingIndex === index ? 'speaking' : ''}`}
+                                                onClick={() => toggleSpeech(msg.content, index)}
+                                                title={speakingIndex === index ? 'Itigil ang pagsasalita' : 'Pakinggan ang sagot (Audio Narration)'}
+                                            >
+                                                {speakingIndex === index ? (
+                                                    <>
+                                                        <VolumeX size={13} />
+                                                        <span>Itigil</span>
+                                                        <span className="tts-pulse-dot" />
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Volume2 size={13} />
+                                                        <span>Pakinggan (Voice)</span>
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
+                                    )}
 
                                     {/* Feature 5: Document Requirement & Fee Checklist Card */}
                                     {msg.cardContext?.type === 'doc' && !msg.isStreaming && (
@@ -669,7 +832,7 @@ export default function BarangayChatbot() {
 
                     {/* Quick Prompts */}
                     <div className="chatbot-quick-prompts">
-                        {QUICK_PROMPTS.map((prompt) => (
+                        {activeQuickPrompts.map((prompt) => (
                             <button
                                 key={prompt}
                                 type="button"
@@ -682,24 +845,38 @@ export default function BarangayChatbot() {
                         ))}
                     </div>
 
+                    {/* Voice Recording Active Floating Wave */}
+                    {isListening && (
+                        <div className="chatbot-listening-banner animate-fadeIn">
+                            <Radio size={15} className="listening-radio-icon" />
+                            <span>Nakikinig... Magsalita nang malinaw sa micropono</span>
+                            <div className="sound-wave-bars">
+                                <span className="wave-bar bar-1"></span>
+                                <span className="wave-bar bar-2"></span>
+                                <span className="wave-bar bar-3"></span>
+                                <span className="wave-bar bar-4"></span>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Input Form with Voice Input Microphone */}
                     <form className="chatbot-input-form" onSubmit={handleSubmit}>
                         <input
                             type="text"
                             className="chatbot-input"
-                            placeholder={isListening ? 'Listening to your voice...' : 'Ask about complaints, certificates, hotlines...'}
+                            placeholder={isListening ? 'Nakikinig sa iyong boses...' : `Magtanong sa ${DIALECT_OPTIONS.find(d => d.id === dialect)?.label || 'Tagalog'}...`}
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             disabled={isStreaming}
                         />
 
                         {/* Speech-to-Text Microphone Button */}
-                        {window.webkitSpeechRecognition || window.SpeechRecognition ? (
+                        {typeof window !== 'undefined' && (window.webkitSpeechRecognition || window.SpeechRecognition) ? (
                             <button
                                 type="button"
                                 className={`chatbot-mic-btn ${isListening ? 'listening' : ''}`}
                                 onClick={toggleVoiceInput}
-                                title={isListening ? 'Stop recording voice' : 'Speak into microphone (Speech-to-Text)'}
+                                title={isListening ? 'Stop recording voice' : `Speak in ${DIALECT_OPTIONS.find(d => d.id === dialect)?.label || 'Tagalog'} (Speech-to-Text)`}
                             >
                                 {isListening ? <MicOff size={16} /> : <Mic size={16} />}
                             </button>

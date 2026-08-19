@@ -20,6 +20,7 @@ import { useState, useEffect } from 'react'
 import './Layout.css'
 import BarangayChatbot from './BarangayChatbot'
 import BarangaySeal from './BarangaySeal'
+import PwaInstallBanner from './PwaInstallBanner'
 
 export default function Layout() {
     const { user, logout } = useAuthStore()
@@ -172,6 +173,7 @@ export default function Layout() {
             )}
 
             <BarangayChatbot />
+            <PwaInstallBanner />
         </div>
     )
 }

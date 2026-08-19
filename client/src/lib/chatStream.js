@@ -45,7 +45,7 @@ function parseSseChunk(buffer) {
     return { events, remainder }
 }
 
-export async function streamChatMessage({ message, history, onMeta, onToken, onDone, onError, signal }) {
+export async function streamChatMessage({ message, history, dialect = 'tagalog', onMeta, onToken, onDone, onError, signal }) {
     const token = getAuthToken()
     if (!token) {
         throw new Error('Not authenticated')
@@ -57,7 +57,7 @@ export async function streamChatMessage({ message, history, onMeta, onToken, onD
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ message, history }),
+        body: JSON.stringify({ message, history, dialect }),
         signal,
     })
 

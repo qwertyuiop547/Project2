@@ -736,97 +736,158 @@ Officials (Chairman/Secretary) can update complaint status.
 ${userContext}`;
 }
 
-function tryFaqReply(message, user, contextData = {}) {
+function tryFaqReply(message, user, contextData = {}, dialect = 'tagalog') {
     const lower = message.toLowerCase();
     const { services = [], complaintStats = null } = contextData;
+    const d = (dialect || 'tagalog').toLowerCase();
 
-    if (/file|mag-file|mag file|i-file|report|magreport|complain|paano.*(reklamo|complaint)/.test(lower)) {
+    // 1. Complaint Filing
+    if (/file|mag-file|mag file|i-file|report|magreport|complain|paano.*(reklamo|complaint)|unsaon.*reklamo|pat-od.*reklamo/.test(lower)) {
         if (user.role !== 'RESIDENT') {
+            if (d === 'bisaya') return 'Ang pag-file ug reklamo kay para ra sa **Residents**. Isip opisyal, mahimo nimong madumala ang mga reklamo sa **Complaints** page.';
+            if (d === 'waray') return 'An pag-file hin reklamo in para la ha **Residents**. Komo opisyal, pwede nimo madumala an mga reklamo ha **Complaints** page.';
+            if (d === 'english') return 'Filing complaints is reserved for **Residents**. As an official, you can manage complaints in the **Complaints** page.';
             return 'Ang pag-file ng reklamo ay para lamang sa **Residents**. Bilang official, maaari mong pamahalaan ang mga reklamo sa **Complaints** page.';
+        }
+
+        if (d === 'bisaya') {
+            return 'Aron mag-file ug reklamo:\n1. Adto sa **Complaints** sa sidebar\n2. I-click ang **File Complaint**\n3. I-describe ang issue ug gamita ang **AI Assist** kung gikinahanglan\n4. I-submit ang form';
+        }
+        if (d === 'waray') {
+            return 'Para mag-file hin reklamo:\n1. Kadto ha **Complaints** ha sidebar\n2. I-click an **File Complaint**\n3. Isaysay an problema ngan gamita an **AI Assist** kun kinahanglan\n4. I-submit an form';
+        }
+        if (d === 'english') {
+            return 'To file a complaint:\n1. Go to **Complaints** in the sidebar\n2. Click **File Complaint**\n3. Describe the issue and use **AI Assist** if needed\n4. Submit the form';
         }
         return 'Para mag-file ng reklamo:\n1. Pumunta sa **Complaints** sa sidebar\n2. I-click ang **File Complaint**\n3. I-describe ang issue at gamitin ang **AI Assist** kung kailangan\n4. I-submit ang form';
     }
 
-    if (/status|track|saan na|progress/.test(lower) && /reklamo|complaint/.test(lower)) {
+    // 2. Complaint Status / Tracking
+    if (/status|track|saan na|progress|subaybay|kumusta|hain na/.test(lower) && /reklamo|complaint/.test(lower)) {
         if (user.role === 'RESIDENT') {
             const stats = complaintStats
-                ? `\n\nMga reklamo mo ngayon: **${complaintStats.pending || 0} Pending**, **${complaintStats.in_progress || 0} In Progress**, **${complaintStats.resolved || 0} Resolved**.`
+                ? ` (${complaintStats.pending || 0} Pending, ${complaintStats.in_progress || 0} In Progress, ${complaintStats.resolved || 0} Resolved)`
                 : '';
-            return `Para makita ang status ng reklamo mo, pumunta sa **Complaints**, i-click ang reklamo mo, at tingnan ang **Status ng Reklamo** tracker sa taas.${stats}`;
+            if (d === 'bisaya') {
+                return `Aron makita ang status sa imong reklamo, adto sa **Complaints**, i-click ang imong reklamo, ug tan-awa ang **Status ng Reklamo** tracker sa taas.${stats ? ` Imong mga reklamo:${stats}.` : ''}`;
+            }
+            if (d === 'waray') {
+                return `Para makit-an an status han imo reklamo, kadto ha **Complaints**, i-click an imo reklamo, ngan kitaa an **Status ng Reklamo** tracker ha igbaw.${stats ? ` Imo mga reklamo:${stats}.` : ''}`;
+            }
+            if (d === 'english') {
+                return `To track your complaint status, navigate to **Complaints**, open your complaint, and view the **Status ng Reklamo** live timeline at the top.${stats ? ` Your active records:${stats}.` : ''}`;
+            }
+            return `Para makita ang status ng reklamo mo, pumunta sa **Complaints**, i-click ang reklamo mo, at tingnan ang **Status ng Reklamo** tracker sa taas.${stats ? ` Mga reklamo mo ngayon:${stats}.` : ''}`;
         }
         return 'Bilang official, maaari mong i-update ang status ng reklamo sa **Complaints** → piliin ang reklamo → **Update Status**.';
     }
 
+    // 3. Barangay Clearance
     if (/clearance/.test(lower) && !/business|permit/.test(lower)) {
         const svc = services.find((s) => /barangay clearance/i.test(s.name));
-        if (svc) {
-            return `Ang **Barangay Clearance** ay may bayad na **₱${svc.fee}**, ${svc.processingDays} araw ang processing. Requirements: ${svc.requirements}. Pumunta sa **Services** para mag-request.`;
+        const fee = svc ? svc.fee : '50';
+        const days = svc ? svc.processingDays : '1';
+        const reqs = svc ? svc.requirements : '1 Valid ID, Cedula, Proof of Residency';
+        if (d === 'bisaya') {
+            return `Ang **Barangay Clearance** kay may bayad nga **₱${fee}**, ${days} ka adlaw ang pag-process. Requirements: ${reqs}. Adto sa **Services** aron mag-request.`;
         }
+        if (d === 'waray') {
+            return `An **Barangay Clearance** in may bayad nga **₱${fee}**, ${days} ka adlaw an pag-proseso. Requirements: ${reqs}. Kadto ha **Services** para mag-request.`;
+        }
+        if (d === 'english') {
+            return `The **Barangay Clearance** fee is **₱${fee}**, with a processing time of ${days} day(s). Requirements: ${reqs}. Go to **Services** to apply.`;
+        }
+        return `Ang **Barangay Clearance** ay may bayad na **₱${fee}**, ${days} araw ang processing. Requirements: ${reqs}. Pumunta sa **Services** para mag-request.`;
     }
 
+    // 4. Barangay ID
     if (/barangay id|brgy id/.test(lower)) {
         const svc = services.find((s) => /barangay id/i.test(s.name));
-        if (svc) {
-            return `Ang **Barangay ID** ay may bayad na **₱${svc.fee}**, ${svc.processingDays} araw ang processing. Requirements: ${svc.requirements}. Pumunta sa **Services** para mag-request.`;
+        const fee = svc ? svc.fee : '100';
+        const days = svc ? svc.processingDays : '3';
+        const reqs = svc ? svc.requirements : '1 Valid ID, 2pcs 1x1 Photo, Proof of Residency';
+        if (d === 'bisaya') {
+            return `Ang **Barangay ID** kay may bayad nga **₱${fee}**, ${days} ka adlaw ang pag-process. Requirements: ${reqs}. Adto sa **Services** aron mag-request.`;
         }
+        if (d === 'waray') {
+            return `An **Barangay ID** in may bayad nga **₱${fee}**, ${days} ka adlaw an pag-proseso. Requirements: ${reqs}. Kadto ha **Services** para mag-request.`;
+        }
+        if (d === 'english') {
+            return `The **Barangay ID** fee is **₱${fee}**, taking ${days} working days. Requirements: ${reqs}. Go to **Services** to request.`;
+        }
+        return `Ang **Barangay ID** ay may bayad na **₱${fee}**, ${days} araw ang processing. Requirements: ${reqs}. Pumunta sa **Services** para mag-request.`;
     }
 
-    if (/indigency|indigent/.test(lower)) {
+    // 5. Indigency
+    if (/indigency|indigent|kalisod|kapobre/.test(lower)) {
         const svc = services.find((s) => /indigency/i.test(s.name));
-        if (svc) {
-            return `Ang **Certificate of Indigency** ay **libre (₱0)** at ${svc.processingDays} araw ang processing. Requirements: ${svc.requirements}. Pumunta sa **Services** para mag-request.`;
+        const days = svc ? svc.processingDays : '1';
+        const reqs = svc ? svc.requirements : '1 Valid ID, Proof of Low Income';
+        if (d === 'bisaya') {
+            return `Ang **Certificate of Indigency** kay **Libre (₱0)** ug ${days} ka adlaw ang pag-process. Requirements: ${reqs}. Adto sa **Services** aron mag-request.`;
         }
-    }
-
-    if (/business|permit/.test(lower)) {
-        const svc = services.find((s) => /business|permit/i.test(s.name));
-        if (svc) {
-            return `Ang **${svc.name}** ay may bayad na **₱${svc.fee}**, ${svc.processingDays} araw ang processing. Requirements: ${svc.requirements}. Pumunta sa **Services**.`;
+        if (d === 'waray') {
+            return `An **Certificate of Indigency** in **Libre (₱0)** ngan ${days} ka adlaw an pag-proseso. Requirements: ${reqs}. Kadto ha **Services** para mag-request.`;
         }
-    }
-
-    if (/requirements/.test(lower) && /clearance|document|serbisyo|service|certificate/.test(lower)) {
-        const list = services.map((s) => `• **${s.name}** — ₱${s.fee}, ${s.processingDays} araw, Requirements: ${s.requirements}`).join('\n');
-        return `Mga serbisyo sa **Services** page:\n${list}`;
-    }
-
-    if (/serbisyo|service|certificate|available|ano ang mga|anong mga/.test(lower)) {
-        const list = services.map((s) => `• **${s.name}** — ₱${s.fee}, ${s.processingDays} araw`).join('\n');
-        return `Mga available na serbisyo sa **Services** page:\n${list || '• Barangay Clearance\n• Barangay ID\n• Certificate of Indigency\n• Business Clearance'}\n\nI-click ang serbisyo para makita ang buong requirements.`;
-    }
-
-    if (/suggestion|idea|mungkahi/.test(lower)) {
-        if (user.role !== 'RESIDENT') {
-            return 'Ang pag-submit ng suggestions ay para sa residents. Bilang official, tingnan ang **Suggestions** page para mag-review.';
+        if (d === 'english') {
+            return `The **Certificate of Indigency** is **FREE (₱0)** and processed in ${days} day(s). Requirements: ${reqs}. Visit **Services** to submit a request.`;
         }
-        return 'Para mag-submit ng idea: **Suggestions** → **Submit Idea**. Ang community ay puwedeng bumoto sa mga suggestions.';
+        return `Ang **Certificate of Indigency** ay **libre (₱0)** at ${days} araw ang processing. Requirements: ${reqs}. Pumunta sa **Services** para mag-request.`;
     }
 
-    if (/announcement|balita|update/.test(lower)) {
-        return 'Tingnan ang **Announcements** sa sidebar para sa pinakabagong balita at abiso mula sa barangay.';
-    }
-
-    if (/^(hello|hi|kumusta|magandang|help|tulong)\b|ano ang barangay portal/.test(lower)) {
-        return `Kumusta, ${user.firstName}! Ako ang **Barangay AI Assistant**. Matutulungan kita sa:\n• Pag-file at pag-track ng reklamo\n• Mga dokumento at serbisyo ng barangay\n• Suggestions at announcements\n\nAno ang maitutulong ko sa iyo?`;
+    // 6. Greetings & Introduction
+    if (/^(hello|hi|kumusta|magandang|maayong|maupay|help|tulong|tabang)\b|ano ang barangay portal|unsa ang barangay portal/.test(lower)) {
+        if (d === 'bisaya') {
+            return `Maayong adlaw, ${user.firstName || 'residente'}! Ako ang imong **Barangay AI Assistant**. Andam ko motabang nimo sa:\n• Pag-file ug pag-track sa reklamo\n• Pagkuha ug dokumento ug serbisyo\n• Suggestions ug announcements\n\nUnsa may akong ika-alagad nimo?`;
+        }
+        if (d === 'waray') {
+            return `Maupay nga adlaw, ${user.firstName || 'residente'}! Ako an imo **Barangay AI Assistant**. Andam ako bumulig ha:\n• Pag-file ngan pag-track hin reklamo\n• Pagkuha hin mga dokumento ngan serbisyo\n• Suggestions ngan announcements\n\nAno an akon maibubulig ha imo yana?`;
+        }
+        if (d === 'english') {
+            return `Hello, ${user.firstName || 'Resident'}! I am your **Barangay AI Assistant**. I can assist you with:\n• Filing and tracking complaints\n• Requesting certificates and services\n• Community suggestions and bulletins\n\nHow can I help you today?`;
+        }
+        return `Kumusta, ${user.firstName || 'Resident'}! Ako ang **Barangay AI Assistant**. Matutulungan kita sa:\n• Pag-file at pag-track ng reklamo\n• Mga dokumento at serbisyo ng barangay\n• Suggestions at announcements\n\nAno ang maitutulong ko sa iyo?`;
     }
 
     return null;
 }
 
-function fallbackChatReply(message, user, contextData = {}) {
-    const faq = tryFaqReply(message, user, contextData);
+function fallbackChatReply(message, user, contextData = {}, dialect = 'tagalog') {
+    const faq = tryFaqReply(message, user, contextData, dialect);
     if (faq) {
         return faq;
+    }
+    const d = (dialect || 'tagalog').toLowerCase();
+    if (d === 'bisaya') {
+        return 'Salamat sa mensahe! Para sa reklamo, adto sa **Complaints**. Para sa mga dokumento, tan-awa ang **Services**. Para sa balita, ablihi ang **Announcements**. Naa ka bay specific nga pangutana?';
+    }
+    if (d === 'waray') {
+        return 'Salamat han mensahe! Para ha reklamo, kadto ha **Complaints**. Para ha mga dokumento, kitaa an **Services**. Para ha sumat, abrihi an **Announcements**. May-ada ka ba karuyag igpakiana?';
+    }
+    if (d === 'english') {
+        return 'Thank you for reaching out! For incident reports, go to **Complaints**. For certificates, check **Services**. For bulletins, open **Announcements**. Do you have a specific inquiry?';
     }
     return 'Salamat sa mensahe! Para sa reklamo, pumunta sa **Complaints**. Para sa dokumento, tingnan ang **Services**. Para sa balita, buksan ang **Announcements**. May specific na tanong ka ba?';
 }
 
-function buildChatMessages({ message, history, context }) {
-    const systemPrompt = `You are the Barangay Portal AI Assistant for a Philippine barangay website.
+function buildChatMessages({ message, history, context, dialect = 'tagalog' }) {
+    const d = (dialect || 'tagalog').toLowerCase();
+    let dialectInstruction = 'Respond in Tagalog if user writes Tagalog, English if English.';
+    if (d === 'bisaya') {
+        dialectInstruction = 'Respond warmly in conversational Cebuano / Bisaya (e.g. "Maayong adlaw", "palihog", "adto sa...").';
+    } else if (d === 'waray') {
+        dialectInstruction = 'Respond warmly in Waray-Waray, the local language of Basey, Samar (e.g. "Maupay nga adlaw", "kadto ha...", "bulig").';
+    } else if (d === 'english') {
+        dialectInstruction = 'Respond clearly and politely in Philippine English.';
+    } else {
+        dialectInstruction = 'Respond in friendly and natural Tagalog / Filipino.';
+    }
+
+    const systemPrompt = `You are the Barangay Portal AI Assistant for Barangay Burgos (Basey, Samar).
 STRICT RULES:
 - Answer ONLY using the knowledge base below. NEVER invent fees, steps, or features.
 - Maximum 3 short sentences. Use **bold** for menu names like **Complaints**, **Services**.
-- Respond in Tagalog if user writes Tagalog, English if English.
+- ${dialectInstruction}
 - Navigation is via sidebar: Dashboard, Complaints, Suggestions, Announcements, Services.
 - To file complaint: **Complaints** → **File Complaint** → fill form → Submit.
 - To track status: **Complaints** → open complaint → **Status ng Reklamo**.
@@ -846,12 +907,12 @@ ${context}`;
     ];
 }
 
-async function* streamChatWithAssistant({ message, history, context, user, contextData }) {
+async function* streamChatWithAssistant({ message, history, dialect = 'tagalog', context, user, contextData }) {
     if (!message?.trim()) {
         throw new Error('Message is required.');
     }
 
-    const faqReply = tryFaqReply(message, user, contextData);
+    const faqReply = tryFaqReply(message, user, contextData, dialect);
     if (faqReply) {
         yield { type: 'meta', source: 'portal-guide' };
         for await (const chunk of streamTextByWords(faqReply)) {
@@ -861,7 +922,7 @@ async function* streamChatWithAssistant({ message, history, context, user, conte
         return;
     }
 
-    const messages = buildChatMessages({ message, history, context });
+    const messages = buildChatMessages({ message, history, context, dialect });
 
     if (await isOllamaAvailable()) {
         try {
@@ -884,7 +945,7 @@ async function* streamChatWithAssistant({ message, history, context, user, conte
 
     try {
         const { content, source } = await callAI(messages);
-        const reply = content || fallbackChatReply(message, user, contextData);
+        const reply = content || fallbackChatReply(message, user, contextData, dialect);
         const finalSource = content ? source : 'smart-assist';
 
         yield { type: 'meta', source: finalSource };
@@ -894,7 +955,7 @@ async function* streamChatWithAssistant({ message, history, context, user, conte
         yield { type: 'done', source: finalSource };
     } catch (error) {
         console.error('AI chat stream error:', error.message);
-        const reply = fallbackChatReply(message, user, contextData);
+        const reply = fallbackChatReply(message, user, contextData, dialect);
         yield { type: 'meta', source: 'smart-assist' };
         for await (const chunk of streamTextByWords(reply)) {
             yield { type: 'token', text: chunk };
@@ -903,24 +964,24 @@ async function* streamChatWithAssistant({ message, history, context, user, conte
     }
 }
 
-async function chatWithAssistant({ message, history, context, user, contextData }) {
+async function chatWithAssistant({ message, history, dialect = 'tagalog', context, user, contextData }) {
     if (!message?.trim()) {
         throw new Error('Message is required.');
     }
 
-    const faqReply = tryFaqReply(message, user, contextData);
+    const faqReply = tryFaqReply(message, user, contextData, dialect);
     if (faqReply) {
         return { reply: faqReply, source: 'portal-guide' };
     }
 
-    const messages = buildChatMessages({ message, history, context });
+    const messages = buildChatMessages({ message, history, context, dialect });
 
     try {
         const { content, source } = await callAI(messages);
 
         if (!content) {
             return {
-                reply: fallbackChatReply(message, user, contextData),
+                reply: fallbackChatReply(message, user, contextData, dialect),
                 source: 'smart-assist',
             };
         }
@@ -929,7 +990,7 @@ async function chatWithAssistant({ message, history, context, user, contextData 
     } catch (error) {
         console.error('AI chat error:', error.message);
         return {
-            reply: fallbackChatReply(message, user, contextData),
+            reply: fallbackChatReply(message, user, contextData, dialect),
             source: 'smart-assist',
         };
     }
