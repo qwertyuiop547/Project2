@@ -919,7 +919,7 @@ function detectNonsenseInput(text) {
         };
     }
 
-    // 4. Common test/troll inputs
+    // 4. Common test/troll inputs & Profanity / Inappropriate Language
     const trollPatterns = [
         /^test+$/i,
         /^(ha){2,}$/i,          // hahaha
@@ -928,7 +928,6 @@ function detectNonsenseInput(text) {
         /^(lol|lmao|rofl|xd|bruh|yolo|swag|uwu|owo)\s*$/i,
         /^(hello|hi|hey|yo|sup|oi|hoy|uy|greetings)\s*[!.?]*$/i,
         /^(ok|okay|oo|opo|sige|yes|no|ewan|wala|idk|idc)\s*[!.?]*$/i,
-        /^(tang?ina|put[aâ]ng?\s?ina|g[aâ]g[oô]|bogo|animal|bobo|tanga|ulol|gag[oô])\s*[!.?]*$/i,
         /^[!@#$%^&*()_+=[\]{}|\\;:'",.<>?/`~\-\s]+$/,
         /^[\d\s]+$/,
     ];
@@ -936,6 +935,26 @@ function detectNonsenseInput(text) {
         return {
             isNonsense: true,
             message: 'Hindi ito isang valid na reklamo. Mangyaring ilarawan ang isang tunay na isyu o problema sa inyong komunidad (hal. "May mga tambay na nag-iingay sa gabi" o "Hindi nangongolekta ng basura").',
+        };
+    }
+
+    // 4b. Strict Profanity and Vulgar/Offensive words filter anywhere in the complaint
+    const profanityPatterns = [
+        /\b(gago|gaga|ogag|gag0|g4go)\b/i,
+        /\b(tang\s?ina|taena|tena|tangina|ina\s?mo|ina\s?ka)\b/i,
+        /\b(putang\s?ina|pota|puta|potang\s?ina|pucha)\b/i,
+        /\b(tarantado|tarandato|tarantad0)\b/i,
+        /\b(ulol|ul0l|inutil|buwisit|bwisit)\b/i,
+        /\b(kupal|kopal|hudas)\b/i,
+        /\b(bobo|b0b0|tanga|engot|unggoy|t@nga)\b/i,
+        /\b(kantot|kantutan|puki|pekpek|kiki|puke|titi|oten|burat|tamod|bayag)\b/i,
+        /\b(fuck|fucking|fucker|shit|bitch|asshole|bastard|cunt|dick|pussy)\b/i,
+        /\b(yawa|piste|pisting|bilat|pisting\s?yawa)\b/i,
+    ];
+    if (profanityPatterns.some((p) => p.test(lower))) {
+        return {
+            isNonsense: true,
+            message: 'Naglalaman ng hindi angkop o bastos na salita ang iyong reklamo. Mangyaring gumamit ng magalang at maayos na pananalita (hal. "May alitan kami ng kapitbahay dahil sa ingay") upang maiproseso ang iyong report sa barangay.',
         };
     }
 
