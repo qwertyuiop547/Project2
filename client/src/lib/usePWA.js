@@ -33,6 +33,15 @@ export function usePWA() {
             e.preventDefault()
             setDeferredPrompt(e)
             setIsInstallable(true)
+
+            // Auto-trigger prompt for mobile & desktop if not installed and not dismissed in this session
+            const autoPromptSession = sessionStorage.getItem('pwa-autoprompt-triggered')
+            if (!autoPromptSession && !isStandalone) {
+                sessionStorage.setItem('pwa-autoprompt-triggered', 'true')
+                setTimeout(() => {
+                    setIsModalOpen(true)
+                }, 1600)
+            }
         }
 
         const handleAppInstalled = () => {
@@ -54,6 +63,19 @@ export function usePWA() {
         window.addEventListener('online', handleOnline)
         window.addEventListener('offline', handleOffline)
         window.addEventListener(PWA_MODAL_EVENT, handleOpenModal)
+
+        // Fallback auto-prompt for iOS / mobile browsers where beforeinstallprompt doesn't fire natively
+        const isMobileDevice = /iPad|iPhone|iPod|Android/.test(navigator.userAgent)
+        const mobilePromptSession = sessionStorage.getItem('pwa-mobile-guide-triggered')
+        if (isMobileDevice && !isStandalone && !mobilePromptSession) {
+            sessionStorage.setItem('pwa-mobile-guide-triggered', 'true')
+            setTimeout(() => {
+                const isDismissed = localStorage.getItem('pwa-install-dismissed') === 'true'
+                if (!isDismissed) {
+                    setIsModalOpen(true)
+                }
+            }, 2500)
+        }
 
         return () => {
             window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)

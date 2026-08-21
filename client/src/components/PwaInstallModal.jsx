@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
     Download, X, Smartphone, ShieldCheck, Zap, WifiOff,
     CheckCircle2, Share2, PlusSquare, MoreVertical, Laptop,
     Sparkles, ArrowRight
 } from 'lucide-react'
+import gsap from 'gsap'
 import { usePWA } from '../lib/usePWA'
 import BarangaySeal from './BarangaySeal'
 import './PwaInstallModal.css'
@@ -20,8 +21,84 @@ export default function PwaInstallModal() {
     } = usePWA()
 
     const [isInstalling, setIsInstalling] = useState(false)
+    const backdropRef = useRef(null)
+    const cardRef = useRef(null)
+    const sealRef = useRef(null)
+
+    useEffect(() => {
+        if (!isModalOpen || !cardRef.current) return
+
+        const ctx = gsap.context(() => {
+            const tl = gsap.timeline()
+
+            tl.fromTo(
+                backdropRef.current,
+                { opacity: 0 },
+                { opacity: 1, duration: 0.25, ease: 'power2.out' }
+            )
+
+            tl.fromTo(
+                cardRef.current,
+                {
+                    scale: 0.8,
+                    y: 40,
+                    opacity: 0,
+                    rotateX: 10,
+                    transformPerspective: 800,
+                },
+                {
+                    scale: 1,
+                    y: 0,
+                    opacity: 1,
+                    rotateX: 0,
+                    duration: 0.5,
+                    ease: 'back.out(1.8)',
+                    clearProps: 'transformPerspective',
+                },
+                '-=0.15'
+            )
+
+            if (sealRef.current) {
+                tl.fromTo(
+                    sealRef.current,
+                    { scale: 0.5, rotate: -15 },
+                    { scale: 1, rotate: 0, duration: 0.4, ease: 'back.out(2)' },
+                    '-=0.3'
+                )
+            }
+
+            tl.fromTo(
+                '.pwa-benefit-item',
+                { opacity: 0, y: 15 },
+                { opacity: 1, y: 0, stagger: 0.08, duration: 0.35, ease: 'power2.out' },
+                '-=0.2'
+            )
+        }, cardRef)
+
+        return () => ctx.revert()
+    }, [isModalOpen])
 
     if (!isModalOpen) return null
+
+    const handleClose = () => {
+        if (cardRef.current && backdropRef.current) {
+            gsap.to(cardRef.current, {
+                scale: 0.85,
+                y: 30,
+                opacity: 0,
+                duration: 0.22,
+                ease: 'power2.in',
+            })
+            gsap.to(backdropRef.current, {
+                opacity: 0,
+                duration: 0.22,
+                ease: 'power2.in',
+                onComplete: closeModal,
+            })
+        } else {
+            closeModal()
+        }
+    }
 
     const handleNativeInstall = async () => {
         setIsInstalling(true)
@@ -33,13 +110,13 @@ export default function PwaInstallModal() {
     }
 
     return (
-        <div className="pwa-modal-backdrop animate-fadeIn" onClick={closeModal}>
-            <div className="pwa-modal-card" onClick={(e) => e.stopPropagation()}>
+        <div ref={backdropRef} className="pwa-modal-backdrop" onClick={handleClose}>
+            <div ref={cardRef} className="pwa-modal-card" onClick={(e) => e.stopPropagation()}>
                 {/* Close Button */}
                 <button
                     type="button"
                     className="pwa-modal-close"
-                    onClick={closeModal}
+                    onClick={handleClose}
                     aria-label="Close modal"
                 >
                     <X size={20} />
@@ -47,7 +124,7 @@ export default function PwaInstallModal() {
 
                 {/* Modal Header */}
                 <div className="pwa-modal-header">
-                    <div className="pwa-seal-wrap">
+                    <div ref={sealRef} className="pwa-seal-wrap">
                         <BarangaySeal className="pwa-modal-seal" />
                         <span className="pwa-modal-badge">
                             <ShieldCheck size={14} /> Official PWA
