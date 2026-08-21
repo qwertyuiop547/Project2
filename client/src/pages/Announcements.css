@@ -369,3 +369,54 @@
     font-size: 0.88rem;
     color: #64748b;
 }
+
+/* ============================================
+   RESPONSIVE (Mobile & Android Screens)
+   ============================================ */
+@media (max-width: 768px) {
+    .announcements-hero-banner {
+        padding: 24px 20px;
+        border-radius: 16px;
+    }
+
+    .announcements-hero-content h1 {
+        font-size: 1.5rem;
+    }
+
+    .announcement-card-premium {
+        padding: 20px 18px;
+        border-radius: 14px;
+    }
+}
+
+@media (max-width: 540px) {
+    .announcements-hero-banner {
+        padding: 18px 16px;
+        gap: 16px;
+    }
+
+    .post-announcement-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .announcement-card-layout {
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .announcement-icon-halo {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+    }
+
+    .title-and-badges h3 {
+        font-size: 1.05rem;
+    }
+
+    .announcements-filter-bar {
+        padding: 12px 14px;
+        border-radius: 14px;
+    }
+}

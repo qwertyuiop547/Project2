@@ -192,53 +192,57 @@
 /* Leaflet Map Toolbars (Flex Containers) */
 .map-top-bar {
     position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
+    top: 8px;
+    left: 8px;
+    right: 8px;
     z-index: 1000;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     pointer-events: none;
 }
 
 .map-bottom-bar {
     position: absolute;
-    bottom: 10px;
-    left: 10px;
-    right: 56px; /* Leave space for Leaflet zoom button on the bottom right */
+    bottom: 8px;
+    left: 8px;
+    right: 48px; /* Leave space for Leaflet zoom control (+/-) on bottom right */
     z-index: 1000;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     pointer-events: none;
 }
 
 .map-overlay-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: rgba(15, 23, 42, 0.85);
+    gap: 5px;
+    padding: 5px 10px;
+    background: rgba(15, 23, 42, 0.88);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 999px;
-    font-size: 0.76rem;
+    font-size: 0.74rem;
     font-weight: 700;
     color: white;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     pointer-events: auto;
     white-space: nowrap;
+    max-width: 50%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .satellite-pulse-dot {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     background: #38bdf8;
     border-radius: 50%;
     display: inline-block;
+    flex-shrink: 0;
     box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.8);
     animation: satellitePulse 1.8s infinite;
 }
@@ -250,7 +254,7 @@
     }
     70% {
         transform: scale(1.1);
-        box-shadow: 0 0 0 8px rgba(56, 189, 248, 0);
+        box-shadow: 0 0 0 6px rgba(56, 189, 248, 0);
     }
     100% {
         transform: scale(0.9);
@@ -262,11 +266,11 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 5px 10px;
+    padding: 4px 9px;
     background: rgba(21, 128, 61, 0.92);
     backdrop-filter: blur(6px);
     border-radius: 999px;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 700;
     color: white;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
@@ -276,18 +280,19 @@
 
 .map-layer-toggles {
     display: inline-flex;
-    background: rgba(15, 23, 42, 0.85);
+    background: rgba(15, 23, 42, 0.88);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 999px;
-    padding: 3px;
+    padding: 2px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     pointer-events: auto;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .layer-toggle-btn {
-    padding: 5px 10px;
+    padding: 4px 9px;
     border-radius: 999px;
     border: none;
     background: transparent;
@@ -311,13 +316,13 @@
 .map-directions-btn {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 6px 12px;
+    gap: 4px;
+    padding: 5px 10px;
     background: #1e3a8a;
     color: white;
     text-decoration: none;
     border-radius: 8px;
-    font-size: 0.76rem;
+    font-size: 0.72rem;
     font-weight: 700;
     box-shadow: 0 4px 10px rgba(30, 58, 138, 0.35);
     transition: all 0.2s ease;
@@ -373,43 +378,72 @@
     cursor: not-allowed;
 }
 
-/* Location Picker Responsiveness */
+/* Location Picker Responsiveness (Mobile / Infinix / Android screens) */
 @media (max-width: 540px) {
     .map-view-wrapper {
-        height: 280px;
+        height: 270px;
+        border-radius: 12px;
+    }
+
+    .location-controls-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
     }
 
     .live-gps-btn {
         width: 100%;
         justify-content: center;
+        padding: 9px 12px;
+        font-size: 0.82rem;
     }
 
     .coordinates-chip {
         width: 100%;
         justify-content: center;
+        padding: 5px 10px;
+        font-size: 0.74rem;
     }
 
     .map-top-bar {
-        top: 8px;
-        left: 8px;
-        right: 8px;
-    }
-
-    .map-bottom-bar {
-        bottom: 8px;
-        left: 8px;
-        right: 50px;
+        top: 6px;
+        left: 6px;
+        right: 6px;
         gap: 4px;
     }
 
-    .map-overlay-badge,
-    .map-pin-tip,
-    .map-directions-btn {
-        padding: 4px 8px;
+    .map-bottom-bar {
+        bottom: 6px;
+        left: 6px;
+        right: 44px;
+        gap: 4px;
+    }
+
+    .map-overlay-badge {
+        padding: 4px 7px;
+        font-size: 0.68rem;
+    }
+
+    /* On very small screens, keep badge compact */
+    .map-overlay-badge .badge-text {
         font-size: 0.68rem;
     }
 
     .layer-toggle-btn {
+        padding: 3px 7px;
+        font-size: 0.68rem;
+    }
+
+    .map-pin-tip {
+        padding: 3px 7px;
+        font-size: 0.66rem;
+    }
+
+    .pin-tip-text {
+        font-size: 0.66rem;
+    }
+
+    .map-directions-btn {
         padding: 4px 8px;
         font-size: 0.68rem;
     }
@@ -420,6 +454,21 @@
 
     .pinpoint-search-btn {
         width: 100%;
+    }
+}
+
+@media (max-width: 380px) {
+    /* Infinix and ultra-compact Android screens */
+    .map-overlay-badge .badge-text {
+        display: none; /* Hide text, just show pulsating dot + pin icon */
+    }
+
+    .map-overlay-badge {
+        padding: 4px 6px;
+    }
+
+    .layer-toggle-btn .toggle-label {
+        font-size: 0.65rem;
     }
 }
 

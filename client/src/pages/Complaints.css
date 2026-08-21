@@ -351,7 +351,7 @@
 /* Complaints Cards Grid */
 .complaints-card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
     gap: 20px;
 }
 
@@ -584,4 +584,99 @@
 
 .incident-map-wrapper {
     margin-bottom: 24px;
+}
+
+/* ============================================
+   RESPONSIVE (Mobile, Infinix & Small Screens)
+   ============================================ */
+@media (max-width: 768px) {
+    .complaints-hero-banner {
+        padding: 24px 20px;
+        border-radius: 16px;
+    }
+
+    .complaints-hero-left h1 {
+        font-size: 1.5rem;
+    }
+
+    .complaints-stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+    }
+
+    .stat-box-number {
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 540px) {
+    .complaints-hero-banner {
+        padding: 18px 16px;
+        gap: 16px;
+    }
+
+    .complaints-hero-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .complaints-view-switcher {
+        width: 100%;
+        display: flex;
+    }
+
+    .complaints-view-switcher .switcher-btn {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .file-complaint-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .complaints-filter-toolbar {
+        padding: 12px 14px;
+        border-radius: 14px;
+    }
+
+    .complaints-search-form {
+        flex-direction: column;
+    }
+
+    .search-submit-btn {
+        width: 100%;
+        padding: 10px;
+    }
+
+    .complaints-card-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .complaint-card-premium {
+        padding: 16px;
+        border-radius: 14px;
+    }
+
+    .complaint-card-title {
+        font-size: 1rem;
+    }
+
+    .complaint-card-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .view-details-arrow {
+        align-self: flex-end;
+    }
+}
+
+@media (max-width: 380px) {
+    .complaints-stats-grid {
+        grid-template-columns: 1fr;
+    }
 }

@@ -550,3 +550,61 @@
     padding: 4px 8px;
     border-radius: 6px;
 }
+
+/* ============================================
+   RESPONSIVE (Mobile & Android Screens)
+   ============================================ */
+@media (max-width: 768px) {
+    .dashboard-hero-banner {
+        padding: 24px 20px;
+        border-radius: 16px;
+    }
+
+    .dashboard-hero-content h1 {
+        font-size: 1.5rem;
+    }
+
+    .dashboard-section-card {
+        padding: 18px 16px;
+        border-radius: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-hero-banner {
+        padding: 18px 14px;
+        gap: 14px;
+    }
+
+    .dashboard-hero-content h1 {
+        font-size: 1.35rem;
+    }
+
+    .dashboard-hero-quick-actions {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
+
+    .hero-action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .quick-portal-item {
+        padding: 12px;
+    }
+
+    .portal-icon-wrap {
+        width: 38px;
+        height: 38px;
+    }
+
+    .portal-text-wrap h4 {
+        font-size: 0.88rem;
+    }
+
+    .dashboard-hall-notice-card {
+        padding: 14px;
+    }
+}

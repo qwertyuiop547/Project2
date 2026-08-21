@@ -424,13 +424,15 @@ export default function LocationPickerMap({ value, onChange, readOnly = false, i
 
                 {/* Map Floating Top Toolbar */}
                 <div className="map-top-bar">
-                    <div className="map-overlay-badge">
+                    <div className="map-overlay-badge" title="Live Interactive Pinpoint Map">
                         <span className="satellite-pulse-dot"></span>
                         <MapPin size={13} className="map-pin-icon" />
-                        <span className="badge-text">🛰️ Satellite Map</span>
+                        <span className="badge-text">
+                            {mapType === 'satellite' ? 'Satellite' : 'Map'} View
+                        </span>
                     </div>
 
-                    {/* Satellite Layer Switcher */}
+                    {/* Satellite / Street Layer Switcher */}
                     <div className="map-layer-toggles">
                         <button
                             type="button"
@@ -438,7 +440,7 @@ export default function LocationPickerMap({ value, onChange, readOnly = false, i
                             onClick={() => handleSwitchMapType('satellite')}
                             title="Combined Satellite Imagery with Street Labels"
                         >
-                            🛰️ Satellite
+                            🛰️ <span className="toggle-label">Satellite</span>
                         </button>
                         <button
                             type="button"
@@ -446,29 +448,29 @@ export default function LocationPickerMap({ value, onChange, readOnly = false, i
                             onClick={() => handleSwitchMapType('streets')}
                             title="Standard Street Map View"
                         >
-                            🗺️ Map
+                            🗺️ <span className="toggle-label">Map</span>
                         </button>
                     </div>
                 </div>
 
-                {/* Map Floating Bottom Helper & Actions */}
+                {/* Map Floating Bottom Toolbar */}
                 <div className="map-bottom-bar">
-                    {!readOnly && (
+                    {!readOnly ? (
                         <div className="map-pin-tip">
-                            <Move size={12} />
-                            <span>Drag pin or tap map</span>
+                            <Move size={11} />
+                            <span className="pin-tip-text">Drag pin to adjust</span>
                         </div>
-                    )}
+                    ) : <div></div>}
 
                     <a
                         href={directionsUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="map-directions-btn"
-                        title="Open in Google Maps for turn-by-turn navigation"
+                        title="Open driving / walking directions in Google Maps"
                     >
-                        <ExternalLink size={13} />
-                        <span>Google Maps</span>
+                        <ExternalLink size={11} />
+                        <span>Directions</span>
                     </a>
                 </div>
             </div>

@@ -189,3 +189,26 @@
 .popup-view-btn:hover {
     background: #166534;
 }
+
+/* Responsive */
+@media (max-width: 640px) {
+    .complaints-map-card {
+        padding: 14px;
+    }
+
+    .complaints-map-view-wrapper {
+        height: 300px;
+    }
+
+    .map-filter-chips {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 4px;
+    }
+
+    .map-chip {
+        padding: 5px 10px;
+        font-size: 0.72rem;
+        white-space: nowrap;
+    }
+}

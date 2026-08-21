@@ -498,3 +498,64 @@
     font-size: 0.88rem;
     color: #64748b;
 }
+
+/* ============================================
+   RESPONSIVE (Mobile & Android Screens)
+   ============================================ */
+@media (max-width: 768px) {
+    .suggestions-hero-banner {
+        padding: 24px 20px;
+        border-radius: 16px;
+    }
+
+    .suggestions-hero-content h1 {
+        font-size: 1.5rem;
+    }
+
+    .suggestions-stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+    }
+
+    .stat-box-number {
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 540px) {
+    .suggestions-hero-banner {
+        padding: 18px 16px;
+        gap: 16px;
+    }
+
+    .propose-idea-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .suggestions-card-layout {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .suggestion-card-premium {
+        padding: 16px;
+        border-radius: 14px;
+    }
+
+    .suggestions-filter-bar {
+        padding: 12px 14px;
+        border-radius: 14px;
+    }
+
+    .suggestions-controls-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+@media (max-width: 380px) {
+    .suggestions-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -253,7 +253,7 @@
 /* Services Cards Grid */
 .services-cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
     gap: 20px;
 }
 
@@ -733,4 +733,59 @@
     gap: 8px;
     padding: 10px 20px;
     font-weight: 700;
+}
+
+/* ============================================
+   RESPONSIVE (Mobile & Android Screens)
+   ============================================ */
+@media (max-width: 768px) {
+    .services-hero-banner {
+        padding: 24px 20px;
+        border-radius: 16px;
+    }
+
+    .services-hero-content h1 {
+        font-size: 1.5rem;
+    }
+
+    .services-hero-stats {
+        width: 100%;
+    }
+
+    .hero-stat-card {
+        flex: 1;
+        min-width: 0;
+        padding: 10px 14px;
+    }
+}
+
+@media (max-width: 540px) {
+    .services-hero-banner {
+        padding: 18px 16px;
+        gap: 16px;
+    }
+
+    .services-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .service-card-premium {
+        padding: 16px;
+        border-radius: 14px;
+    }
+
+    .modal-two-col {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .service-modal-actions {
+        flex-direction: column;
+    }
+
+    .service-modal-actions button {
+        width: 100%;
+        justify-content: center;
+    }
 }
