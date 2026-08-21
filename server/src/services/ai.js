@@ -96,6 +96,84 @@ async function* streamOllamaChat(messages) {
     }
 }
 
+async function* streamOpenRouterChat(messages) {
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    if (!apiKey) return;
+
+    const primaryModel = process.env.OPENROUTER_MODEL || 'z-ai/glm-5.2:free';
+    const modelsToTry = [
+        primaryModel,
+        'liquid/lfm-2.5-2.6b:free',
+        'nvidia/nemotron-3-super-120b-a12b:free',
+        'openai/gpt-oss-20b:free',
+    ];
+    const uniqueModels = [...new Set(modelsToTry)];
+
+    for (const model of uniqueModels) {
+        try {
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${apiKey}`,
+                    'HTTP-Referer': 'http://localhost:5173',
+                    'X-Title': 'Barangay Burgos Portal',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model,
+                    messages,
+                    stream: true,
+                    temperature: 0.4,
+                }),
+                signal: AbortSignal.timeout(60000),
+            });
+
+            if (!response.ok) {
+                const err = await response.text().catch(() => '');
+                console.warn(`OpenRouter stream model ${model} error (${response.status}): ${err.slice(0, 100)}`);
+                continue;
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            let yieldedAny = false;
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed || trimmed === 'data: [DONE]') continue;
+                    if (trimmed.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(trimmed.slice(6));
+                            const token = data.choices?.[0]?.delta?.content;
+                            if (token) {
+                                yieldedAny = true;
+                                yield token;
+                            }
+                        } catch {
+                            // ignore malformed SSE line
+                        }
+                    }
+                }
+            }
+
+            if (yieldedAny) {
+                return;
+            }
+        } catch (err) {
+            console.warn(`OpenRouter stream error on model ${model}:`, err.message);
+        }
+    }
+}
+
 async function* streamTextByWords(text) {
     const parts = text.split(/(\s+)/);
     for (const part of parts) {
@@ -1092,6 +1170,25 @@ async function* streamChatWithAssistant({ message, history, dialect = 'tagalog',
     }
 
     const messages = buildChatMessages({ message, history, context, dialect });
+
+    if (process.env.OPENROUTER_API_KEY) {
+        try {
+            yield { type: 'meta', source: 'openrouter' };
+            let hasContent = false;
+
+            for await (const token of streamOpenRouterChat(messages)) {
+                hasContent = true;
+                yield { type: 'token', text: token };
+            }
+
+            if (hasContent) {
+                yield { type: 'done', source: 'openrouter' };
+                return;
+            }
+        } catch (error) {
+            console.warn('OpenRouter stream failed:', error.message);
+        }
+    }
 
     if (await isOllamaAvailable()) {
         try {
