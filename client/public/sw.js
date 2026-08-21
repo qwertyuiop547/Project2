@@ -1,5 +1,5 @@
 // Barangay Burgos Service Worker (PWA & Offline Support)
-const CACHE_NAME = 'brgy-burgos-v1'
+const CACHE_NAME = 'brgy-burgos-v2'
 const STATIC_ASSETS = [
     '/',
     '/index.html',
