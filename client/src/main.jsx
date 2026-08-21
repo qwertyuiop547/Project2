@@ -58,13 +58,59 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       >
         <App />
         <Toaster
-          position="top-right"
+          position="top-center"
+          reverseOrder={false}
+          gutter={10}
           toastOptions={{
+            duration: 4500,
+            className: 'civic-toast',
             style: {
-              background: '#1e293b',
-              color: '#fff',
-              border: '1px solid rgba(255,255,255,0.1)'
-            }
+              background: 'rgba(255, 255, 255, 0.96)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              color: '#0f172a',
+              padding: '12px 18px',
+              borderRadius: '14px',
+              fontSize: '0.88rem',
+              fontWeight: 600,
+              fontFamily: "'Source Sans 3', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+              boxShadow: '0 16px 36px -4px rgba(15, 23, 42, 0.14), 0 6px 14px -2px rgba(15, 23, 42, 0.06)',
+              border: '1px solid rgba(226, 232, 240, 0.95)',
+              maxWidth: '460px',
+              lineHeight: 1.45,
+            },
+            success: {
+              duration: 4000,
+              iconTheme: {
+                primary: '#15803d',
+                secondary: '#ffffff',
+              },
+              style: {
+                borderLeft: '4px solid #15803d',
+                background: 'linear-gradient(135deg, #f0fdf4 0%, #ffffff 40%)',
+              },
+            },
+            error: {
+              duration: 5000,
+              iconTheme: {
+                primary: '#dc2626',
+                secondary: '#ffffff',
+              },
+              style: {
+                borderLeft: '4px solid #dc2626',
+                background: 'linear-gradient(135deg, #fef2f2 0%, #ffffff 40%)',
+              },
+            },
+            loading: {
+              iconTheme: {
+                primary: '#0284c7',
+                secondary: '#ffffff',
+              },
+              style: {
+                borderLeft: '4px solid #0284c7',
+                background: 'linear-gradient(135deg, #f0f9ff 0%, #ffffff 40%)',
+              },
+            },
           }}
         />
       </BrowserRouter>
