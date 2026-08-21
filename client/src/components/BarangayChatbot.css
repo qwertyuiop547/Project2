@@ -152,37 +152,103 @@
     background: rgba(255, 255, 255, 0.25);
 }
 
-/* Feature 3: Hotlines Floating Drawer */
+/* Feature 3: Hotlines Floating Drawer / Collapsible Dropdown */
+.chatbot-hotlines-drawer,
 .chatbot-hotlines-panel {
     background: #fff8f8;
-    border-bottom: 2px solid #fee2e2;
-    padding: 12px 14px;
-    max-height: 230px;
-    overflow-y: auto;
-    box-shadow: inset 0 -4px 10px rgba(0, 0, 0, 0.03);
+    border-bottom: 2px solid #fecaca;
+    padding: 10px 14px 12px;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 280px;
+    animation: hotlineSlideDown 0.2s ease-out;
+    z-index: 10;
+    flex-shrink: 0;
 }
 
+@keyframes hotlineSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hotlines-drawer-header,
 .hotlines-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #fee2e2;
+}
+
+.hotlines-drawer-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 0.8rem;
+    font-weight: 700;
     color: #991b1b;
 }
 
 .hotlines-close-btn {
-    background: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: #fee2e2;
     border: none;
     color: #991b1b;
     cursor: pointer;
-    padding: 2px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
+.hotlines-close-btn:hover {
+    background: #fca5a5;
+    color: #7f1d1d;
+}
+
+.hotlines-grid,
 .hotlines-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: #fca5a5 transparent;
+}
+
+.hotlines-grid::-webkit-scrollbar,
+.hotlines-list::-webkit-scrollbar {
+    width: 5px;
+}
+
+.hotlines-grid::-webkit-scrollbar-track,
+.hotlines-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.hotlines-grid::-webkit-scrollbar-thumb,
+.hotlines-list::-webkit-scrollbar-thumb {
+    background: #fca5a5;
+    border-radius: 4px;
+}
+
+.hotlines-grid::-webkit-scrollbar-thumb:hover,
+.hotlines-list::-webkit-scrollbar-thumb:hover {
+    background: #f87171;
 }
 
 .hotline-card {
@@ -194,6 +260,13 @@
     border: 1px solid #fecaca;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    flex-shrink: 0;
+}
+
+.hotline-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(220, 38, 38, 0.08);
 }
 
 .hotline-icon-box {
@@ -856,3 +929,38 @@
     0% { height: 3px; }
     100% { height: 14px; }
 }
+
+/* Mobile & Small Screen Responsiveness */
+@media (max-width: 640px) {
+    .chatbot-panel {
+        right: 12px;
+        bottom: 84px;
+        width: calc(100vw - 24px);
+        max-width: 440px;
+        height: min(600px, calc(100vh - 100px));
+        border-radius: 16px;
+    }
+
+    .chatbot-hotlines-drawer {
+        max-height: 240px;
+        padding: 8px 10px;
+    }
+
+    .hotlines-grid {
+        max-height: 170px;
+    }
+
+    .hotline-card {
+        padding: 6px 8px;
+        gap: 8px;
+    }
+
+    .hotline-name {
+        font-size: 0.74rem;
+    }
+
+    .hotline-number {
+        font-size: 0.8rem;
+    }
+}
+

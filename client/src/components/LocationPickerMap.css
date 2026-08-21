@@ -189,11 +189,34 @@
     }
 }
 
-.map-overlay-badge {
+/* Leaflet Map Toolbars (Flex Containers) */
+.map-top-bar {
     position: absolute;
-    top: 12px;
-    left: 12px;
+    top: 10px;
+    left: 10px;
+    right: 10px;
     z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.map-bottom-bar {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    right: 56px; /* Leave space for Leaflet zoom button on the bottom right */
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.map-overlay-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -206,6 +229,8 @@
     font-weight: 700;
     color: white;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    pointer-events: auto;
+    white-space: nowrap;
 }
 
 .satellite-pulse-dot {
@@ -234,32 +259,19 @@
 }
 
 .map-pin-tip {
-    position: absolute;
-    bottom: 12px;
-    left: 12px;
-    z-index: 1000;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: rgba(21, 128, 61, 0.9);
+    gap: 5px;
+    padding: 5px 10px;
+    background: rgba(21, 128, 61, 0.92);
     backdrop-filter: blur(6px);
     border-radius: 999px;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 700;
     color: white;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-    pointer-events: none;
-}
-
-.map-layer-controls {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    pointer-events: auto;
+    white-space: nowrap;
 }
 
 .map-layer-toggles {
@@ -270,10 +282,12 @@
     border-radius: 999px;
     padding: 3px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    pointer-events: auto;
+    white-space: nowrap;
 }
 
 .layer-toggle-btn {
-    padding: 5px 12px;
+    padding: 5px 10px;
     border-radius: 999px;
     border: none;
     background: transparent;
@@ -295,22 +309,20 @@
 }
 
 .map-directions-btn {
-    position: absolute;
-    bottom: 12px;
-    right: 56px;
-    z-index: 1000;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
+    gap: 5px;
+    padding: 6px 12px;
     background: #1e3a8a;
     color: white;
     text-decoration: none;
     border-radius: 8px;
-    font-size: 0.8rem;
+    font-size: 0.76rem;
     font-weight: 700;
     box-shadow: 0 4px 10px rgba(30, 58, 138, 0.35);
     transition: all 0.2s ease;
+    pointer-events: auto;
+    white-space: nowrap;
 }
 
 .map-directions-btn:hover {
@@ -326,16 +338,18 @@
 .search-input-group {
     display: flex;
     gap: 8px;
-    align-items: center;
+    align-items: stretch;
 }
 
 .search-input-group .input {
     flex: 1;
+    min-width: 0;
 }
 
 .pinpoint-search-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     padding: 10px 16px;
     background: #1e3a8a;
@@ -358,3 +372,54 @@
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+/* Location Picker Responsiveness */
+@media (max-width: 540px) {
+    .map-view-wrapper {
+        height: 280px;
+    }
+
+    .live-gps-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .coordinates-chip {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .map-top-bar {
+        top: 8px;
+        left: 8px;
+        right: 8px;
+    }
+
+    .map-bottom-bar {
+        bottom: 8px;
+        left: 8px;
+        right: 50px;
+        gap: 4px;
+    }
+
+    .map-overlay-badge,
+    .map-pin-tip,
+    .map-directions-btn {
+        padding: 4px 8px;
+        font-size: 0.68rem;
+    }
+
+    .layer-toggle-btn {
+        padding: 4px 8px;
+        font-size: 0.68rem;
+    }
+
+    .search-input-group {
+        flex-direction: column;
+    }
+
+    .pinpoint-search-btn {
+        width: 100%;
+    }
+}
+

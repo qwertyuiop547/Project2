@@ -422,23 +422,15 @@ export default function LocationPickerMap({ value, onChange, readOnly = false, i
             <div className="map-view-wrapper">
                 <div ref={mapContainerRef} className="leaflet-map-element" />
 
-                {/* Map Floating Overlay Header */}
-                <div className="map-overlay-badge">
-                    <span className="satellite-pulse-dot"></span>
-                    <MapPin size={14} className="map-pin-icon" />
-                    <span>🛰️ Real-Time Interactive Satellite Map</span>
-                </div>
-
-                {/* Pin Tip Helper for User */}
-                {!readOnly && (
-                    <div className="map-pin-tip">
-                        <Move size={13} />
-                        <span>Click or drag the pin to the exact house / incident location</span>
+                {/* Map Floating Top Toolbar */}
+                <div className="map-top-bar">
+                    <div className="map-overlay-badge">
+                        <span className="satellite-pulse-dot"></span>
+                        <MapPin size={13} className="map-pin-icon" />
+                        <span className="badge-text">🛰️ Satellite Map</span>
                     </div>
-                )}
 
-                {/* Satellite Layer Switcher */}
-                <div className="map-layer-controls">
+                    {/* Satellite Layer Switcher */}
                     <div className="map-layer-toggles">
                         <button
                             type="button"
@@ -459,17 +451,26 @@ export default function LocationPickerMap({ value, onChange, readOnly = false, i
                     </div>
                 </div>
 
-                {/* Live Navigation Action */}
-                <a
-                    href={directionsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="map-directions-btn"
-                    title="Open in Google Maps for turn-by-turn navigation"
-                >
-                    <ExternalLink size={14} />
-                    <span>Open in Google Maps</span>
-                </a>
+                {/* Map Floating Bottom Helper & Actions */}
+                <div className="map-bottom-bar">
+                    {!readOnly && (
+                        <div className="map-pin-tip">
+                            <Move size={12} />
+                            <span>Drag pin or tap map</span>
+                        </div>
+                    )}
+
+                    <a
+                        href={directionsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="map-directions-btn"
+                        title="Open in Google Maps for turn-by-turn navigation"
+                    >
+                        <ExternalLink size={13} />
+                        <span>Google Maps</span>
+                    </a>
+                </div>
             </div>
 
             {/* Address search & input field */}
