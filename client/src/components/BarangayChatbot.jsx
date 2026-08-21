@@ -523,7 +523,7 @@ export default function BarangayChatbot() {
                 onClick={isOpen ? closeChatbot : openChatbot}
                 aria-label={isOpen ? 'Close chatbot' : 'Open Barangay AI Assistant'}
             >
-                {isOpen ? <X size={24} /> : <MessageCircle size={24} />}
+                {isOpen ? <X size={20} /> : <MessageCircle size={20} />}
                 {!isOpen && <span className="chatbot-fab-label">AI Assistant</span>}
             </button>
 
