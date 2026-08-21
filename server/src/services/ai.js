@@ -600,6 +600,17 @@ async function assistComplaint({ description, location, title, categories }) {
 
     // Only block if extremely short (1 or 2 words, or fewer than 7 characters like "hi", "sir", "gulo", "help")
     const isVeryShort = meaningfulWords.length < 2 || trimmedDesc.length < 7;
+
+    // ── Nonsense / Gibberish / Non-Complaint Detection ──────────────────
+    const nonsenseResult = detectNonsenseInput(trimmedDesc);
+    if (nonsenseResult.isNonsense) {
+        return {
+            isSufficient: false,
+            clarificationMessage: nonsenseResult.message,
+            source: 'validation',
+        };
+    }
+
     const availableCategories = categories.map((c) => c.name).join(', ');
 
     const systemPrompt = `You are the AI Specialist for a Philippine Barangay Community Portal.
@@ -613,7 +624,14 @@ PRIORITY LEVELS & CRITERIA:
 - LOW: Minor aesthetic or cosmetic suggestions without disruption.
 
 RULES:
-1. VALIDATION: Only set "isSufficient": false if the input is extremely short (1 or 2 words or fewer than 7 characters, such as "hi", "sir", "gulo", "help", "asdf", "test"), gibberish, or completely nonsensical.
+1. **STRICT VALIDATION — REJECT NON-COMPLAINTS**: You MUST set "isSufficient": false if the input is ANY of the following:
+   - Random letters, numbers, keyboard mashing, or gibberish (e.g. "asdfgh", "qwerty", "aaa", "123456", "hhhhhh").
+   - Single words or very short phrases that lack complaint context (e.g. "hi", "sir", "gulo", "help", "test", "hello", "zzz").
+   - Profanity, insults, or vulgar text with no actual complaint described.
+   - Completely irrelevant text unrelated to barangay/community issues (e.g. song lyrics, movie quotes, homework, jokes, personal messages, love letters, social media posts).
+   - Repeated characters or words (e.g. "hahahaha", "lol lol lol", "aaaaaa bbbbb").
+   - Text that does not describe a specific community problem, incident, or service request.
+   When rejecting, provide a helpful Filipino/English clarification message guiding the resident on what a valid complaint looks like.
 2. DYNAMIC TITLE: Generate a concise, professional title (max 70 characters) in English based on the specific incident.
 3. DYNAMIC CATEGORY: Choose the single best matching category from ONLY [${availableCategories}].
 4. DYNAMIC PRIORITY: Determine the urgency level [LOW, MEDIUM, HIGH, URGENT] based strictly on the risk criteria.
@@ -655,7 +673,7 @@ Analyze the resident complaint and provide the JSON output in English.`;
                 return {
                     isSufficient: false,
                     clarificationMessage: parsed.clarificationMessage
-                        || 'The input provided is too brief. Please provide a short sentence describing the problem (e.g. "Our neighbor is too loud at night" or "The streetlight on Block 4 is broken") so the AI can generate your report and map.',
+                        || 'The input provided is too brief or does not describe a valid complaint. Please provide a short sentence describing the problem (e.g. "Our neighbor is too loud at night" or "The streetlight on Block 4 is broken") so the AI can generate your report and map.',
                     source,
                 };
             }
@@ -707,6 +725,89 @@ Analyze the resident complaint and provide the JSON output in English.`;
         explanation: buildPriorityExplanation(priority, matchedCat.name, trimmedDesc),
         source: 'smart-assist',
     };
+}
+
+/**
+ * Pre-AI heuristic: detect gibberish, keyboard mashing, repeated characters,
+ * profanity-only, test inputs, and irrelevant nonsense BEFORE wasting an AI call.
+ */
+function detectNonsenseInput(text) {
+    const lower = text.toLowerCase().trim();
+    const words = lower.split(/\s+/).filter(Boolean);
+
+    // 1. Repeated single character or pattern (e.g. "aaaa", "hhhhhh", "abababab")
+    if (/^(.)\1{3,}$/i.test(lower.replace(/\s/g, ''))) {
+        return {
+            isNonsense: true,
+            message: 'Mukhang paulit-ulit lang ang mga character na inilagay mo. Mangyaring ilarawan ang iyong reklamo nang maayos (hal. "Malakas ang tugtog ng kapitbahay tuwing gabi").',
+        };
+    }
+
+    // 2. Keyboard mash patterns
+    const keyboardPatterns = [
+        /^[asdfghjkl;']+$/i,
+        /^[qwertyuiop]+$/i,
+        /^[zxcvbnm,./]+$/i,
+        /^[1234567890]+$/,
+        /^(.{1,3})\1{2,}$/i,   // Repeated short patterns like "abc abc abc"
+    ];
+    const stripped = lower.replace(/\s+/g, '');
+    if (stripped.length >= 3 && keyboardPatterns.some((p) => p.test(stripped))) {
+        return {
+            isNonsense: true,
+            message: 'Hindi maintindihan ang iyong input. Mangyaring magsulat ng malinaw na reklamo tungkol sa isang problema sa komunidad (hal. "May butas ang kalsada sa Block 3 na mapanganib sa mga sasakyan").',
+        };
+    }
+
+    // 3. Too many unique consonants in a row without vowels (gibberish like "bdfksjhskj")
+    if (/[bcdfghjklmnpqrstvwxyz]{6,}/i.test(stripped)) {
+        return {
+            isNonsense: true,
+            message: 'Mukhang hindi maayos ang iyong input. Mangyaring ilarawan kung ano ang problema o isyu sa inyong lugar (hal. "Hindi gumagana ang ilaw sa kalsada").',
+        };
+    }
+
+    // 4. Common test/troll inputs
+    const trollPatterns = [
+        /^test+$/i,
+        /^(ha){2,}$/i,          // hahaha
+        /^(he){2,}$/i,          // hehehe
+        /^(lo){2,}l?$/i,        // lolol
+        /^(lol|lmao|rofl|xd|bruh|yolo|swag|uwu|owo)\s*$/i,
+        /^(hello|hi|hey|yo|sup|oi|hoy|uy|greetings)\s*[!.?]*$/i,
+        /^(ok|okay|oo|opo|sige|yes|no|ewan|wala|idk|idc)\s*[!.?]*$/i,
+        /^(tang?ina|put[aâ]ng?\s?ina|g[aâ]g[oô]|bogo|animal|bobo|tanga|ulol|gag[oô])\s*[!.?]*$/i,
+        /^[!@#$%^&*()_+=[\]{}|\\;:'",.<>?/`~\-\s]+$/,  // Only special characters
+        /^[\d\s]+$/,            // Only numbers
+    ];
+    if (trollPatterns.some((p) => p.test(lower))) {
+        return {
+            isNonsense: true,
+            message: 'Hindi ito isang valid na reklamo. Mangyaring ilarawan ang isang tunay na isyu o problema sa inyong komunidad para matulungan kayo ng AI (hal. "May mga tambay na nag-iingay sa gabi" o "Hindi nangongolekta ng basura").',
+        };
+    }
+
+    // 5. Same word repeated excessively  (e.g. "basura basura basura basura")
+    if (words.length >= 3) {
+        const uniqueWords = new Set(words);
+        if (uniqueWords.size === 1) {
+            return {
+                isNonsense: true,
+                message: `Paulit-ulit lang ang salitang "${words[0]}". Mangyaring magdagdag ng konteksto — saan ito nangyayari at ano ang epekto nito sa inyo?`,
+            };
+        }
+    }
+
+    // 6. Ratio check — if > 60% of characters are non-alphanumeric (excluding Filipino diacritics), likely gibberish
+    const alphanumericChars = stripped.replace(/[^a-z0-9ñáéíóú]/gi, '');
+    if (stripped.length >= 5 && alphanumericChars.length / stripped.length < 0.4) {
+        return {
+            isNonsense: true,
+            message: 'Hindi maintindihan ang iyong input. Gumamit ng mga salita para mailarawan ang iyong reklamo (hal. "Sira ang gripo sa community faucet").',
+        };
+    }
+
+    return { isNonsense: false };
 }
 
 function buildPortalContext({ services, categories, user, complaintStats }) {
