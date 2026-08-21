@@ -12,24 +12,30 @@ router.get('/status', auth, async (req, res) => {
     const ollama = await isOllamaAvailable();
     let provider = 'smart-assist';
 
-    if (ollama) provider = 'ollama';
+    if (process.env.OPENROUTER_API_KEY) provider = 'openrouter';
     else if (process.env.GEMINI_API_KEY) provider = 'gemini';
     else if (process.env.GROQ_API_KEY) provider = 'groq';
     else if (process.env.OPENAI_API_KEY) provider = 'openai';
+    else if (ollama) provider = 'ollama';
 
     res.json({
         provider,
         ollamaAvailable: ollama,
+        hasOpenRouterKey: !!process.env.OPENROUTER_API_KEY,
         hasGeminiKey: !!process.env.GEMINI_API_KEY,
         hasGroqKey: !!process.env.GROQ_API_KEY,
         hasOpenAiKey: !!process.env.OPENAI_API_KEY,
-        message: ollama
-            ? 'Gumagamit ng Ollama — libreng local AI'
+        message: process.env.OPENROUTER_API_KEY
+            ? `Gumagamit ng OpenRouter (${process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free'})`
             : process.env.GEMINI_API_KEY
                 ? 'Gumagamit ng Google Gemini — libreng API'
                 : process.env.GROQ_API_KEY
                     ? 'Gumagamit ng Groq — libreng API'
-                    : 'Gumagamit ng Smart Assist — built-in, walang API key na kailangan',
+                    : process.env.OPENAI_API_KEY
+                        ? 'Gumagamit ng OpenAI'
+                        : ollama
+                            ? 'Gumagamit ng Ollama — libreng local AI'
+                            : 'Gumagamit ng Smart Assist — built-in, walang API key na kailangan',
     });
 });
 

@@ -255,6 +255,64 @@ async function callOpenAI(messages, { jsonMode = false } = {}) {
     return data.choices?.[0]?.message?.content?.trim() ?? null;
 }
 
+async function callOpenRouter(messages, { jsonMode = false } = {}) {
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    if (!apiKey) {
+        return null;
+    }
+
+    const primaryModel = process.env.OPENROUTER_MODEL || 'z-ai/glm-5.2:free';
+    const modelsToTry = [
+        primaryModel,
+        'liquid/lfm-2.5-2.6b:free',
+        'nvidia/nemotron-3-super-120b-a12b:free',
+        'openai/gpt-oss-20b:free',
+    ];
+    const uniqueModels = [...new Set(modelsToTry)];
+
+    for (const model of uniqueModels) {
+        try {
+            const body = {
+                model,
+                messages,
+                temperature: 0.4,
+            };
+
+            if (jsonMode) {
+                body.response_format = { type: 'json_object' };
+            }
+
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${apiKey}`,
+                    'HTTP-Referer': 'http://localhost:5173',
+                    'X-Title': 'Barangay Burgos Portal',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body),
+                signal: AbortSignal.timeout(45000),
+            });
+
+            if (!response.ok) {
+                const errBody = await response.text().catch(() => '');
+                console.warn(`OpenRouter model ${model} error (${response.status}): ${errBody.slice(0, 100)}`);
+                continue;
+            }
+
+            const data = await response.json();
+            const text = data.choices?.[0]?.message?.content?.trim();
+            if (text) {
+                return text;
+            }
+        } catch (err) {
+            console.warn(`OpenRouter model ${model} attempt error:`, err.message);
+        }
+    }
+
+    return null;
+}
+
 async function isOllamaAvailable() {
     try {
         const baseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
@@ -298,6 +356,9 @@ async function warmUpOllama() {
 async function callAI(messages, { jsonMode = false } = {}) {
     const providers = [];
 
+    if (process.env.OPENROUTER_API_KEY) {
+        providers.push({ name: 'openrouter', fn: callOpenRouter });
+    }
     if (process.env.GEMINI_API_KEY) {
         providers.push({ name: 'gemini', fn: callGemini });
     }
@@ -327,13 +388,20 @@ async function callAI(messages, { jsonMode = false } = {}) {
 
 function extractJsonFromText(text) {
     if (!text) return null;
-    let cleaned = text.trim();
+    let cleaned = text.trim().replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
     if (cleaned.includes('```json')) {
         const match = cleaned.match(/```json\s*([\s\S]*?)\s*```/i);
         if (match) cleaned = match[1];
     } else if (cleaned.includes('```')) {
         const match = cleaned.match(/```\s*([\s\S]*?)\s*```/i);
         if (match) cleaned = match[1];
+    }
+    if (!cleaned.startsWith('{') && cleaned.includes('{') && cleaned.includes('}')) {
+        const first = cleaned.indexOf('{');
+        const last = cleaned.lastIndexOf('}');
+        if (first !== -1 && last > first) {
+            cleaned = cleaned.substring(first, last + 1);
+        }
     }
     return cleaned.trim();
 }
