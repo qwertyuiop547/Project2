@@ -495,6 +495,53 @@
     background: var(--gov-green-soft);
 }
 
+.home-nav-install-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+    border: 1.5px solid #86efac;
+    color: #166534;
+    font-weight: 700;
+    font-size: 0.86rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: 4px;
+}
+
+.home-nav-install-btn:hover {
+    background: #dcfce7;
+    border-color: #4ade80;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(21, 128, 61, 0.12);
+}
+
+.home-mobile-install-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 13px 18px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+    color: white;
+    font-weight: 800;
+    font-size: 0.92rem;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(21, 128, 61, 0.25);
+    transition: all 0.2s ease;
+}
+
+.home-mobile-install-cta:hover {
+    background: linear-gradient(135deg, #166534 0%, #14532d 100%);
+    transform: translateY(-1px);
+}
+
 .home-dashboard-btn,
 .home-login-btn,
 .home-register-btn {

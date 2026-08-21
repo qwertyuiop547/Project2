@@ -6,8 +6,9 @@ import { getRoleLabel } from '../lib/roles'
 import {
     User, Mail, Phone, MapPin, Shield, Calendar, Save, 
     Lock, CheckCircle2, Clock, Sparkles, KeyRound, Building2, 
-    AlertCircle, ShieldCheck
+    AlertCircle, ShieldCheck, Download, Smartphone
 } from 'lucide-react'
+import { openPwaInstallModal } from '../lib/usePWA'
 import toast from 'react-hot-toast'
 import './Profile.css'
 
@@ -316,6 +317,36 @@ export default function Profile() {
                             )}
                         </button>
                     </form>
+                </div>
+
+                {/* Dedicated PWA Mobile App Card */}
+                <div className="profile-card pwa-profile-card">
+                    <div className="profile-card-header">
+                        <div className="card-icon-wrap icon-emerald">
+                            <Smartphone size={20} />
+                        </div>
+                        <div>
+                            <h2>Barangay Burgos Mobile App (PWA)</h2>
+                            <p>I-install ang official portal sa iyong Home Screen para sa mabilisang access at offline hotlines.</p>
+                        </div>
+                    </div>
+
+                    <div className="pwa-profile-content">
+                        <div className="pwa-profile-perks">
+                            <div className="perk-pill">⚡ 1-Tap Home Screen Launcher</div>
+                            <div className="perk-pill">📡 Offline Emergency Access</div>
+                            <div className="perk-pill">📦 Zero App Store Downloads Required</div>
+                        </div>
+
+                        <button
+                            type="button"
+                            className="btn btn-primary pwa-profile-install-btn"
+                            onClick={openPwaInstallModal}
+                        >
+                            <Download size={18} />
+                            <span>Buksan ang App Installer (PWA)</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -14,13 +14,17 @@ import {
     User,
     Globe2,
     Bell,
-    ChevronDown
+    ChevronDown,
+    Download,
+    Smartphone
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import './Layout.css'
 import BarangayChatbot from './BarangayChatbot'
 import BarangaySeal from './BarangaySeal'
 import PwaInstallBanner from './PwaInstallBanner'
+import PwaInstallModal from './PwaInstallModal'
+import { openPwaInstallModal } from '../lib/usePWA'
 import NotificationDropdown from './NotificationDropdown'
 
 export default function Layout() {
@@ -80,6 +84,22 @@ export default function Layout() {
                             <span>{item.label}</span>
                         </NavLink>
                     ))}
+
+                    {/* Dedicated Install App Nav Item */}
+                    <button
+                        type="button"
+                        className="sidebar-pwa-btn"
+                        onClick={() => {
+                            setIsMobileMenuOpen(false)
+                            openPwaInstallModal()
+                        }}
+                    >
+                        <div className="sidebar-pwa-inner">
+                            <Download size={18} className="sidebar-pwa-icon" />
+                            <span>Install App</span>
+                        </div>
+                        <span className="sidebar-pwa-tag">PWA</span>
+                    </button>
                 </nav>
 
                 <div className="sidebar-footer">
@@ -121,6 +141,15 @@ export default function Layout() {
                         </div>
                     </div>
                     <div className="app-topbar-actions">
+                        <button
+                            type="button"
+                            className="topbar-install-link"
+                            onClick={openPwaInstallModal}
+                            title="I-install ang Barangay Burgos App"
+                        >
+                            <Smartphone size={16} />
+                            <span>Install App</span>
+                        </button>
                         <Link to="/" className="topbar-link">
                             <Globe2 size={18} />
                             Public Site
@@ -154,6 +183,15 @@ export default function Layout() {
                         <span className="mobile-title">Barangay Burgos</span>
                     </Link>
                     <div className="mobile-header-right">
+                        <button
+                            type="button"
+                            className="mobile-install-icon-btn"
+                            onClick={openPwaInstallModal}
+                            title="Install App"
+                            aria-label="Install App"
+                        >
+                            <Download size={18} />
+                        </button>
                         <NotificationDropdown />
                         <Link to="/profile" className="mobile-avatar" aria-label="My profile">
                             {user?.firstName?.[0]}{user?.lastName?.[0]}
@@ -175,6 +213,7 @@ export default function Layout() {
 
             <BarangayChatbot />
             <PwaInstallBanner />
+            <PwaInstallModal />
         </div>
     )
 }

@@ -33,10 +33,14 @@ import {
     Activity,
     Ambulance,
     Flame,
-    Siren
+    Siren,
+    Download,
+    Smartphone
 } from 'lucide-react'
 import GovTopBar from '../components/GovTopBar'
 import BarangaySeal from '../components/BarangaySeal'
+import PwaInstallModal from '../components/PwaInstallModal'
+import { openPwaInstallModal } from '../lib/usePWA'
 import './Home.css'
 
 const primaryActions = [
@@ -302,6 +306,15 @@ export default function Home() {
                         <a href="#announcements">Balita</a>
                         <a href="#faq">FAQ</a>
                         <a href="#contact">Ugnayan</a>
+                        <button
+                            type="button"
+                            className="home-nav-install-btn"
+                            onClick={openPwaInstallModal}
+                            title="I-install ang Barangay Burgos App sa Home Screen"
+                        >
+                            <Download size={15} />
+                            <span>Install App</span>
+                        </button>
                         {isAuthenticated ? (
                             <Link to="/dashboard" className="home-dashboard-btn">Dashboard</Link>
                         ) : (
@@ -331,6 +344,17 @@ export default function Home() {
                             </button>
                         </div>
                         <nav className="home-mobile-nav-links" aria-label="Mobile">
+                            <button
+                                type="button"
+                                className="home-mobile-install-cta"
+                                onClick={() => {
+                                    closeMobileNav()
+                                    openPwaInstallModal()
+                                }}
+                            >
+                                <Download size={18} />
+                                <span>I-install ang Barangay App (PWA)</span>
+                            </button>
                             <a href="#services" onClick={closeMobileNav}>Mga Serbisyo</a>
                             <a href="#features" onClick={closeMobileNav}>Bakit Online?</a>
                             <a href="#announcements" onClick={closeMobileNav}>Balita</a>
@@ -769,6 +793,8 @@ export default function Home() {
                     </div>
                 )}
             </div>
+
+            <PwaInstallModal />
         </div>
     )
 }
