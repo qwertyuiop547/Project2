@@ -26,6 +26,14 @@ const PRIORITY_KEYWORDS = {
     ]
 };
 
+const COMMUNITY_ISSUE_KEYWORDS = [
+    'maingay', 'ingay', 'videoke', 'karaoke', 'tugtog', 'tambay', 'inuman', 'kapitbahay', 'patugtog',
+    'basura', 'kalat', 'dumi', 'mabaho', 'amoy', 'estero', 'kanal', 'bara', 'barado', 'baha',
+    'kalsada', 'butas', 'lubak', 'pothole', 'poste', 'ilaw', 'lamp', 'dilim', 'madilim', 'tubo', 'pipe', 'leak',
+    'away', 'gulo', 'nakaw', 'holdap', 'magnanakaw', 'droga', 'shabu', 'krimen', 'aksidente',
+    'saksakan', 'sunog', 'threat', 'banta', 'peste', 'daga', 'aso', 'tahol', 'pusa'
+];
+
 const CATEGORY_LABELS_TL = {
     Infrastructure: 'Imprastraktura',
     Sanitation: 'Sanitasyon / Basura',
@@ -760,35 +768,35 @@ async function assistComplaint({ description, location, title, categories }) {
     const availableCategories = categories.map((c) => c.name).join(', ');
 
     const systemPrompt = `You are the AI Assistant for a Philippine Barangay Community Portal.
-Your task is to assist residents by turning their everyday complaints (even short, simple, or casual Filipino/English text) into a formal, well-structured official report for barangay officials.
+Your task is to turn resident complaints into a formal, structured official report in English for the barangay officials.
 
 AVAILABLE BARANGAY CATEGORIES: [${availableCategories}]
 PRIORITY LEVELS & CRITERIA:
-- URGENT: Immediate danger to life or property, ongoing crime/theft, fire hazard, physical brawl, live wires, severe flooding.
+- URGENT: Immediate danger to life or property, active crime/theft, fire hazard, physical brawl, live wires, flash flood.
 - HIGH: Significant disturbance, recurring midnight videoke/noise, foul sewage/garbage accumulation, deep road potholes, public loitering.
 - MEDIUM: Standard community maintenance, neighbor noise complaints, non-emergency municipal issues.
 - LOW: Minor aesthetic or cosmetic suggestions without disruption.
 
-RULES:
-1. **ACCEPT REAL COMPLAINTS GENEROUSLY (SET isSufficient: true)**:
-   - If the resident mentions ANY real issue or concern (e.g. noise / maingay / kapitbahay / videoke, garbage / basura, road / lubak / pothole, streetlight / poste / ilaw, drainage / baha / canal, crime / safety / away / nakaw), YOU MUST SET "isSufficient": true.
-   - Even if the resident wrote only a simple sentence (e.g., "maingay ang kapitbahay namin gusto ko sana magawan ng paraan yan" or "may butas sa kalsada"), ACCEPT IT as sufficient! Your primary job is to generate the formal title and expand the complaint into a polite, structured official report for them.
-   - ONLY set "isSufficient": false for obvious gibberish (e.g. "asdfgh", "123456", "aaaa"), single greetings (e.g. "hi", "hello", "test"), or profanity with no issue mentioned.
-2. DYNAMIC TITLE: Generate a concise, professional title (max 70 characters) in English based on the specific incident.
-3. DYNAMIC CATEGORY: Choose the single best matching category from ONLY [${availableCategories}].
-4. DYNAMIC PRIORITY: Determine the urgency level [LOW, MEDIUM, HIGH, URGENT] based strictly on the risk criteria.
-5. FORMAL DESCRIPTION: Rewrite the complaint into 2-3 formal, polite, and well-structured sentences in English for barangay officials. RETAIN all specific details provided by the resident.
-6. EXPLANATION: Provide 1-2 sentences explaining why this category and priority were selected.
+CRITICAL RULES ON SUFFICIENCY (isSufficient):
+1. **WHEN TO SET "isSufficient": true**:
+   - If you can identify ANY actual community issue (e.g., noise disturbance, neighbor disputes, trash accumulation, unlit streetlights, damaged road, drainage clog, loitering, safety hazard), you MUST set "isSufficient": true.
+   - It DOES NOT matter if the input is short, informal Tagalog/English, or lacks timestamps/landmarks. YOUR JOB is to formalize, expand, and structure it into a complete official report.
+2. **WHEN TO SET "isSufficient": false (ONLY in these specific cases)**:
+   - Complete gibberish / keyboard mashing (e.g., "asdfghjkl", "123456", "hhhhhh").
+   - 1 to 4 random words that do NOT mention any problem (e.g., "hello po sir", "may reklamo po", "tulungan ninyo ako", "ewan ko").
+   - Profanity or insult with no issue described.
+   - Truly incomprehensible text where no human or AI can tell what the problem is.
+   When setting "isSufficient": false, provide a polite Tagalog/English clarificationMessage asking the resident to mention the specific problem.
 
-Respond ONLY in JSON format:
+JSON OUTPUT FORMAT (Respond ONLY in JSON):
 {
   "isSufficient": true or false,
   "clarificationMessage": "string if isSufficient is false, null if true",
   "title": "string if sufficient, null if not",
   "categoryName": "string from available categories list",
   "priority": "LOW" | "MEDIUM" | "HIGH" | "URGENT",
-  "description": "string (Formal and polite English report)",
-  "explanation": "string (Explanation of chosen category and priority in English)"
+  "description": "string (Formal, polite 2-3 sentence English report for barangay)",
+  "explanation": "string (1-2 sentence explanation of chosen category and priority)"
 }`;
 
     const userPrompt = `Provided Location: ${location || '(none provided)'}
@@ -811,11 +819,13 @@ Analyze the resident complaint and provide the JSON output in English.`;
             const cleanedJson = extractJsonFromText(content);
             const parsed = JSON.parse(cleanedJson);
 
-            if (parsed.isSufficient === false || (isVeryShort && !parsed.title)) {
+            const hasRecognizedIssue = COMMUNITY_ISSUE_KEYWORDS.some((kw) => textMatchesKeyword(trimmedDesc, kw));
+
+            if (parsed.isSufficient === false && !hasRecognizedIssue) {
                 return {
                     isSufficient: false,
                     clarificationMessage: parsed.clarificationMessage
-                        || 'The input provided is too brief or does not describe a valid complaint. Please provide a short sentence describing the problem (e.g. "Our neighbor is too loud at night" or "The streetlight on Block 4 is broken") so the AI can generate your report and map.',
+                        || 'Masyadong maikli o hindi malinaw ang iyong inilagay. Pakilarawan kung anong problema (hal. "Maingay ang kapitbahay sa gabi" o "May butas ang kalsada") upang makabuo ng opisyal na report.',
                     source,
                 };
             }
@@ -832,7 +842,7 @@ Analyze the resident complaint and provide the JSON output in English.`;
             return {
                 isSufficient: true,
                 title: parsed.title?.trim() || buildDynamicTitle(trimmedDesc, matchedCat.name, location),
-                description: parsed.description?.trim() || polishDynamicDescription(trimmedDesc, location, matchedCat.name),
+                description: (parsed.description && parsed.description.length > 20) ? parsed.description.trim() : polishDynamicDescription(trimmedDesc, location, matchedCat.name),
                 categoryId: matchedCat.id,
                 categoryName: matchedCat.name,
                 priority,
@@ -849,7 +859,7 @@ Analyze the resident complaint and provide the JSON output in English.`;
     if (isVeryShort) {
         return {
             isSufficient: false,
-            clarificationMessage: 'The input provided is too brief. Please provide a short sentence describing the problem (e.g. "Our neighbor is playing loud music" or "The streetlight on Block 4 is broken") so the AI can generate your report and map.',
+            clarificationMessage: 'Masyadong maikli ang iyong inilagay. Pakilarawan kung anong problema (hal. "Maingay ang kapitbahay sa gabi" o "May butas ang kalsada") upang makabuo ng opisyal na report.',
             source: 'smart-assist',
         };
     }
@@ -891,13 +901,13 @@ function detectNonsenseInput(text) {
         /^[qwertyuiop]+$/i,
         /^[zxcvbnm,./]+$/i,
         /^[1234567890]+$/,
-        /^(.{1,3})\1{2,}$/i,   // Repeated short patterns like "abc abc abc"
+        /^(.{1,3})\1{2,}$/i,
     ];
     const stripped = lower.replace(/\s+/g, '');
     if (stripped.length >= 3 && keyboardPatterns.some((p) => p.test(stripped))) {
         return {
             isNonsense: true,
-            message: 'Hindi maintindihan ang iyong input. Mangyaring magsulat ng malinaw na reklamo tungkol sa isang problema sa komunidad (hal. "May butas ang kalsada sa Block 3 na mapanganib sa mga sasakyan").',
+            message: 'Hindi maintindihan ang iyong input. Mangyaring magsulat ng malinaw na reklamo tungkol sa isang problema sa komunidad (hal. "May butas ang kalsada sa Block 3").',
         };
     }
 
@@ -919,17 +929,17 @@ function detectNonsenseInput(text) {
         /^(hello|hi|hey|yo|sup|oi|hoy|uy|greetings)\s*[!.?]*$/i,
         /^(ok|okay|oo|opo|sige|yes|no|ewan|wala|idk|idc)\s*[!.?]*$/i,
         /^(tang?ina|put[aâ]ng?\s?ina|g[aâ]g[oô]|bogo|animal|bobo|tanga|ulol|gag[oô])\s*[!.?]*$/i,
-        /^[!@#$%^&*()_+=[\]{}|\\;:'",.<>?/`~\-\s]+$/,  // Only special characters
-        /^[\d\s]+$/,            // Only numbers
+        /^[!@#$%^&*()_+=[\]{}|\\;:'",.<>?/`~\-\s]+$/,
+        /^[\d\s]+$/,
     ];
     if (trollPatterns.some((p) => p.test(lower))) {
         return {
             isNonsense: true,
-            message: 'Hindi ito isang valid na reklamo. Mangyaring ilarawan ang isang tunay na isyu o problema sa inyong komunidad para matulungan kayo ng AI (hal. "May mga tambay na nag-iingay sa gabi" o "Hindi nangongolekta ng basura").',
+            message: 'Hindi ito isang valid na reklamo. Mangyaring ilarawan ang isang tunay na isyu o problema sa inyong komunidad (hal. "May mga tambay na nag-iingay sa gabi" o "Hindi nangongolekta ng basura").',
         };
     }
 
-    // 5. Same word repeated excessively  (e.g. "basura basura basura basura")
+    // 5. Same word repeated excessively (e.g. "basura basura basura basura")
     if (words.length >= 3) {
         const uniqueWords = new Set(words);
         if (uniqueWords.size === 1) {
@@ -940,12 +950,19 @@ function detectNonsenseInput(text) {
         }
     }
 
-    // 6. Ratio check — if > 60% of characters are non-alphanumeric (excluding Filipino diacritics), likely gibberish
-    const alphanumericChars = stripped.replace(/[^a-z0-9ñáéíóú]/gi, '');
-    if (stripped.length >= 5 && alphanumericChars.length / stripped.length < 0.4) {
+    // 6. Generic 1-3 uninformative words that contain NO issue keywords (e.g. "may reklamo po", "tulong naman sir", "problema dito")
+    const issueKeywords = [
+        'maingay', 'ingay', 'videoke', 'karaoke', 'tugtog', 'tambay', 'inuman',
+        'basura', 'kalat', 'dumi', 'mabaho', 'amoy', 'estero', 'kanal', 'bara', 'baha',
+        'kalsada', 'butas', 'lubak', 'pothole', 'poste', 'ilaw', 'lamp', 'dilim', 'tubo', 'pipe',
+        'away', 'gulo', 'nakaw', 'holdap', 'magnanakaw', 'droga', 'shabu', 'krimen', 'aksidente',
+        'saksakan', 'sunog', 'threat', 'banta', 'peste', 'daga', 'aso', 'tahol', 'pusa'
+    ];
+    const hasIssueKeyword = issueKeywords.some((kw) => textMatchesKeyword(lower, kw));
+    if (words.length <= 3 && !hasIssueKeyword && stripped.length < 20) {
         return {
             isNonsense: true,
-            message: 'Hindi maintindihan ang iyong input. Gumamit ng mga salita para mailarawan ang iyong reklamo (hal. "Sira ang gripo sa community faucet").',
+            message: 'Masyadong maikli ang iyong inilagay. Pakisabi kung anong problema (hal. "Maingay ang kapitbahay sa gabi" o "May butas ang kalsada") upang makabuo ng opisyal na report.',
         };
     }
 
