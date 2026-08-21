@@ -79,18 +79,18 @@ export default function CreateComplaint() {
         e?.preventDefault?.()
         const desc = formData.description.trim()
         if (!desc) {
-            toast.error('Please enter your complaint description first.')
+            toast.error('Please enter your complaint description first.', { id: 'complaint-validation' })
             return
         }
         // Client-side quick checks before sending to AI
         if (desc.length < 10) {
-            toast.error('Masyadong maikli ang iyong reklamo. Mangyaring maglagay ng kaunting detalye pa.')
+            toast.error('Masyadong maikli ang iyong reklamo. Mangyaring maglagay ng kaunting detalye pa.', { id: 'complaint-validation' })
             return
         }
         // Basic gibberish / keyboard mash check
         const stripped = desc.replace(/\s+/g, '').toLowerCase()
         if (/^(.)\1{3,}$/i.test(stripped) || /^[asdfghjkl;']+$/i.test(stripped) || /^[qwertyuiop]+$/i.test(stripped)) {
-            toast.error('Hindi maintindihan ang iyong input. Mangyaring magsulat ng maayos na reklamo.')
+            toast.error('Hindi maintindihan ang iyong input. Mangyaring magsulat ng maayos na reklamo.', { id: 'complaint-validation' })
             return
         }
         aiAssistMutation.mutate()
