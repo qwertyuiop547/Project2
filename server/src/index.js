@@ -48,7 +48,6 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-const path = require('path');
 const fs = require('fs');
 
 // Serve client static build in production or when client/dist exists
