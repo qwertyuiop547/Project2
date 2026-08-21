@@ -38,9 +38,15 @@ self.addEventListener('activate', (event) => {
 // Fetch event: Network-first with Cache fallback for navigation, Stale-while-revalidate for static assets
 self.addEventListener('fetch', (event) => {
     const { request } = event
+    
+    // Only handle http and https requests (Cache API does not support chrome-extension://, moz-extension://, etc.)
+    if (!request.url.startsWith('http://') && !request.url.startsWith('https://')) {
+        return
+    }
+
     const url = new URL(request.url)
 
-    // Bypass non-GET requests and API requests (API calls handled in app with appropriate error handling)
+    // Bypass non-GET requests and API requests
     if (request.method !== 'GET' || url.pathname.startsWith('/api/')) {
         return
     }
@@ -50,9 +56,11 @@ self.addEventListener('fetch', (event) => {
         event.respondWith(
             fetch(request)
                 .then((networkResponse) => {
-                    if (networkResponse && networkResponse.status === 200) {
+                    if (networkResponse && networkResponse.status === 200 && (url.protocol === 'http:' || url.protocol === 'https:')) {
                         const responseClone = networkResponse.clone()
-                        caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone))
+                        caches.open(CACHE_NAME).then((cache) => {
+                            cache.put(request, responseClone).catch(() => {})
+                        }).catch(() => {})
                     }
                     return networkResponse
                 })
@@ -80,9 +88,11 @@ self.addEventListener('fetch', (event) => {
         caches.match(request).then((cachedResponse) => {
             const fetchPromise = fetch(request)
                 .then((networkResponse) => {
-                    if (networkResponse && networkResponse.status === 200) {
+                    if (networkResponse && networkResponse.status === 200 && (url.protocol === 'http:' || url.protocol === 'https:')) {
                         const responseClone = networkResponse.clone()
-                        caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone))
+                        caches.open(CACHE_NAME).then((cache) => {
+                            cache.put(request, responseClone).catch(() => {})
+                        }).catch(() => {})
                     }
                     return networkResponse
                 })
@@ -92,3 +102,4 @@ self.addEventListener('fetch', (event) => {
         })
     )
 })
+

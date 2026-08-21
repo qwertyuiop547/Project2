@@ -6,6 +6,37 @@ import { Toaster } from 'react-hot-toast'
 import App from './App.jsx'
 import './index.css'
 
+// Suppress browser extension injected script errors (e.g. IDM 200.js, M_ID, chrome-extension:// Cache errors)
+if (typeof window !== 'undefined') {
+  const EXTENSION_NOISE = ['200.js', 'M_ID', 'chrome-extension', 'bis_skin_checked', 'data-grammarly']
+
+  window.addEventListener('unhandledrejection', (event) => {
+    const reason = event.reason
+    const msg =
+      reason instanceof Error
+        ? `${reason.name}: ${reason.message}\n${reason.stack || ''}`
+        : String(reason ?? '')
+    if (EXTENSION_NOISE.some((pattern) => msg.includes(pattern)) || msg.includes('chrome-extension')) {
+      event.preventDefault()
+      event.stopImmediatePropagation?.()
+    }
+  })
+
+  window.addEventListener(
+    'error',
+    (event) => {
+      const errorStr = `${event.message || ''} ${event.filename || ''} ${
+        event.error instanceof Error ? event.error.stack || '' : ''
+      }`
+      if (EXTENSION_NOISE.some((pattern) => errorStr.includes(pattern))) {
+        event.preventDefault()
+        event.stopImmediatePropagation?.()
+      }
+    },
+    true
+  )
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -14,6 +45,7 @@ const queryClient = new QueryClient({
     }
   }
 })
+
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
