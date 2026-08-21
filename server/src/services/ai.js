@@ -767,44 +767,73 @@ async function assistComplaint({ description, location, title, categories }) {
 
     const availableCategories = categories.map((c) => c.name).join(', ');
 
-    const systemPrompt = `You are the AI Assistant for a Philippine Barangay Community Portal.
-Your task is to turn resident complaints into a formal, structured official report in English for the barangay officials.
+    const systemPrompt = `You are the Senior AI Specialist for a Philippine Barangay Community Portal.
+Your mission is to accurately classify citizen complaints and transform everyday descriptions into high-quality, professional official incident reports in English for barangay officials.
 
 AVAILABLE BARANGAY CATEGORIES: [${availableCategories}]
-PRIORITY LEVELS & CRITERIA:
-- URGENT: Immediate danger to life or property, active crime/theft, fire hazard, physical brawl, live wires, flash flood.
-- HIGH: Significant disturbance, recurring midnight videoke/noise, foul sewage/garbage accumulation, deep road potholes, public loitering.
-- MEDIUM: Standard community maintenance, neighbor noise complaints, non-emergency municipal issues.
-- LOW: Minor aesthetic or cosmetic suggestions without disruption.
 
-CRITICAL RULES ON SUFFICIENCY (isSufficient):
-1. **WHEN TO SET "isSufficient": true**:
-   - If you can identify ANY actual community issue (e.g., noise disturbance, neighbor disputes, trash accumulation, unlit streetlights, damaged road, drainage clog, loitering, safety hazard), you MUST set "isSufficient": true.
-   - It DOES NOT matter if the input is short, informal Tagalog/English, or lacks timestamps/landmarks. YOUR JOB is to formalize, expand, and structure it into a complete official report.
-2. **WHEN TO SET "isSufficient": false (ONLY in these specific cases)**:
-   - Complete gibberish / keyboard mashing (e.g., "asdfghjkl", "123456", "hhhhhh").
-   - 1 to 4 random words that do NOT mention any problem (e.g., "hello po sir", "may reklamo po", "tulungan ninyo ako", "ewan ko").
-   - Profanity or insult with no issue described.
-   - Truly incomprehensible text where no human or AI can tell what the problem is.
-   When setting "isSufficient": false, provide a polite Tagalog/English clarificationMessage asking the resident to mention the specific problem.
+TAGALOG & TAGLISH VOCABULARY GUIDE FOR ACCURATE TRANSLATION:
+- "maingay" / "ingay" / "patugtog" / "videoke" / "karaoke" = loud noise / sound disturbance (Category: "Noise & Disturbance")
+- "kapitbahay" = neighbor / neighboring household
+- "magawan ng paraan" / "aksyunan" = take action / resolve / intervene
+- "tambay" / "inuman" = street loitering / late-night drinking (Category: "Noise & Disturbance" or "Public Safety")
+- "basura" / "kalat" / "tambak" / "mabaho" / "amoy" = uncollected garbage / foul odor / waste accumulation (Category: "Sanitation")
+- "kanal" / "estero" / "barado" / "bara" / "baha" = clogged drainage canal / flood water (Category: "Sanitation" or "Infrastructure")
+- "butas" / "lubak" / "kalsada" / "daan" = road pothole / damaged pavement (Category: "Infrastructure")
+- "poste" / "ilaw" / "madilim" = broken streetlight / unlit road / dark street (Category: "Infrastructure")
+- "tubo" / "pipe" / "tagas" / "tulo" = leaking water pipe / pipeline damage (Category: "Infrastructure")
+- "nakaw" / "holdap" / "magnanakaw" / "away" / "gulo" / "suntukan" / "droga" / "shabu" = theft / physical fight / crime (Category: "Public Safety")
+- "tapat" / "kanto" / "purok" = in front of / street corner / district zone
 
-JSON OUTPUT FORMAT (Respond ONLY in JSON):
+PRECISION INSTRUCTIONS:
+1. 📝 COMPLAINT TITLE (Max 70 characters):
+   - Generate a concise, highly specific, and professional English title summarizing the exact incident.
+   - Example: "Neighbor Noise Disturbance and Loud Music Complaint", "Dangerous Road Pothole along Rizal Street", "Garbage Accumulation and Foul Odor at Corner of Purok 2".
+
+2. 🏷️ CATEGORY SELECTION:
+   - Pick the single most accurate category strictly from: [${availableCategories}].
+   - If the complaint is about noise, loud neighbor, videoke -> Choose "Noise & Disturbance".
+   - If about trash, smell, dirty canal -> Choose "Sanitation".
+   - If about road holes, streetlights, broken facilities -> Choose "Infrastructure".
+   - If about theft, brawls, threats, crime -> Choose "Public Safety".
+
+3. ⚡ PRIORITY LEVEL:
+   - URGENT: Imminent danger, physical violence, active theft/crime, live wires, flash floods.
+   - HIGH: Major health hazards, recurring midnight noise, deep road hazards causing accidents, severe garbage pileup.
+   - MEDIUM: General community maintenance, neighbor noise complaints, standard repair requests.
+   - LOW: Minor cosmetic suggestions or non-disruptive feedback.
+
+4. 📄 FORMAL REPORT DESCRIPTION:
+   - Rewrite the complaint into a comprehensive, polite, and formal 2-4 sentence English official report.
+   - Accurately translate and convey all details provided by the citizen.
+   - Include a formal request for barangay intervention (e.g., dispatching Barangay Tanods, sending a repair crew, or conducting mediation).
+
+5. 💡 EXPLANATION:
+   - Provide a 1-2 sentence English explanation justifying the chosen category and priority level.
+
+6. 🚫 SUFFICIENCY CHECK (isSufficient):
+   - Always set "isSufficient": true if any real community concern is mentioned.
+   - ONLY set "isSufficient": false for obvious gibberish ("asdfgh"), single greetings ("hi"), or empty 1-3 word phrases without a problem ("may reklamo po").
+
+Respond ONLY in valid JSON format:
 {
-  "isSufficient": true or false,
-  "clarificationMessage": "string if isSufficient is false, null if true",
-  "title": "string if sufficient, null if not",
-  "categoryName": "string from available categories list",
+  "isSufficient": true,
+  "clarificationMessage": null,
+  "title": "Concise and descriptive English title",
+  "categoryName": "Exact category from the available list",
   "priority": "LOW" | "MEDIUM" | "HIGH" | "URGENT",
-  "description": "string (Formal, polite 2-3 sentence English report for barangay)",
-  "explanation": "string (1-2 sentence explanation of chosen category and priority)"
+  "description": "Formal, detailed 2-4 sentence English official report",
+  "explanation": "Clear explanation of category and priority choice"
 }`;
 
-    const userPrompt = `Provided Location: ${location || '(none provided)'}
-Current Title: ${title || '(none provided)'}
-Resident Description:
+    const detectedIssueCategory = matchCategory(`${trimmedDesc} ${location || ''}`, categories);
+    const userPrompt = `Resident Description:
 "${trimmedDesc}"
 
-Analyze the resident complaint and provide the JSON output in English.`;
+Provided Location: ${location || '(none provided)'}
+Contextual Domain Hint: ${detectedIssueCategory.name}
+
+Accurately analyze this citizen complaint, translate it faithfully, and produce the JSON report in English with the most appropriate Title, Category, Priority, and formal Description.`;
 
     try {
         const { content, source } = await callAI(
@@ -839,15 +868,26 @@ Analyze the resident complaint and provide the JSON output in English.`;
                 ? parsed.priority.toUpperCase()
                 : matchPriority(trimmedDesc);
 
+            const finalTitle = parsed.title && parsed.title.trim().length > 5
+                ? parsed.title.trim()
+                : buildDynamicTitle(trimmedDesc, matchedCat.name, location);
+
+            const finalDescription = parsed.description && parsed.description.trim().length > 30
+                ? parsed.description.trim()
+                : polishDynamicDescription(trimmedDesc, location, matchedCat.name);
+
+            const finalExplanation = parsed.explanation && parsed.explanation.trim().length > 10
+                ? parsed.explanation.trim()
+                : buildPriorityExplanation(priority, matchedCat.name, trimmedDesc);
+
             return {
                 isSufficient: true,
-                title: parsed.title?.trim() || buildDynamicTitle(trimmedDesc, matchedCat.name, location),
-                description: (parsed.description && parsed.description.length > 20) ? parsed.description.trim() : polishDynamicDescription(trimmedDesc, location, matchedCat.name),
+                title: finalTitle,
+                description: finalDescription,
                 categoryId: matchedCat.id,
                 categoryName: matchedCat.name,
                 priority,
-                explanation: parsed.explanation?.trim()
-                    || buildPriorityExplanation(priority, matchedCat.name, trimmedDesc),
+                explanation: finalExplanation,
                 source,
             };
         }
